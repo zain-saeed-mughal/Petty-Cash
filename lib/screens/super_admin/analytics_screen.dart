@@ -14,7 +14,6 @@ class AnalyticsScreen extends StatelessWidget {
     final expense = Provider.of<ExpenseProvider>(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 950;
-    final isTablet = screenWidth >= 600 && screenWidth < 950;
 
     final totalSpent = expense.totalSpent;
     final pendingAmount = expense.pendingAmount;
@@ -56,42 +55,60 @@ class AnalyticsScreen extends StatelessWidget {
               // KPI Cards Grid
               LayoutBuilder(
                 builder: (context, constraints) {
-                  int crossAxisCount = isDesktop ? 4 : (isTablet ? 2 : 1);
-                  return GridView.count(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    childAspectRatio: isDesktop ? 1.4 : 2.0,
+                  final availableWidth = constraints.maxWidth;
+                  int crossAxisCount = 1;
+                  if (availableWidth >= 800) {
+                    crossAxisCount = 4;
+                  } else if (availableWidth >= 500) {
+                    crossAxisCount = 2;
+                  }
+
+                  final spacing = 16.0;
+                  final cardWidth = (availableWidth - (crossAxisCount - 1) * spacing) / crossAxisCount;
+
+                  return Wrap(
+                    spacing: spacing,
+                    runSpacing: spacing,
                     children: [
-                      StatCard(
-                        title: 'TOTAL DISBURSED',
-                        value: '${AppConstants.defaultCurrencySymbol}${totalSpent.toStringAsFixed(2)}',
-                        subtitle: '$approvedCount approved payments',
-                        icon: Icons.payments_rounded,
-                        color: AppTheme.statusApproved,
+                      SizedBox(
+                        width: cardWidth,
+                        child: StatCard(
+                          title: 'TOTAL DISBURSED',
+                          value: '${AppConstants.defaultCurrencySymbol}${totalSpent.toStringAsFixed(2)}',
+                          subtitle: '$approvedCount approved payments',
+                          icon: Icons.payments_rounded,
+                          color: AppTheme.statusApproved,
+                        ),
                       ),
-                      StatCard(
-                        title: 'PENDING QUEUE',
-                        value: '${AppConstants.defaultCurrencySymbol}${pendingAmount.toStringAsFixed(2)}',
-                        subtitle: '$pendingCount requests awaiting review',
-                        icon: Icons.hourglass_top_rounded,
-                        color: AppTheme.statusPending,
+                      SizedBox(
+                        width: cardWidth,
+                        child: StatCard(
+                          title: 'PENDING QUEUE',
+                          value: '${AppConstants.defaultCurrencySymbol}${pendingAmount.toStringAsFixed(2)}',
+                          subtitle: '$pendingCount requests awaiting review',
+                          icon: Icons.hourglass_top_rounded,
+                          color: AppTheme.statusPending,
+                        ),
                       ),
-                      StatCard(
-                        title: 'APPROVAL RATE',
-                        value: '${expense.approvalRate.toStringAsFixed(1)}%',
-                        subtitle: '$approvedCount of ${approvedCount + rejectedCount} reviewed',
-                        icon: Icons.verified_rounded,
-                        color: AppTheme.primaryBlue,
+                      SizedBox(
+                        width: cardWidth,
+                        child: StatCard(
+                          title: 'APPROVAL RATE',
+                          value: '${expense.approvalRate.toStringAsFixed(1)}%',
+                          subtitle: '$approvedCount of ${approvedCount + rejectedCount} reviewed',
+                          icon: Icons.verified_rounded,
+                          color: AppTheme.primaryBlue,
+                        ),
                       ),
-                      StatCard(
-                        title: 'REJECTION COUNT',
-                        value: '$rejectedCount',
-                        subtitle: 'Returned to requester',
-                        icon: Icons.cancel_rounded,
-                        color: AppTheme.statusRejected,
+                      SizedBox(
+                        width: cardWidth,
+                        child: StatCard(
+                          title: 'REJECTION COUNT',
+                          value: '$rejectedCount',
+                          subtitle: 'Returned to requester',
+                          icon: Icons.cancel_rounded,
+                          color: AppTheme.statusRejected,
+                        ),
                       ),
                     ],
                   );
@@ -225,6 +242,7 @@ class AnalyticsScreen extends StatelessWidget {
 
   Widget _buildLegendItem(String label, Color color) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           width: 12,
@@ -232,9 +250,12 @@ class AnalyticsScreen extends StatelessWidget {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+        Flexible(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

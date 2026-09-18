@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/expense_provider.dart';
 import '../../widgets/adaptive_scaffold.dart';
 import 'all_transactions_screen.dart';
+import 'user_management_screen.dart';
 import '../super_admin/analytics_screen.dart';
 import '../reports/monthly_reporting_screen.dart';
 
@@ -30,24 +31,31 @@ class _AdminDashboardState extends State<AdminDashboard> {
       const NavigationItem(
         icon: Icons.bar_chart_rounded,
         selectedIcon: Icons.insert_chart_rounded,
-        label: 'Reports & Analytics',
+        label: 'Analytics',
+      ),
+      const NavigationItem(
+        icon: Icons.people_alt_outlined,
+        selectedIcon: Icons.people_alt_rounded,
+        label: 'Users',
       ),
       const NavigationItem(
         icon: Icons.calendar_month_outlined,
         selectedIcon: Icons.calendar_month_rounded,
-        label: 'Monthly Reports',
+        label: 'Reports',
       ),
     ];
 
-    final screens = const [
-      AllTransactionsScreen(),
-      AnalyticsScreen(),
-      MonthlyReportingScreen(),
+    final screens = [
+      const AllTransactionsScreen(),
+      const AnalyticsScreen(),
+      const UserManagementScreen(),
+      const MonthlyReportingScreen(),
     ];
 
     final titles = [
       'All Transactions',
       'Reports & Analytics',
+      'User Management',
       'Monthly Reports',
     ];
 

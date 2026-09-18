@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../config/app_theme.dart';
 
 class ReceiptViewerDialog extends StatelessWidget {
@@ -91,21 +92,13 @@ class ReceiptViewerDialog extends StatelessWidget {
                                 fit: BoxFit.contain,
                                 errorBuilder: (ctx, err, stack) => _errorPlaceholder(),
                               )
-                            : Image.network(
-                                imageUrl,
+                            : CachedNetworkImage(
+                                imageUrl: imageUrl,
                                 fit: BoxFit.contain,
-                                loadingBuilder: (ctx, child, progress) {
-                                  if (progress == null) return child;
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      value: progress.expectedTotalBytes != null
-                                          ? progress.cumulativeBytesLoaded / progress.expectedTotalBytes!
-                                          : null,
-                                      color: Colors.white,
-                                    ),
-                                  );
-                                },
-                                errorBuilder: (ctx, err, stack) => _errorPlaceholder(),
+                                placeholder: (context, url) => const Center(
+                                  child: CircularProgressIndicator(color: Colors.white),
+                                ),
+                                errorWidget: (context, url, error) => _errorPlaceholder(),
                               ),
                       ),
                     ),

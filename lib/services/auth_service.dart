@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 import '../config/app_constants.dart';
-import 'demo_data_service.dart';
 import 'supabase_service.dart';
 
 class AuthService {
@@ -9,117 +9,124 @@ class AuthService {
   factory AuthService() => _instance;
   AuthService._internal();
 
-  bool _isSupabaseAvailable = false;
   AppUser? _currentActiveUser;
-
-  bool get isSupabaseAvailable => _isSupabaseAvailable;
   AppUser? get currentUser => _currentActiveUser;
 
-  void initialize({bool enableSupabase = true}) {
-    _isSupabaseAvailable = enableSupabase;
+  SupabaseClient? get _client => SupabaseService().client;
+
+  Future<AppUser?> restoreSession() async {
+    final client = _client;
+    if (client == null) {
+      _currentActiveUser = null;
+      return null;
+    }
+
+    final Session? session = client.auth.currentSession;
+    final String? userId;
+    if (session != null) {
+      userId = session.user.id;
+    } else {
+      userId = null;
+    }
+
+    if (userId != null) {
+      try {
+        final data = await client
+            .from(AppConstants.usersCollection)
+            .select()
+            .eq('uid', userId)
+            .maybeSingle();
+
+        if (data != null) {
+          final user = AppUser.fromMap(data, docId: userId);
+          if (user.isActive) {
+            _currentActiveUser = user;
+            return user;
+          }
+          await client.auth.signOut();
+          _currentActiveUser = null;
+          return null;
+        }
+      } catch (e) {
+        debugPrint('Failed to restore session profile: $e');
+      }
+    }
+
+    _currentActiveUser = null;
+    return null;
   }
 
-  // Sign In with email & password
   Future<AppUser?> signIn({
     required String email,
     required String password,
   }) async {
+    final client = _client;
+    if (client == null) {
+      throw Exception('Supabase is not initialized. Please try again later.');
+    }
+
     final cleanEmail = email.trim().toLowerCase();
 
-    // 1. Check Demo Accounts first for instant convenience
-    final demoUser = DemoDataService().findUserByEmail(cleanEmail);
-    if (demoUser != null) {
-      _currentActiveUser = demoUser;
-      return demoUser;
-    }
+    try {
+      final authResponse = await client.auth.signInWithPassword(
+        email: cleanEmail,
+        password: password,
+      );
 
-    // 2. Try Real Supabase Auth if available
-    if (_isSupabaseAvailable && SupabaseService().client != null) {
-      try {
-        final authResponse = await SupabaseService().client!.auth.signInWithPassword(
-          email: cleanEmail,
-          password: password,
-        );
+      final uid = authResponse.user?.id;
+      if (uid != null) {
+        final data = await client
+            .from(AppConstants.usersCollection)
+            .select()
+            .eq('uid', uid)
+            .maybeSingle();
 
-        final uid = authResponse.user?.id;
-        if (uid != null) {
-          final data = await SupabaseService()
-              .client!
-              .from(AppConstants.usersCollection)
-              .select()
-              .eq('uid', uid)
-              .maybeSingle();
-
-          if (data != null) {
-            final user = AppUser.fromMap(data, docId: uid);
-            _currentActiveUser = user;
-            return user;
-          } else {
-            // Document does not exist yet, create default user
-            final newUser = AppUser(
-              uid: uid,
-              name: authResponse.user?.userMetadata?['name'] ?? cleanEmail.split('@').first,
-              email: cleanEmail,
-              role: UserRole.officeBoy, // Default role
-              createdAt: DateTime.now(),
-            );
-            await SupabaseService()
-                .client!
-                .from(AppConstants.usersCollection)
-                .insert(newUser.toMap());
-            _currentActiveUser = newUser;
-            return newUser;
+        if (data != null) {
+          final user = AppUser.fromMap(data, docId: uid);
+          if (!user.isActive) {
+            throw Exception('This account is inactive. Please contact your administrator.');
           }
+          _currentActiveUser = user;
+          return user;
+        } else {
+          throw Exception('User profile not found. Please contact an Administrator.');
         }
-      } catch (e) {
-        debugPrint('Supabase signIn error: $e');
-        rethrow;
       }
+      throw Exception('Authentication failed.');
+    } on AuthException catch (e) {
+      debugPrint('Supabase AuthException: ${e.message}');
+      throw Exception(e.message);
+    } catch (e) {
+      debugPrint('Supabase signIn error: $e');
+      throw Exception('An unexpected error occurred during login.');
     }
-
-    throw Exception('User account not found. Please check your email or pick a quick-login demo role.');
   }
 
-  // Sign Up with Role
   Future<AppUser?> signUp({
     required String name,
     required String email,
     required String password,
-    required UserRole role,
+    UserRole role = UserRole.officeBoy,
   }) async {
+    final client = _client;
+    if (client == null) {
+      throw Exception('Supabase is not initialized. Please try again later.');
+    }
+
     final cleanEmail = email.trim().toLowerCase();
 
-    if (_isSupabaseAvailable && SupabaseService().client != null) {
-      try {
-        final authResponse = await SupabaseService().client!.auth.signUp(
-          email: cleanEmail,
-          password: password,
-          data: {'name': name.trim()},
-        );
+    try {
+      final authResponse = await client.auth.signUp(
+        email: cleanEmail,
+        password: password,
+        data: {'name': name.trim()},
+      );
 
-        final uid = authResponse.user?.id ?? 'user_${DateTime.now().millisecondsSinceEpoch}';
-        final newUser = AppUser(
-          uid: uid,
-          name: name.trim(),
-          email: cleanEmail,
-          role: role,
-          createdAt: DateTime.now(),
-        );
-
-        await SupabaseService()
-            .client!
-            .from(AppConstants.usersCollection)
-            .insert(newUser.toMap());
-
-        _currentActiveUser = newUser;
-        return newUser;
-      } catch (e) {
-        debugPrint('Supabase signUp error: $e');
-        rethrow;
+      final uid = authResponse.user?.id;
+      if (uid == null) {
+        throw Exception('Sign up failed: No UID returned.');
       }
-    } else {
-      // Create local user in Demo Service
-      final uid = 'user_${DateTime.now().millisecondsSinceEpoch}';
+
       final newUser = AppUser(
         uid: uid,
         name: name.trim(),
@@ -127,22 +134,27 @@ class AuthService {
         role: role,
         createdAt: DateTime.now(),
       );
-      DemoDataService().addUser(newUser);
+
+      await client
+          .from(AppConstants.usersCollection)
+          .insert(newUser.toMap());
+
       _currentActiveUser = newUser;
       return newUser;
+    } on AuthException catch (e) {
+      debugPrint('Supabase AuthException: ${e.message}');
+      throw Exception(e.message);
+    } catch (e) {
+      debugPrint('Supabase signUp error: $e');
+      throw Exception('An unexpected error occurred during sign up.');
     }
   }
 
-  // Quick switch role (for instant testing during demo)
-  void setDemoUser(AppUser user) {
-    _currentActiveUser = user;
-  }
-
-  // Sign Out
   Future<void> signOut() async {
-    if (_isSupabaseAvailable && SupabaseService().client != null) {
+    final client = _client;
+    if (client != null) {
       try {
-        await SupabaseService().client!.auth.signOut();
+        await client.auth.signOut();
       } catch (e) {
         debugPrint('Supabase signOut error: $e');
       }

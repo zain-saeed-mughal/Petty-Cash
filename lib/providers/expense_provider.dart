@@ -5,7 +5,9 @@ import 'package:uuid/uuid.dart';
 
 import '../models/expense_request_model.dart';
 import '../models/user_model.dart';
+import '../models/notification_model.dart';
 import '../services/database_service.dart';
+import '../services/supabase_service.dart';
 
 class ExpenseProvider extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
@@ -202,6 +204,27 @@ class ExpenseProvider extends ChangeNotifier {
       );
 
       await _databaseService.createRequest(request);
+
+      // Notify managers
+      try {
+        final managers = await SupabaseService().client!
+            .from('users')
+            .select('uid')
+            .inFilter('role', ['finance', 'admin', 'super_admin']);
+        
+        for (var manager in managers) {
+          final notif = AppNotification(
+            userId: manager['uid'],
+            title: 'New Expense Request',
+            message: '${user.name} submitted a request for Rs. $amount',
+            relatedRequestId: newId,
+          );
+          await _databaseService.createNotification(notif);
+        }
+      } catch (notifyErr) {
+        debugPrint('Failed to send notifications: $notifyErr');
+      }
+
       return true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -240,6 +263,20 @@ class ExpenseProvider extends ChangeNotifier {
       );
 
       await _databaseService.updateRequest(updated);
+
+      // Notify the requester
+      try {
+        final notif = AppNotification(
+          userId: currentReq.requestedBy,
+          title: 'Request ${status.displayName}',
+          message: 'Your request for ${currentReq.itemDescription} was ${status.displayName.toLowerCase()}',
+          relatedRequestId: requestId,
+        );
+        await _databaseService.createNotification(notif);
+      } catch (notifyErr) {
+        debugPrint('Failed to send notification: $notifyErr');
+      }
+
       return true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -283,6 +320,20 @@ class ExpenseProvider extends ChangeNotifier {
       );
 
       await _databaseService.updateRequest(updated);
+
+      // Notify the requester
+      try {
+        final notif = AppNotification(
+          userId: currentReq.requestedBy,
+          title: 'Request Rejected',
+          message: 'Your request for ${currentReq.itemDescription} was rejected: $rejectionReason',
+          relatedRequestId: requestId,
+        );
+        await _databaseService.createNotification(notif);
+      } catch (notifyErr) {
+        debugPrint('Failed to send notification: $notifyErr');
+      }
+
       return true;
     } catch (e) {
       _errorMessage = e.toString();
@@ -321,6 +372,20 @@ class ExpenseProvider extends ChangeNotifier {
       );
 
       await _databaseService.updateRequest(updated);
+
+      // Notify the requester
+      try {
+        final notif = AppNotification(
+          userId: currentReq.requestedBy,
+          title: 'Request Status Overridden',
+          message: 'Your request for ${currentReq.itemDescription} was changed to ${newStatus.displayName}',
+          relatedRequestId: requestId,
+        );
+        await _databaseService.createNotification(notif);
+      } catch (notifyErr) {
+        debugPrint('Failed to send notification: $notifyErr');
+      }
+
       return true;
     } catch (e) {
       _errorMessage = e.toString();

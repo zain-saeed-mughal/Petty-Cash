@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/expense_provider.dart';
@@ -35,7 +36,23 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     final expense = Provider.of<ExpenseProvider>(context, listen: false);
     final reviewer = auth.currentUser;
 
-    if (reviewer == null) return;
+    if (reviewer == null || !reviewer.canApproveRequests) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You do not have permission to approve this request.')),
+        );
+      }
+      return;
+    }
+
+    if (!widget.request.isPending) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('This request is no longer pending and cannot be approved.')),
+        );
+      }
+      return;
+    }
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -84,7 +101,23 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     final expense = Provider.of<ExpenseProvider>(context, listen: false);
     final reviewer = auth.currentUser;
 
-    if (reviewer == null) return;
+    if (reviewer == null || !reviewer.canApproveRequests) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You do not have permission to reject this request.')),
+        );
+      }
+      return;
+    }
+
+    if (!widget.request.isPending) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('This request is no longer pending and cannot be rejected.')),
+        );
+      }
+      return;
+    }
 
     // Show mandatory rejection reason dialog
     final reason = await RejectionReasonDialog.show(
@@ -343,10 +376,13 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                               width: double.infinity,
                               color: const Color(0xFF0F172A),
                               child: Center(
-                                child: Image.network(
-                                  req.billImageUrl!,
+                                child: CachedNetworkImage(
+                                  imageUrl: req.billImageUrl!,
                                   fit: BoxFit.contain,
-                                  errorBuilder: (ctx, err, stack) => const Column(
+                                  placeholder: (context, url) => const Center(
+                                    child: CircularProgressIndicator(color: Colors.white54),
+                                  ),
+                                  errorWidget: (context, url, error) => const Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(Icons.image_not_supported_rounded, color: Colors.white54, size: 48),
@@ -381,8 +417,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Approval / Rejection Action Buttons (Shown only when Pending)
-                if (req.isPending) ...[
+                // Approval / Rejection Action Buttons (Shown only when Pending and the reviewer can approve)
+                if (req.isPending && (Provider.of<AuthProvider>(context).currentUser?.canApproveRequests ?? false)) ...[
                   Wrap(
                     spacing: 16,
                     runSpacing: 16,

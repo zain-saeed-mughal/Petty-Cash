@@ -4,6 +4,8 @@ import '../providers/auth_provider.dart';
 import '../models/user_model.dart';
 import '../config/app_theme.dart';
 import '../config/app_constants.dart';
+import '../providers/notification_provider.dart';
+import 'notifications_panel.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -87,24 +89,49 @@ class AdaptiveScaffold extends StatelessWidget {
                     style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
-                const SizedBox(width: 6),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 80),
-                  child: Text(
-                    user?.name ?? 'Unknown',
-                    style: TextStyle(
-                      color: roleColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
+                if (isDesktop || screenWidth >= 380) ...[
+                  const SizedBox(width: 6),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 80),
+                    child: Text(
+                      user?.name ?? 'Unknown',
+                      style: TextStyle(
+                        color: roleColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
+                ],
               ],
             ),
           ),
         ),
       ),
+
+      // Notification Bell
+      Consumer<NotificationProvider>(
+        builder: (context, notifProvider, child) {
+          return IconButton(
+            icon: Badge(
+              isLabelVisible: notifProvider.unreadCount > 0,
+              label: Text('${notifProvider.unreadCount}'),
+              child: const Icon(Icons.notifications_none_rounded, color: Color(0xFF64748B)),
+            ),
+            tooltip: 'Notifications',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (ctx) => const NotificationsPanel(),
+              );
+            },
+          );
+        },
+      ),
+      const SizedBox(width: 8),
 
       // Sign Out Button
       IconButton(
@@ -214,6 +241,13 @@ class AdaptiveScaffold extends StatelessWidget {
         indicatorColor: AppTheme.primaryBlue.withValues(alpha: 0.15),
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         destinations: destinations.map((d) {
+          final label = screenWidth < 380
+              ? switch (d.label) {
+                  'Transactions' => 'Txns',
+                  'Users & Roles' => 'Users',
+                  _ => d.label,
+                }
+              : d.label;
           return NavigationDestination(
             icon: d.badgeCount != null && d.badgeCount! > 0
                 ? Badge(label: Text('${d.badgeCount}'), child: Icon(d.icon))
@@ -221,7 +255,7 @@ class AdaptiveScaffold extends StatelessWidget {
             selectedIcon: d.badgeCount != null && d.badgeCount! > 0
                 ? Badge(label: Text('${d.badgeCount}'), child: Icon(d.selectedIcon))
                 : Icon(d.selectedIcon),
-            label: d.label,
+            label: label,
           );
         }).toList(),
       ),
@@ -236,7 +270,7 @@ class AdaptiveScaffold extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out of Petty Cash Manager?'),
+        content: const Text('Are you sure you want to sign out of Petty Cash?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),

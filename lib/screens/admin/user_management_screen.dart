@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -25,6 +26,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   void _showAddUserDialog(BuildContext context, AppUser currentUser) {
+    final parentContext = context;
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController();
     final emailController = TextEditingController();
@@ -107,12 +109,23 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     password: passwordController.text.trim(),
                     role: selectedRole,
                   );
+                  if (!parentContext.mounted) return;
                   if (success) {
+                    final createdName = nameController.text.trim();
+                    final createdEmail = emailController.text.trim().toLowerCase();
+                    final temporaryPassword = passwordController.text.trim();
                     navigator.pop();
+                    _showTemporaryCredentialsDialog(
+                      parentContext,
+                      name: createdName,
+                      email: createdEmail,
+                      temporaryPassword: temporaryPassword,
+                    );
+                  } else {
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text('Account for ${nameController.text} created successfully!'),
-                        backgroundColor: AppTheme.statusApproved,
+                        content: Text('Failed to create account: ${userProvider.errorMessage}'),
+                        backgroundColor: AppTheme.statusRejected,
                       ),
                     );
                   }
@@ -126,11 +139,95 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
+  void _showTemporaryCredentialsDialog(
+    BuildContext context, {
+    required String name,
+    required String email,
+    required String temporaryPassword,
+  }) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.verified_user_outlined, color: AppTheme.statusApproved),
+            SizedBox(width: 8),
+            Expanded(child: Text('Account Created')),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('$name can use these temporary credentials:'),
+              const SizedBox(height: 16),
+              _credentialRow('Email', email),
+              const SizedBox(height: 10),
+              _credentialRow('Temporary password', temporaryPassword),
+              const SizedBox(height: 14),
+              const Text(
+                'Share this password securely. It is shown only once and is not saved in the profile.',
+                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _credentialRow(String label, String value) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderLight),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                const SizedBox(height: 2),
+                SelectableText(value, style: const TextStyle(fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'Copy $label',
+            icon: const Icon(Icons.copy_outlined, size: 18),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: value));
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showEditUserDialog(BuildContext context, AppUser userToEdit, AppUser currentUser) {
+    final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(text: userToEdit.name);
+    final emailController = TextEditingController(text: userToEdit.email);
+    final passwordController = TextEditingController();
     final allowedRoles = currentUser.isSuperAdmin
         ? [UserRole.officeBoy, UserRole.finance, UserRole.admin]
         : [UserRole.officeBoy, UserRole.finance];
+
+    if (userToEdit.role == UserRole.superAdmin) {
+      allowedRoles.insert(0, UserRole.superAdmin);
+    }
 
     UserRole selectedRole = allowedRoles.contains(userToEdit.role) ? userToEdit.role : allowedRoles.first;
     bool isActive = userToEdit.isActive;
@@ -143,19 +240,37 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           content: Container(
             constraints: const BoxConstraints(maxWidth: 440),
             child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Full Name'),
-                ),
-                const SizedBox(height: 14),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(labelText: 'Full Name', prefixIcon: Icon(Icons.person_outline)),
+                    validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: emailController,
+                    decoration: const InputDecoration(labelText: 'Corporate Email', prefixIcon: Icon(Icons.email_outlined)),
+                    validator: (v) => v == null || !v.contains('@') ? 'Invalid email' : null,
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: passwordController,
+                    decoration: const InputDecoration(
+                      labelText: 'New Password (optional)',
+                      prefixIcon: Icon(Icons.lock_outline),
+                      hintText: 'Only set this when changing credentials',
+                    ),
+                  ),
+                  const SizedBox(height: 14),
                 DropdownButtonFormField<UserRole>(
                   initialValue: selectedRole,
                   decoration: const InputDecoration(labelText: 'Assigned Role'),
                   items: allowedRoles.map((r) => DropdownMenuItem(value: r, child: Text(r.displayName))).toList(),
-                  onChanged: (val) {
+                  onChanged: userToEdit.isSuperAdmin ? null : (val) {
                     if (val != null) setDialogState(() => selectedRole = val);
                   },
                 ),
@@ -164,21 +279,27 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   title: const Text('Account Active'),
                   subtitle: Text(isActive ? 'User can log in' : 'Access suspended'),
                   value: isActive,
-                  onChanged: (val) => setDialogState(() => isActive = val),
+                  onChanged: userToEdit.isSuperAdmin ? null : (val) => setDialogState(() => isActive = val),
                 ),
               ],
-            ),
-          ),
-        ),
-        actions: [
-            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+            ), // Column
+          ), // Form
+        ), // SingleChildScrollView
+      ), // Container
+      actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+                
                 final messenger = ScaffoldMessenger.of(context);
                 final navigator = Navigator.of(ctx);
                 final userProvider = Provider.of<UserProvider>(context, listen: false);
+                final newPassword = passwordController.text.trim();
                 final updated = userToEdit.copyWith(
                   name: nameController.text.trim(),
+                  email: emailController.text.trim().toLowerCase(),
+                  password: newPassword.isEmpty ? null : newPassword,
                   role: selectedRole,
                   isActive: isActive,
                 );
@@ -257,10 +378,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header & Add Button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 12,
+                runSpacing: 8,
                 children: [
-                  Expanded(
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: isDesktop ? 700 : 320),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -436,8 +561,88 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     final canEdit = currentUser.isSuperAdmin || (currentUser.isAdmin && (user.isOfficeBoy || user.isFinance));
     final canDelete = (currentUser.isSuperAdmin && user.uid != currentUser.uid) ||
         (currentUser.isAdmin && (user.isOfficeBoy || user.isFinance));
+    final profile = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          backgroundColor: roleColor.withValues(alpha: 0.15),
+          child: Text(
+            user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
+            style: TextStyle(color: roleColor, fontWeight: FontWeight.bold),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    user.name,
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.primaryNavy),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: roleColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      user.role.displayName,
+                      style: TextStyle(color: roleColor, fontSize: 11, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Text(
+                user.email,
+                softWrap: true,
+                style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    final metadata = Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          _dateFormat.format(user.createdAt),
+          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+        ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (canEdit)
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF64748B)),
+                constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                padding: EdgeInsets.zero,
+                tooltip: 'Edit User',
+                onPressed: () => _showEditUserDialog(context, user, currentUser),
+              ),
+            if (canDelete)
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppTheme.statusRejected),
+                constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                padding: EdgeInsets.zero,
+                tooltip: 'Remove User',
+                onPressed: () => _confirmDeleteUser(context, user),
+              ),
+          ],
+          ),
+      ],
+    );
 
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -445,67 +650,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         border: Border.all(color: AppTheme.borderLight),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            backgroundColor: roleColor.withValues(alpha: 0.15),
-            child: Text(
-              user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
-              style: TextStyle(color: roleColor, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        user.name,
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: AppTheme.primaryNavy),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: roleColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        user.role.displayName,
-                        style: TextStyle(color: roleColor, fontSize: 11, fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  user.email,
-                  style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            _dateFormat.format(user.createdAt),
-            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
-          ),
+          Expanded(child: profile),
           const SizedBox(width: 8),
-          if (canEdit)
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF64748B)),
-              tooltip: 'Edit User',
-              onPressed: () => _showEditUserDialog(context, user, currentUser),
-            ),
-          if (canDelete)
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppTheme.statusRejected),
-              tooltip: 'Remove User',
-              onPressed: () => _confirmDeleteUser(context, user),
-            ),
+          metadata,
         ],
       ),
     );

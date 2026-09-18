@@ -27,7 +27,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
 
   Uint8List? _selectedImageBytes;
   String? _selectedImageName;
-  String? _presetImageUrl;
   bool _isSubmitting = false;
 
   @override
@@ -46,7 +45,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
         setState(() {
           _selectedImageBytes = bytes;
           _selectedImageName = file.name;
-          _presetImageUrl = null;
         });
       }
     } catch (e) {
@@ -58,19 +56,10 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     }
   }
 
-  void _chooseSampleBill(String url, String name) {
-    setState(() {
-      _presetImageUrl = url;
-      _selectedImageBytes = null;
-      _selectedImageName = name;
-    });
-  }
-
   void _clearImage() {
     setState(() {
       _selectedImageBytes = null;
       _selectedImageName = null;
-      _presetImageUrl = null;
     });
   }
 
@@ -90,7 +79,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
 
     setState(() => _isSubmitting = true);
 
-    String? uploadedUrl = _presetImageUrl;
+    String? uploadedUrl;
 
     // Upload picked image if present
     if (_selectedImageBytes != null) {
@@ -101,7 +90,18 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
       );
     }
 
-    final double amount = double.tryParse(_amountController.text.trim()) ?? 0.0;
+    final String rawAmount = _amountController.text.trim();
+    final double? parsedAmount = double.tryParse(rawAmount);
+    final double amount = parsedAmount ?? 0.0;
+
+    if (parsedAmount == null || !parsedAmount.isFinite || parsedAmount <= 0) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter a valid amount greater than 0.')),
+        );
+      }
+      return;
+    }
 
     final success = await expense.submitRequest(
       user: user,
@@ -254,8 +254,10 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                         ),
                         validator: (val) {
                           if (val == null || val.trim().isEmpty) return 'Please enter the amount spent';
-                          final num? parsed = double.tryParse(val.trim());
-                          if (parsed == null || parsed <= 0) return 'Please enter a valid amount greater than 0';
+                          final value = double.tryParse(val.trim());
+                          if (value == null || !value.isFinite || value <= 0) {
+                            return 'Please enter a valid amount greater than 0';
+                          }
                           return null;
                         },
                       ),
@@ -289,7 +291,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                       const SizedBox(height: 8),
 
                       // Image Preview or Empty State
-                      if (_selectedImageBytes != null || _presetImageUrl != null) ...[
+                      if (_selectedImageBytes != null) ...[
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
@@ -300,11 +302,15 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 4,
+                                runSpacing: 4,
                                 children: [
                                   const Icon(Icons.check_circle_rounded, color: AppTheme.statusApproved, size: 18),
                                   const SizedBox(width: 8),
-                                  Expanded(
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(maxWidth: 180),
                                     child: Text(
                                       _selectedImageName ?? 'Receipt Attached',
                                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
@@ -316,8 +322,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                                     icon: const Icon(Icons.zoom_in, size: 16),
                                     label: const Text('View Full'),
                                     onPressed: () {
-                                      final url = _presetImageUrl ??
-                                          'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
+                                        final url = 'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
                                       ReceiptViewerDialog.show(context, imageUrl: url);
                                     },
                                   ),
@@ -331,8 +336,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                               const SizedBox(height: 8),
                               GestureDetector(
                                 onTap: () {
-                                  final url = _presetImageUrl ??
-                                      'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
+                                    final url = 'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
                                   ReceiptViewerDialog.show(context, imageUrl: url);
                                 },
                                 child: ClipRRect(
@@ -343,7 +347,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                                     color: Colors.black12,
                                     child: _selectedImageBytes != null
                                         ? Image.memory(_selectedImageBytes!, fit: BoxFit.cover)
-                                        : Image.network(_presetImageUrl!, fit: BoxFit.cover),
+                                        : const SizedBox.shrink(),
                                   ),
                                 ),
                               ),
@@ -393,19 +397,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                                     onPressed: () => _pickImage(ImageSource.camera),
                                   ),
                                 ],
-                              ),
-                              const SizedBox(height: 12),
-                              // Preset demo receipts for testing
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: StorageService.sampleBills.map((bill) {
-                                  return ActionChip(
-                                    avatar: const Icon(Icons.receipt, size: 14),
-                                    label: Text(bill['title']!, style: const TextStyle(fontSize: 11)),
-                                    onPressed: () => _chooseSampleBill(bill['url']!, bill['title']!),
-                                  );
-                                }).toList(),
                               ),
                             ],
                           ),

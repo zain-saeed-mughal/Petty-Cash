@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/expense_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/expense_request_model.dart';
 import '../../models/user_model.dart';
 import '../../config/app_theme.dart';
@@ -64,10 +65,8 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
     // KPIs
     int totalSubmitted = currentMonthRequests.length;
     int pendingCount = currentMonthRequests.where((r) => r.isPending).length;
-    int approvedCount = currentMonthRequests.where((r) => r.isApproved).length;
     int rejectedCount = currentMonthRequests.where((r) => r.isRejected).length;
-    int paidCount = currentMonthRequests.where((r) => r.isPaid).length;
-    
+
     double totalPaidAmount = currentMonthRequests.where((r) => r.isPaid).fold(0.0, (sum, r) => sum + r.amount);
     double prevMonthPaidAmount = prevMonthRequests.where((r) => r.isPaid).fold(0.0, (sum, r) => sum + r.amount);
 
@@ -141,7 +140,16 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
                       underline: const SizedBox(),
                       items: [
                         const DropdownMenuItem(value: 'ALL', child: Text('All Users')),
-                        ...userProvider.allUsers.map((u) => 
+                        ...userProvider.allUsers.where((u) {
+                          final authUser = Provider.of<AuthProvider>(context, listen: false).currentUser;
+                          if (authUser?.isFinance == true) {
+                            return u.role == UserRole.officeBoy;
+                          }
+                          if (authUser?.isAdmin == true) {
+                            return u.role == UserRole.officeBoy || u.role == UserRole.finance;
+                          }
+                          return true; // Super Admin sees all
+                        }).map((u) => 
                           DropdownMenuItem(value: u.uid, child: Text(u.name))
                         ),
                       ],

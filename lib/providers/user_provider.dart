@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../models/user_model.dart';
 import '../services/database_service.dart';
 
@@ -92,10 +94,11 @@ class UserProvider extends ChangeNotifier {
   }) async {
     try {
       final newUser = AppUser(
-        uid: 'user_${DateTime.now().millisecondsSinceEpoch}',
+        uid: '', // RPC will generate the actual UID in the database
         name: name.trim(),
         email: email.trim().toLowerCase(),
         role: role,
+        password: password.trim(),
         createdAt: DateTime.now(),
         isActive: true,
       );

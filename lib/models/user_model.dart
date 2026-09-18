@@ -55,6 +55,7 @@ class AppUser {
   final UserRole role;
   final DateTime createdAt;
   final bool isActive;
+  final String? password;
 
   AppUser({
     required this.uid,
@@ -63,6 +64,7 @@ class AppUser {
     required this.role,
     required this.createdAt,
     this.isActive = true,
+    this.password,
   });
 
   bool get isSuperAdmin => role == UserRole.superAdmin;
@@ -83,16 +85,16 @@ class AppUser {
       'name': name,
       'email': email,
       'role': role.roleCode,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': createdAt.toUtc().toIso8601String(),
       'isActive': isActive,
     };
   }
 
   factory AppUser.fromMap(Map<String, dynamic> map, {String? docId}) {
     DateTime parseDate(dynamic val) {
-      if (val is String) return DateTime.tryParse(val) ?? DateTime.now();
-      if (val is int) return DateTime.fromMillisecondsSinceEpoch(val);
-      return DateTime.now();
+      if (val is String) return DateTime.tryParse(val)?.toUtc() ?? DateTime.now().toUtc();
+      if (val is int) return DateTime.fromMillisecondsSinceEpoch(val, isUtc: true);
+      return DateTime.now().toUtc();
     }
 
     return AppUser(
@@ -102,6 +104,7 @@ class AppUser {
       role: UserRole.fromString(map['role']?.toString()),
       createdAt: parseDate(map['createdAt']),
       isActive: map['isActive'] == null ? true : (map['isActive'] as bool),
+      password: null,
     );
   }
 
@@ -112,6 +115,7 @@ class AppUser {
     UserRole? role,
     DateTime? createdAt,
     bool? isActive,
+    String? password,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -120,6 +124,7 @@ class AppUser {
       role: role ?? this.role,
       createdAt: createdAt ?? this.createdAt,
       isActive: isActive ?? this.isActive,
+      password: password ?? this.password,
     );
   }
 }

@@ -1,95 +1,67 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 import '../models/expense_request_model.dart';
+import '../models/notification_model.dart';
 import '../config/app_constants.dart';
 import 'supabase_service.dart';
-import 'demo_data_service.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
   factory DatabaseService() => _instance;
   DatabaseService._internal();
 
+  // Helper to get client
+  SupabaseClient get _client => SupabaseService().client!;
+
   // ==========================================
   // EXPENSE REQUESTS
   // ==========================================
 
-  // Create new request
   Future<void> createRequest(ExpenseRequest request) async {
-    final client = SupabaseService().client;
-    if (client != null) {
-      try {
-        await client
-            .from(AppConstants.requestsCollection)
-            .insert(request.toMap());
-        return;
-      } catch (e) {
-        debugPrint('Supabase createRequest error, adding to demo service: $e');
-      }
+    try {
+      await _client
+          .from(AppConstants.requestsCollection)
+          .insert(request.toMap());
+    } catch (e) {
+      debugPrint('Supabase createRequest error: $e');
+      rethrow;
     }
-    DemoDataService().addRequest(request);
   }
 
-  // Stream requests submitted by a specific user (for Office Boy)
   Stream<List<ExpenseRequest>> streamUserRequests(String uid) {
-    final client = SupabaseService().client;
-    if (client != null) {
-      try {
-        return client
-            .from(AppConstants.requestsCollection)
-            .stream(primaryKey: ['id'])
-            .eq('requestedBy', uid)
-            .order('createdAt', ascending: false)
-            .map((data) => data
-                .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
-                .toList());
-      } catch (e) {
-        debugPrint('Supabase streamUserRequests fallback: $e');
-      }
-    }
-    return DemoDataService().getRequestsForUser(uid);
+    return _client
+        .from(AppConstants.requestsCollection)
+        .stream(primaryKey: ['id'])
+        .eq('requestedBy', uid)
+        .order('createdAt', ascending: false)
+        .map((data) => data
+            .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
+            .toList());
   }
 
-  // Stream all pending requests (for Finance review)
   Stream<List<ExpenseRequest>> streamPendingRequests() {
-    final client = SupabaseService().client;
-    if (client != null) {
-      try {
-        return client
-            .from(AppConstants.requestsCollection)
-            .stream(primaryKey: ['id'])
-            .eq('status', AppConstants.statusPending)
-            .order('createdAt', ascending: false)
-            .map((data) => data
-                .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
-                .toList());
-      } catch (e) {
-        debugPrint('Supabase streamPendingRequests fallback: $e');
-      }
-    }
-    return DemoDataService().getPendingRequests();
+    return _client
+        .from(AppConstants.requestsCollection)
+        .stream(primaryKey: ['id'])
+        .eq('status', AppConstants.statusPending)
+        .order('createdAt', ascending: false)
+        .map((data) => data
+            .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
+            .toList());
   }
 
-  // Stream all transactions (for Admin, Super Admin, Finance History)
   Stream<List<ExpenseRequest>> streamAllRequests() {
-    final client = SupabaseService().client;
-    if (client != null) {
-      try {
-        return client
-            .from(AppConstants.requestsCollection)
-            .stream(primaryKey: ['id'])
-            .order('createdAt', ascending: false)
-            .map((data) => data
-                .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
-                .toList());
-      } catch (e) {
-        debugPrint('Supabase streamAllRequests fallback: $e');
-      }
-    }
-    return DemoDataService().requestsStream;
+    return _client
+        .from(AppConstants.requestsCollection)
+        .stream(primaryKey: ['id'])
+        .order('createdAt', ascending: false)
+        .map((data) => data
+            .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
+            .toList());
   }
 
-  // Update status (Approve, Reject, or Super Admin Override)
   Future<void> updateRequestStatus({
     required String requestId,
     required RequestStatus status,
@@ -97,144 +69,192 @@ class DatabaseService {
     String? reviewerId,
     String? reviewerName,
   }) async {
-    final client = SupabaseService().client;
-    if (client != null) {
-      try {
-        final Map<String, dynamic> updateData = {
-          'status': status.displayName,
-          'updatedAt': DateTime.now().toIso8601String(),
-        };
-        if (rejectionReason != null) {
-          updateData['rejectionReason'] = rejectionReason;
-        }
-        if (reviewerId != null) {
-          updateData['reviewedBy'] = reviewerId;
-        }
-        if (reviewerName != null) {
-          updateData['reviewedByName'] = reviewerName;
-        }
-
-        await client
-            .from(AppConstants.requestsCollection)
-            .update(updateData)
-            .eq('id', requestId);
-        return;
-      } catch (e) {
-        debugPrint('Supabase updateRequestStatus error, using demo service: $e');
+    try {
+      final Map<String, dynamic> updateData = {
+        'status': status.displayName,
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
+      if (rejectionReason != null) {
+        updateData['rejectionReason'] = rejectionReason;
       }
-    }
+      if (reviewerId != null) {
+        updateData['reviewedBy'] = reviewerId;
+      }
+      if (reviewerName != null) {
+        updateData['reviewedByName'] = reviewerName;
+      }
 
-    DemoDataService().updateRequestStatus(
-      requestId,
-      status,
-      rejectionReason: rejectionReason,
-      reviewerId: reviewerId,
-      reviewerName: reviewerName,
-    );
+      await _client
+          .from(AppConstants.requestsCollection)
+          .update(updateData)
+          .eq('id', requestId);
+    } catch (e) {
+      debugPrint('Supabase updateRequestStatus error: $e');
+      rethrow;
+    }
   }
 
-  // Edit an existing request
   Future<void> updateRequest(ExpenseRequest request) async {
-    final client = SupabaseService().client;
-    if (client != null) {
-      try {
-        await client
-            .from(AppConstants.requestsCollection)
-            .update(request.toMap())
-            .eq('id', request.id);
-        return;
-      } catch (e) {
-        debugPrint('Supabase updateRequest fallback: $e');
-      }
+    try {
+      await _client
+          .from(AppConstants.requestsCollection)
+          .update(request.toMap())
+          .eq('id', request.id);
+    } catch (e) {
+      debugPrint('Supabase updateRequest error: $e');
+      rethrow;
     }
-    
-    // Fallback for Demo/Offline mode
-    DemoDataService().updateRequest(request);
   }
 
-  // Delete request (Super Admin only)
   Future<void> deleteRequest(String requestId) async {
-    final client = SupabaseService().client;
-    if (client != null) {
-      try {
-        await client
-            .from(AppConstants.requestsCollection)
-            .delete()
-            .eq('id', requestId);
-        return;
-      } catch (e) {
-        debugPrint('Supabase deleteRequest fallback: $e');
-      }
+    try {
+      await _client
+          .from(AppConstants.requestsCollection)
+          .delete()
+          .eq('id', requestId);
+    } catch (e) {
+      debugPrint('Supabase deleteRequest error: $e');
+      rethrow;
     }
-    DemoDataService().deleteRequest(requestId);
   }
 
   // ==========================================
   // USERS MANAGEMENT
   // ==========================================
 
-  // Stream all users
   Stream<List<AppUser>> streamAllUsers() {
-    final client = SupabaseService().client;
-    if (client != null) {
-      try {
-        return client
-            .from(AppConstants.usersCollection)
-            .stream(primaryKey: ['uid'])
-            .map((data) => data
-                .map((map) => AppUser.fromMap(map, docId: map['uid']))
-                .toList());
-      } catch (e) {
-        debugPrint('Supabase streamAllUsers fallback: $e');
-      }
-    }
-    return DemoDataService().usersStream;
+    return _client
+        .from(AppConstants.usersCollection)
+        .stream(primaryKey: ['uid'])
+        .map((data) => data
+            .map((map) => AppUser.fromMap(map, docId: map['uid']))
+            .toList());
   }
 
-  // Create or register a user
   Future<void> createUser(AppUser user) async {
-    final client = SupabaseService().client;
-    if (client != null) {
+    try {
+      await _client.rpc('admin_create_user', params: {
+        'user_email': user.email,
+        'user_password': user.password ?? '',
+        'user_name': user.name,
+        'user_role': user.role.roleCode,
+      });
+    } catch (e) {
+      debugPrint('Supabase createUser RPC error: $e');
+      if ((user.uid).trim().isEmpty) {
+        throw Exception('A valid user UID is required when the RPC fallback is used.');
+      }
       try {
-        await client
-            .from(AppConstants.usersCollection)
-            .insert(user.toMap());
-        return;
-      } catch (e) {
-        debugPrint('Supabase createUser fallback: $e');
+        await _client.from(AppConstants.usersCollection).insert({
+          'uid': user.uid,
+          'name': user.name,
+          'email': user.email,
+          'role': user.role.roleCode,
+          'createdAt': user.createdAt.toUtc().toIso8601String(),
+          'isActive': user.isActive,
+        });
+      } catch (fallbackError) {
+        debugPrint('Supabase fallback createUser error: $fallbackError');
+        rethrow;
       }
     }
-    DemoDataService().addUser(user);
   }
 
-  // Update user
   Future<void> updateUser(AppUser user) async {
-    final client = SupabaseService().client;
-    if (client != null) {
-      try {
-        await client
-            .from(AppConstants.usersCollection)
-            .update(user.toMap())
-            .eq('uid', user.uid);
-        return;
-      } catch (e) {
-        debugPrint('Supabase updateUser fallback: $e');
+    try {
+      final updatedProfile = {
+        'name': user.name,
+        'email': user.email,
+        'role': user.role.roleCode,
+        'createdAt': user.createdAt.toUtc().toIso8601String(),
+        'isActive': user.isActive,
+      };
+
+      await _client.from(AppConstants.usersCollection).update(updatedProfile).eq('uid', user.uid);
+
+      final password = (user.password ?? '').trim();
+      if (password.isNotEmpty) {
+        try {
+          await _client.rpc('update_user_credentials', params: {
+            'user_id': user.uid,
+            'new_email': user.email,
+            'new_password': password,
+          });
+        } catch (rpcError) {
+          debugPrint('RPC update_user_credentials failed: $rpcError');
+        }
       }
+    } catch (e) {
+      debugPrint('Supabase updateUser error: $e');
+      rethrow;
     }
-    DemoDataService().updateUser(user);
   }
 
-  // Remove / delete user
   Future<void> deleteUser(String uid) async {
-    final client = SupabaseService().client;
-    if (client != null) {
+    try {
+      // First attempt to call the RPC function to completely delete from auth.users
+      // (which automatically cascades to public.users)
       try {
-        await client.from(AppConstants.usersCollection).delete().eq('uid', uid);
-        return;
-      } catch (e) {
-        debugPrint('Supabase deleteUser fallback: $e');
+        await _client.rpc('delete_user', params: {'user_id': uid});
+      } catch (rpcError) {
+        // Fallback: If RPC is not created, at least delete from public.users
+        debugPrint('RPC delete_user failed (missing function?), falling back to table delete: $rpcError');
+        await _client.from(AppConstants.usersCollection).delete().eq('uid', uid);
       }
+    } catch (e) {
+      debugPrint('Supabase deleteUser error: $e');
+      rethrow;
     }
-    DemoDataService().removeUser(uid);
+  }
+
+  // ==========================================
+  // NOTIFICATIONS
+  // ==========================================
+
+  Future<void> createNotification(AppNotification notification) async {
+    try {
+      await _client
+          .from('notifications')
+          .insert(notification.toMap());
+    } catch (e) {
+      debugPrint('Supabase createNotification error: $e');
+      rethrow;
+    }
+  }
+
+  Stream<List<AppNotification>> streamUserNotifications(String uid) {
+    return _client
+        .from('notifications')
+        .stream(primaryKey: ['id'])
+        .eq('user_id', uid)
+        .order('created_at', ascending: false)
+        .map((data) => data
+            .map((map) => AppNotification.fromMap(map, docId: map['id']))
+            .toList());
+  }
+
+  Future<void> markNotificationAsRead(String notificationId) async {
+    try {
+      await _client
+          .from('notifications')
+          .update({'is_read': true})
+          .eq('id', notificationId);
+    } catch (e) {
+      debugPrint('Supabase markNotificationAsRead error: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> markAllAsRead(String uid) async {
+    try {
+      await _client
+          .from('notifications')
+          .update({'is_read': true})
+          .eq('user_id', uid)
+          .eq('is_read', false);
+    } catch (e) {
+      debugPrint('Supabase markAllAsRead error: $e');
+      rethrow;
+    }
   }
 }

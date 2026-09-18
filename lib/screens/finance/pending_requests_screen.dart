@@ -166,6 +166,8 @@ class _PendingRequestsScreenState extends State<PendingRequestsScreen> {
   }
 
   Widget _buildPendingCard(ExpenseRequest req) {
+    final isNarrow = MediaQuery.of(context).size.width < 420;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -185,61 +187,46 @@ class _PendingRequestsScreenState extends State<PendingRequestsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Top Row
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  backgroundColor: const Color(0xFFFEF3C7),
-                  child: const Icon(Icons.receipt_rounded, color: AppTheme.statusPending),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final details = Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const CircleAvatar(
+                      backgroundColor: Color(0xFFFEF3C7),
+                      child: Icon(Icons.receipt_rounded, color: AppTheme.statusPending),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Flexible(
-                            child: Text(
-                              req.requesterName,
-                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.primaryNavy),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                          Wrap(
+                            spacing: 8,
+                            children: [
+                              Text(req.requesterName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.primaryNavy)),
+                              Text('• ${_dateFormat.format(req.createdAt)}', style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              '• ${_dateFormat.format(req.createdAt)}',
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
+                          const SizedBox(height: 4),
+                          Text(req.itemDescription, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy)),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        req.itemDescription,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${AppConstants.defaultCurrencySymbol}${req.amount.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: AppTheme.primaryNavy,
-                      ),
                     ),
+                  ],
+                );
+                final amount = Column(
+                  crossAxisAlignment: isNarrow ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+                  children: [
+                    Text('${AppConstants.defaultCurrencySymbol}${req.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppTheme.primaryNavy)),
                     const SizedBox(height: 4),
                     const StatusBadge(status: RequestStatus.pending, isCompact: true),
                   ],
-                ),
-              ],
+                );
+                return isNarrow
+                    ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [details, const SizedBox(height: 8), amount])
+                    : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: details), amount]);
+              },
             ),
             const SizedBox(height: 12),
 
@@ -258,8 +245,11 @@ class _PendingRequestsScreenState extends State<PendingRequestsScreen> {
             const SizedBox(height: 14),
 
             // Action Buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 if (req.billImageUrl != null)
                   Row(

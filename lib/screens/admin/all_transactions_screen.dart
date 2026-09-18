@@ -316,6 +316,8 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
   }
 
   Widget _buildTransactionCard(ExpenseRequest req, AppUser currentUser) {
+    final isNarrow = MediaQuery.of(context).size.width < 420;
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -326,46 +328,41 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          req.id,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Color(0xFF64748B)),
-                        ),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            '• ${_dateFormat.format(req.createdAt)}',
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      req.itemDescription,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Requested by: ${req.requesterName} (${req.requesterEmail})',
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final details = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      Text(
+                        req.id,
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11, color: Color(0xFF64748B)),
+                      ),
+                      Text(
+                        '• ${_dateFormat.format(req.createdAt)}',
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    req.itemDescription,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Requested by: ${req.requesterName} (${req.requesterEmail})',
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              );
+              final amount = Column(
+                crossAxisAlignment: isNarrow ? CrossAxisAlignment.start : CrossAxisAlignment.end,
                 children: [
                   Text(
                     '${AppConstants.defaultCurrencySymbol}${req.amount.toStringAsFixed(2)}',
@@ -374,8 +371,12 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                   const SizedBox(height: 4),
                   StatusBadge(status: req.status, isCompact: true),
                 ],
-              ),
-            ],
+              );
+
+              return isNarrow
+                  ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [details, const SizedBox(height: 8), amount])
+                  : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: details), amount]);
+            },
           ),
           const SizedBox(height: 10),
           Container(
@@ -407,8 +408,12 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
           const SizedBox(height: 12),
 
           // Actions
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            runAlignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
+            runSpacing: 4,
             children: [
               if (req.billImageUrl != null)
                 TextButton.icon(
@@ -417,30 +422,23 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                   onPressed: () {
                     ReceiptViewerDialog.show(context, imageUrl: req.billImageUrl!);
                   },
-                )
-              else
-                const SizedBox.shrink(),
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () => RequestDetailScreen.show(context, req),
-                    child: const Text('Review Detail'),
-                  ),
-                  // Super Admin Overrides
-                  if (currentUser.isSuperAdmin) ...[
-                    IconButton(
-                      icon: const Icon(Icons.edit_attributes_rounded, color: AppTheme.roleSuperAdmin),
-                      tooltip: 'Override Status (Super Admin)',
-                      onPressed: () => _showOverrideDialog(context, req),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_forever_rounded, color: AppTheme.statusRejected),
-                      tooltip: 'Delete Transaction (Super Admin)',
-                      onPressed: () => _confirmDelete(context, req),
-                    ),
-                  ],
-                ],
+                ),
+              TextButton(
+                onPressed: () => RequestDetailScreen.show(context, req),
+                child: const Text('Review Detail'),
               ),
+              if (currentUser.isSuperAdmin) ...[
+                IconButton(
+                  icon: const Icon(Icons.edit_attributes_rounded, color: AppTheme.roleSuperAdmin),
+                  tooltip: 'Override Status (Super Admin)',
+                  onPressed: () => _showOverrideDialog(context, req),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_forever_rounded, color: AppTheme.statusRejected),
+                  tooltip: 'Delete Transaction (Super Admin)',
+                  onPressed: () => _confirmDelete(context, req),
+                ),
+              ],
             ],
           ),
         ],

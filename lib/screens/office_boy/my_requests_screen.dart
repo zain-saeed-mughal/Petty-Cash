@@ -239,6 +239,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
   }
 
   Widget _buildRequestCard(ExpenseRequest req) {
+    final isNarrow = MediaQuery.of(context).size.width < 420;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -263,59 +265,34 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Top Row: Item name, Amount & Status Badge
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            req.id,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF64748B),
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _dateFormat.format(req.createdAt),
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        req.itemDescription,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primaryNavy,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final details = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '${AppConstants.defaultCurrencySymbol}${req.amount.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primaryNavy,
-                      ),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        Text(req.id, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF64748B), letterSpacing: 0.5)),
+                        Text(_dateFormat.format(req.createdAt), style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+                      ],
                     ),
+                    const SizedBox(height: 6),
+                    Text(req.itemDescription, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.primaryNavy)),
+                  ],
+                );
+                final amount = Column(
+                  crossAxisAlignment: isNarrow ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+                  children: [
+                    Text('${AppConstants.defaultCurrencySymbol}${req.amount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy)),
                     const SizedBox(height: 6),
                     StatusBadge(status: req.status),
                   ],
-                ),
-              ],
+                );
+                return isNarrow
+                    ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [details, const SizedBox(height: 8), amount])
+                    : Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(child: details), amount]);
+              },
             ),
             const SizedBox(height: 12),
 

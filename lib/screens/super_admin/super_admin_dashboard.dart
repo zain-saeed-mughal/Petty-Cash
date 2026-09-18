@@ -25,23 +25,23 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
       const NavigationItem(
         icon: Icons.dashboard_outlined,
         selectedIcon: Icons.dashboard_rounded,
-        label: 'Analytics & KPIs',
+        label: 'Analytics',
       ),
       NavigationItem(
         icon: Icons.receipt_long_outlined,
         selectedIcon: Icons.receipt_long_rounded,
-        label: 'Transactions Audit',
+        label: 'Transactions',
         badgeCount: expense.pendingCount > 0 ? expense.pendingCount : null,
       ),
       const NavigationItem(
         icon: Icons.admin_panel_settings_outlined,
         selectedIcon: Icons.admin_panel_settings_rounded,
-        label: 'User & Role Access',
+        label: 'Users & Roles',
       ),
       const NavigationItem(
         icon: Icons.calendar_month_outlined,
         selectedIcon: Icons.calendar_month_rounded,
-        label: 'Monthly Reports',
+        label: 'Reports',
       ),
     ];
 

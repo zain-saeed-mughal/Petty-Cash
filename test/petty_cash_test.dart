@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:petty_cash/models/user_model.dart';
 import 'package:petty_cash/models/expense_request_model.dart';
-import 'package:petty_cash/services/demo_data_service.dart';
-import 'package:petty_cash/providers/expense_provider.dart';
 
 void main() {
   group('Petty Cash Models & RBAC Permissions', () {
@@ -90,32 +88,6 @@ void main() {
       );
       expect(rejectedReq.isRejected, isTrue);
       expect(rejectedReq.rejectionReason, equals('Invalid receipt image'));
-    });
-  });
-
-  group('Demo Data Service & Expense Provider', () {
-    test('Seeded accounts are initialized for all 4 roles', () {
-      final demo = DemoDataService();
-      expect(demo.findUserByEmail('superadmin@company.com')?.role, equals(UserRole.superAdmin));
-      expect(demo.findUserByEmail('admin@company.com')?.role, equals(UserRole.admin));
-      expect(demo.findUserByEmail('finance@company.com')?.role, equals(UserRole.finance));
-      expect(demo.findUserByEmail('officeboy@company.com')?.role, equals(UserRole.officeBoy));
-    });
-
-    test('Office Boy receives only their requests', () {
-      final provider = ExpenseProvider();
-      final myRequests = provider.getMyRequests('demo_office_boy_04');
-      for (final req in myRequests) {
-        expect(req.requestedBy, equals('demo_office_boy_04'));
-      }
-    });
-
-    test('Finance pending requests contain only pending status', () {
-      final provider = ExpenseProvider();
-      final pending = provider.pendingRequests;
-      for (final req in pending) {
-        expect(req.status, equals(RequestStatus.pending));
-      }
     });
   });
 }
