@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import '../../providers/expense_provider.dart';
@@ -298,6 +299,7 @@ class AnalyticsScreen extends StatelessWidget {
                         bottomTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
+                            reservedSize: 28,
                             getTitlesWidget: (val, meta) {
                               final idx = val.toInt();
                               if (idx >= 0 && idx < requests.length) {
@@ -315,11 +317,15 @@ class AnalyticsScreen extends StatelessWidget {
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 36,
+                            reservedSize: 44,
                             getTitlesWidget: (val, meta) {
+                              if (val == meta.max || val == meta.min) {
+                                return const SizedBox.shrink();
+                              }
                               return Text(
-                                '${val.toInt()}',
+                                NumberFormat.compact().format(val),
                                 style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                                textAlign: TextAlign.right,
                               );
                             },
                           ),

@@ -302,15 +302,11 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Wrap(
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                spacing: 4,
-                                runSpacing: 4,
+                              Row(
                                 children: [
                                   const Icon(Icons.check_circle_rounded, color: AppTheme.statusApproved, size: 18),
                                   const SizedBox(width: 8),
-                                  ConstrainedBox(
-                                    constraints: const BoxConstraints(maxWidth: 180),
+                                  Expanded(
                                     child: Text(
                                       _selectedImageName ?? 'Receipt Attached',
                                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
@@ -318,11 +314,10 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  TextButton.icon(
-                                    icon: const Icon(Icons.zoom_in, size: 16),
-                                    label: const Text('View Full'),
+                                  TextButton(
+                                    child: const Text('View Full', style: TextStyle(fontSize: 13)),
                                     onPressed: () {
-                                        final url = 'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
+                                      final url = 'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
                                       ReceiptViewerDialog.show(context, imageUrl: url);
                                     },
                                   ),
@@ -381,20 +376,22 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                                 style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                               ),
                               const SizedBox(height: 16),
-                              Wrap(
-                                spacing: 12,
-                                runSpacing: 8,
-                                alignment: WrapAlignment.center,
+                              Row(
                                 children: [
-                                  OutlinedButton.icon(
-                                    icon: const Icon(Icons.photo_library_outlined, size: 18),
-                                    label: const Text('Choose Photo'),
-                                    onPressed: () => _pickImage(ImageSource.gallery),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      icon: const Icon(Icons.photo_library_outlined, size: 18),
+                                      label: const Text('Gallery', maxLines: 1, overflow: TextOverflow.ellipsis),
+                                      onPressed: () => _pickImage(ImageSource.gallery),
+                                    ),
                                   ),
-                                  OutlinedButton.icon(
-                                    icon: const Icon(Icons.camera_alt_outlined, size: 18),
-                                    label: const Text('Use Camera'),
-                                    onPressed: () => _pickImage(ImageSource.camera),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      icon: const Icon(Icons.camera_alt_outlined, size: 18),
+                                      label: const Text('Camera', maxLines: 1, overflow: TextOverflow.ellipsis),
+                                      onPressed: () => _pickImage(ImageSource.camera),
+                                    ),
                                   ),
                                 ],
                               ),

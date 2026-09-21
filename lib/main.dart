@@ -42,7 +42,11 @@ class _PettyCashAppState extends State<PettyCashApp> {
   }
 
   Future<void> _initializeServices() async {
-    await SupabaseService().initialize();
+    // Enforce a 5-second minimum duration for the Splash Screen
+    await Future.wait([
+      SupabaseService().initialize(),
+      Future.delayed(const Duration(seconds: 5)),
+    ]);
     if (mounted) {
       setState(() => _isInitialized = true);
     }
@@ -79,38 +83,151 @@ class _PettyCashAppState extends State<PettyCashApp> {
   }
 }
 
-class _StartupSplash extends StatelessWidget {
+class _StartupSplash extends StatefulWidget {
   const _StartupSplash();
+
+  @override
+  State<_StartupSplash> createState() => _StartupSplashState();
+}
+
+class _StartupSplashState extends State<_StartupSplash> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _logoScale;
+  late Animation<double> _logoFade;
+  late Animation<double> _textFade;
+  late Animation<Offset> _textSlide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _logoScale = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack)),
+    );
+    
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeIn)),
+    );
+
+    _textFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.4, 1.0, curve: Curves.easeIn)),
+    );
+
+    _textSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic)),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+            colors: [Color(0xFF0F172A), Color(0xFF312E81)], // Deep navy to indigo
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
-        child: const Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 58),
-              SizedBox(height: 14),
-              Text(
-                AppConstants.appName,
-                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            // Animated Logo
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _logoFade.value,
+                  child: Transform.scale(
+                    scale: _logoScale.value,
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF6366F1).withValues(alpha: 0.5),
+                            blurRadius: 40,
+                            spreadRadius: 10,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.account_balance_wallet_rounded,
+                        color: Colors.white,
+                        size: 64,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 32),
+            
+            // Animated Typography
+            SlideTransition(
+              position: _textSlide,
+              child: FadeTransition(
+                opacity: _textFade,
+                child: Column(
+                  children: [
+                    const Text(
+                      AppConstants.appName,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Smart expense tracking, simplified',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              SizedBox(height: 20),
-              SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(color: Colors.white70, strokeWidth: 2),
+            ),
+            const Spacer(),
+            
+            // Loading Indicator
+            FadeTransition(
+              opacity: _textFade,
+              child: const Padding(
+                padding: EdgeInsets.only(bottom: 64),
+                child: SizedBox(
+                  width: 120,
+                  height: 3,
+                  child: LinearProgressIndicator(
+                    backgroundColor: Colors.white24,
+                    color: Color(0xFF818CF8), // Soft indigo
+                  ),
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -148,11 +265,7 @@ class _RoleRouterState extends State<RoleRouter> {
   @override
   Widget build(BuildContext context) {
     if (_isRestoring) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const _StartupSplash();
     }
 
     final auth = Provider.of<AuthProvider>(context);

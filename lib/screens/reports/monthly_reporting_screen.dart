@@ -77,38 +77,43 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
 
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 32 : 16),
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 1200),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              const Text(
-                'Monthly Reports',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryNavy,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Detailed breakdown and audit of petty cash requests by month.',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-              ),
-              const SizedBox(height: 24),
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.all(isDesktop ? 32 : 16),
+          sliver: SliverToBoxAdapter(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    const Text(
+                      'Monthly Reports',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primaryNavy,
+                        letterSpacing: -0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Detailed breakdown and audit of petty cash requests by month.',
+                      style: TextStyle(fontSize: 15, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 24),
 
-              // Filter Bar
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderLight),
-                ),
+                    // Filter Bar
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                        boxShadow: AppTheme.premiumShadow,
+                      ),
                 child: Wrap(
                   spacing: 16,
                   runSpacing: 16,
@@ -201,14 +206,12 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderLight),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
-                  ],
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                  boxShadow: AppTheme.premiumShadow,
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(20),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: DataTable(
@@ -251,19 +254,20 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
           ),
         ),
       ),
-    );
+    ),
+  ),
+],
+);
   }
 
   Widget _buildKpiCard(String title, String value, IconData icon, Color color, double? growth) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.borderLight),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderLight, width: 0.5),
+        boxShadow: AppTheme.premiumShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

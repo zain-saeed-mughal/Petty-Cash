@@ -169,122 +169,149 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 32 : 16),
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.all(isDesktop ? 32 : 16),
+          sliver: SliverToBoxAdapter(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'All Organizational Transactions',
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy, letterSpacing: -0.5),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          currentUser.isSuperAdmin
-                              ? 'Super Admin View: Full control with transaction override and audit delete'
-                              : 'Admin View: Real-time organizational audit trail',
-                          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'All Organizational Transactions',
+                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy, letterSpacing: -0.8),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                currentUser.isSuperAdmin
+                                    ? 'Super Admin View: Full control with transaction override and audit delete'
+                                    : 'Admin View: Real-time organizational audit trail',
+                                style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
-              // Search & Filter
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.borderLight),
-                ),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _searchController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        hintText: 'Search by requester name, ID, item description, or reason...',
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear_rounded),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {});
-                                },
-                              )
-                            : null,
+                    // Search & Filter
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                        boxShadow: AppTheme.premiumShadow,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
+                      child: Column(
                         children: [
-                          _buildFilterChip('All (${expense.totalTransactionsCount})', null),
-                          const SizedBox(width: 8),
-                          _buildFilterChip('Pending (${expense.pendingCount})', RequestStatus.pending, color: AppTheme.statusPending),
-                          const SizedBox(width: 8),
-                          _buildFilterChip('Approved / Paid (${expense.approvedCount})', RequestStatus.paid, color: AppTheme.statusApproved),
-                          const SizedBox(width: 8),
-                          _buildFilterChip('Rejected (${expense.rejectedCount})', RequestStatus.rejected, color: AppTheme.statusRejected),
+                          TextField(
+                            controller: _searchController,
+                            onChanged: (_) => setState(() {}),
+                            decoration: InputDecoration(
+                              hintText: 'Search by requester name, ID, item description, or reason...',
+                              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF94A3B8)),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear_rounded, color: Color(0xFF94A3B8)),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() {});
+                                      },
+                                    )
+                                  : null,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _buildFilterChip('All (${expense.totalTransactionsCount})', null),
+                                const SizedBox(width: 12),
+                                _buildFilterChip('Pending (${expense.pendingCount})', RequestStatus.pending, color: AppTheme.statusPending),
+                                const SizedBox(width: 12),
+                                _buildFilterChip('Approved / Paid (${expense.approvedCount})', RequestStatus.paid, color: AppTheme.statusApproved),
+                                const SizedBox(width: 12),
+                                _buildFilterChip('Rejected (${expense.rejectedCount})', RequestStatus.rejected, color: AppTheme.statusRejected),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // Transactions List
-              if (all.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(48),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.borderLight),
-                  ),
-                  child: Column(
-                    children: const [
-                      Icon(Icons.find_in_page_outlined, size: 56, color: Color(0xFFCBD5E1)),
-                      SizedBox(height: 12),
-                      Text('No Transactions Found', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                      SizedBox(height: 4),
-                      Text('Try adjusting your search criteria.', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                    ],
-                  ),
-                )
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: all.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final req = all[index];
-                    return _buildTransactionCard(req, currentUser);
-                  },
-                ),
-            ],
+            ),
           ),
         ),
-      ),
+
+        // Transactions List
+        if (all.isEmpty)
+          SliverToBoxAdapter(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                width: double.infinity,
+                padding: const EdgeInsets.all(64),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                  boxShadow: AppTheme.premiumShadow,
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.surfaceMuted,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.find_in_page_outlined, size: 64, color: Color(0xFFCBD5E1)),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text('No Transactions Found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy)),
+                    const SizedBox(height: 8),
+                    const Text('Try adjusting your search criteria.', style: TextStyle(color: Color(0xFF64748B), fontSize: 15), textAlign: TextAlign.center,),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16).copyWith(bottom: 32),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 1000),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: _buildTransactionCard(all[index], currentUser),
+                    ),
+                  );
+                },
+                childCount: all.length,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -319,11 +346,12 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
     final isNarrow = MediaQuery.of(context).size.width < 420;
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderLight),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderLight, width: 0.5),
+        boxShadow: AppTheme.premiumShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

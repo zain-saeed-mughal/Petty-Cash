@@ -22,16 +22,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final expense = Provider.of<ExpenseProvider>(context);
 
     final destinations = [
+      const NavigationItem(
+        icon: Icons.bar_chart_rounded,
+        selectedIcon: Icons.insert_chart_rounded,
+        label: 'Analytics',
+      ),
       NavigationItem(
         icon: Icons.receipt_long_outlined,
         selectedIcon: Icons.receipt_long_rounded,
         label: 'Transactions',
         badgeCount: expense.pendingCount > 0 ? expense.pendingCount : null,
-      ),
-      const NavigationItem(
-        icon: Icons.bar_chart_rounded,
-        selectedIcon: Icons.insert_chart_rounded,
-        label: 'Analytics',
       ),
       const NavigationItem(
         icon: Icons.people_alt_outlined,
@@ -46,15 +46,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
     ];
 
     final screens = [
-      const AllTransactionsScreen(),
       const AnalyticsScreen(),
+      const AllTransactionsScreen(),
       const UserManagementScreen(),
       const MonthlyReportingScreen(),
     ];
 
     final titles = [
-      'All Transactions',
       'Reports & Analytics',
+      'All Transactions',
       'User Management',
       'Monthly Reports',
     ];

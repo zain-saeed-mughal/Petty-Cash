@@ -42,126 +42,155 @@ class _PendingRequestsScreenState extends State<PendingRequestsScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 32 : 16),
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 950),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Summary Banner
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0F766E), Color(0xFF115E59)], // Teal/Emerald
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.all(isDesktop ? 32 : 16),
+          sliver: SliverToBoxAdapter(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 950),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Header Summary Banner
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(12),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0F766E), Color(0xFF115E59)], // Teal/Emerald
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: AppTheme.premiumShadow,
                       ),
-                      child: const Icon(Icons.pending_actions_rounded, color: Colors.white, size: 28),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
                         children: [
-                          const Text(
-                            'Pending Expense Queue',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.pending_actions_rounded, color: Colors.white, size: 28),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${expense.pendingCount} requests awaiting verification • Total Pending: ${AppConstants.defaultCurrencySymbol}${expense.pendingAmount.toStringAsFixed(2)}',
-                            style: const TextStyle(fontSize: 13, color: Colors.white70),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Pending Expense Queue',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${expense.pendingCount} requests awaiting verification • Total Pending: ${AppConstants.defaultCurrencySymbol}${expense.pendingAmount.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 14, color: Colors.white70, fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 24),
+
+                    // Search Bar
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                        boxShadow: AppTheme.premiumShadow,
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: 'Search by requester name, item description, or reason...',
+                          prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF94A3B8)),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear_rounded, color: Color(0xFF94A3B8)),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {});
+                                  },
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // Search Bar
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppTheme.borderLight),
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: 'Search by requester name, item description, or reason...',
-                    prefixIcon: const Icon(Icons.search_rounded),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear_rounded),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {});
-                            },
-                          )
-                        : null,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Pending Requests List
-              if (pending.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(48),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.borderLight),
-                  ),
-                  child: Column(
-                    children: const [
-                      Icon(Icons.task_alt_rounded, size: 56, color: AppTheme.statusApproved),
-                      SizedBox(height: 12),
-                      Text(
-                        'All Caught Up!',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.primaryNavy),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        'There are currently no pending expense requests waiting for review.',
-                        style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: pending.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 14),
-                  itemBuilder: (context, index) {
-                    final req = pending[index];
-                    return _buildPendingCard(req);
-                  },
-                ),
-            ],
+            ),
           ),
         ),
-      ),
+
+        // Pending Requests List
+        if (pending.isEmpty)
+          SliverToBoxAdapter(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 950),
+                width: double.infinity,
+                padding: const EdgeInsets.all(64),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                  boxShadow: AppTheme.premiumShadow,
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.surfaceMuted,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.task_alt_rounded, size: 64, color: AppTheme.statusApproved),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'All Caught Up!',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'There are currently no pending expense requests waiting for review.',
+                      style: TextStyle(fontSize: 15, color: Color(0xFF64748B)),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16).copyWith(bottom: 32),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 950),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: _buildPendingCard(pending[index]),
+                    ),
+                  );
+                },
+                childCount: pending.length,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -171,15 +200,9 @@ class _PendingRequestsScreenState extends State<PendingRequestsScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderLight),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderLight, width: 0.5),
+        boxShadow: AppTheme.premiumShadow,
       ),
       child: Padding(
         padding: const EdgeInsets.all(18),

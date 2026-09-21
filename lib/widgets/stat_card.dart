@@ -23,20 +23,14 @@ class StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.borderLight),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            )
-          ],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.borderLight, width: 0.5),
+          boxShadow: AppTheme.premiumShadow,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -55,157 +55,183 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 32 : 16),
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 950),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with Title & Action Button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.all(isDesktop ? 32 : 16),
+          sliver: SliverToBoxAdapter(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 950),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header with Title & Action Button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'My Expense History',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: AppTheme.primaryNavy,
-                            letterSpacing: -0.5,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'My Expense History',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.primaryNavy,
+                                  letterSpacing: -0.8,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Showing requests submitted by ${currentUser.name}',
+                                style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Showing requests submitted by ${currentUser.name}',
-                          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        if (widget.onNewRequestTap != null) ...[
+                          const SizedBox(width: 12),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.add_rounded, size: 20),
+                            label: const Text('New Request'),
+                            onPressed: widget.onNewRequestTap,
+                          ),
+                        ],
                       ],
                     ),
-                  ),
-                  if (widget.onNewRequestTap != null) ...[
-                    const SizedBox(width: 12),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.add_rounded, size: 18),
-                      label: const Text('New Request'),
-                      onPressed: widget.onNewRequestTap,
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
-              // Search & Filter Bar
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.borderLight),
-                ),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _searchController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        hintText: 'Search my requests by description or purpose...',
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear_rounded),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {});
-                                },
-                              )
-                            : null,
+                    // Search & Filter Bar
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                        boxShadow: AppTheme.premiumShadow,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Filter Chips
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
+                      child: Column(
                         children: [
-                          _buildFilterChip('All (${allMyRequests.length})', null),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            'Pending (${allMyRequests.where((r) => r.isPending).length})',
-                            RequestStatus.pending,
-                            color: AppTheme.statusPending,
+                          TextField(
+                            controller: _searchController,
+                            onChanged: (_) => setState(() {}),
+                            decoration: InputDecoration(
+                              hintText: 'Search my requests by description or purpose...',
+                              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF94A3B8)),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear_rounded, color: Color(0xFF94A3B8)),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() {});
+                                      },
+                                    )
+                                  : null,
+                            ),
                           ),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            'Approved / Paid (${allMyRequests.where((r) => r.isApproved || r.isPaid).length})',
-                            RequestStatus.paid,
-                            color: AppTheme.statusApproved,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            'Rejected (${allMyRequests.where((r) => r.isRejected).length})',
-                            RequestStatus.rejected,
-                            color: AppTheme.statusRejected,
+                          const SizedBox(height: 16),
+
+                          // Filter Chips
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _buildFilterChip('All (${allMyRequests.length})', null),
+                                const SizedBox(width: 12),
+                                _buildFilterChip(
+                                  'Pending (${allMyRequests.where((r) => r.isPending).length})',
+                                  RequestStatus.pending,
+                                  color: AppTheme.statusPending,
+                                ),
+                                const SizedBox(width: 12),
+                                _buildFilterChip(
+                                  'Approved / Paid (${allMyRequests.where((r) => r.isApproved || r.isPaid).length})',
+                                  RequestStatus.paid,
+                                  color: AppTheme.statusApproved,
+                                ),
+                                const SizedBox(width: 12),
+                                _buildFilterChip(
+                                  'Rejected (${allMyRequests.where((r) => r.isRejected).length})',
+                                  RequestStatus.rejected,
+                                  color: AppTheme.statusRejected,
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // Request Cards List
-              if (filtered.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(48),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.borderLight),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(Icons.receipt_long_outlined, size: 56, color: Colors.grey.shade400),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'No Expense Requests Found',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.primaryNavy),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        _searchController.text.isNotEmpty || _statusFilter != null
-                            ? 'Try clearing your search query or filter chips.'
-                            : 'You haven\'t submitted any expense requests yet.',
-                        style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 14),
-                  itemBuilder: (context, index) {
-                    final req = filtered[index];
-                    return _buildRequestCard(req);
-                  },
-                ),
-            ],
+            ),
           ),
         ),
-      ),
+        if (filtered.isEmpty)
+          SliverToBoxAdapter(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 950),
+                width: double.infinity,
+                padding: const EdgeInsets.all(64),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                  boxShadow: AppTheme.premiumShadow,
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.surfaceMuted,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey.shade400),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text(
+                      'No Expense Requests Found',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _searchController.text.isNotEmpty || _statusFilter != null
+                          ? 'Try clearing your search query or filter chips.'
+                          : 'You haven\'t submitted any expense requests yet.',
+                      style: const TextStyle(fontSize: 15, color: Color(0xFF64748B)),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16).copyWith(bottom: 32),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 950),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: _buildRequestCard(filtered[index]),
+                    ),
+                  );
+                },
+                childCount: filtered.length,
+              ),
+            ),
+          ),
+      ],
     );
   }
 

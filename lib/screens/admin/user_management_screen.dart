@@ -369,148 +369,175 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 32 : 16),
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 1000),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header & Add Button
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 12,
-                runSpacing: 8,
-                children: [
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: isDesktop ? 700 : 320),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.all(isDesktop ? 32 : 16),
+          sliver: SliverToBoxAdapter(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header & Add Button
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 12,
+                      runSpacing: 8,
                       children: [
-                        const Text(
-                          'User Accounts Management',
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy, letterSpacing: -0.5),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: isDesktop ? 700 : 320),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'User Accounts Management',
+                                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy, letterSpacing: -0.8),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                currentUser.isSuperAdmin
+                                    ? 'Super Admin: Manage all organizational users, Finance, Admins & Staff'
+                                    : 'Admin: Manage Office Boy and Finance accounts',
+                                style: const TextStyle(fontSize: 14, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          currentUser.isSuperAdmin
-                              ? 'Super Admin: Manage all organizational users, Finance, Admins & Staff'
-                              : 'Admin: Manage Office Boy and Finance accounts',
-                          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        const SizedBox(width: 12),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.person_add_rounded, size: 20),
+                          label: const Text('Add User'),
+                          onPressed: () => _showAddUserDialog(context, currentUser),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.person_add_rounded, size: 18),
-                    label: const Text('Add User'),
-                    onPressed: () => _showAddUserDialog(context, currentUser),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
+                    const SizedBox(height: 24),
 
-              // Search & Filter Bar
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.borderLight),
-                ),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _searchController,
-                      onChanged: (_) => setState(() {}),
-                      decoration: InputDecoration(
-                        hintText: 'Search users by name or email...',
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear_rounded),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {});
-                                },
-                              )
-                            : null,
+                    // Search & Filter Bar
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                        boxShadow: AppTheme.premiumShadow,
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
+                      child: Column(
                         children: [
-                          _buildFilterChip('All Users (${manageable.length})', null),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            'Office Boy (${manageable.where((u) => u.isOfficeBoy).length})',
-                            UserRole.officeBoy,
-                            color: AppTheme.roleOfficeBoy,
-                          ),
-                          const SizedBox(width: 8),
-                          _buildFilterChip(
-                            'Finance (${manageable.where((u) => u.isFinance).length})',
-                            UserRole.finance,
-                            color: AppTheme.roleFinance,
-                          ),
-                          if (currentUser.isSuperAdmin) ...[
-                            const SizedBox(width: 8),
-                            _buildFilterChip(
-                              'Admin (${manageable.where((u) => u.isAdmin).length})',
-                              UserRole.admin,
-                              color: AppTheme.roleAdmin,
+                          TextField(
+                            controller: _searchController,
+                            onChanged: (_) => setState(() {}),
+                            decoration: InputDecoration(
+                              hintText: 'Search users by name or email...',
+                              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF94A3B8)),
+                              suffixIcon: _searchController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear_rounded, color: Color(0xFF94A3B8)),
+                                      onPressed: () {
+                                        _searchController.clear();
+                                        setState(() {});
+                                      },
+                                    )
+                                  : null,
                             ),
-                          ],
+                          ),
+                          const SizedBox(height: 16),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _buildFilterChip('All Users (${manageable.length})', null),
+                                const SizedBox(width: 12),
+                                _buildFilterChip(
+                                  'Office Boy (${manageable.where((u) => u.isOfficeBoy).length})',
+                                  UserRole.officeBoy,
+                                  color: AppTheme.roleOfficeBoy,
+                                ),
+                                const SizedBox(width: 12),
+                                _buildFilterChip(
+                                  'Finance (${manageable.where((u) => u.isFinance).length})',
+                                  UserRole.finance,
+                                  color: AppTheme.roleFinance,
+                                ),
+                                if (currentUser.isSuperAdmin) ...[
+                                  const SizedBox(width: 12),
+                                  _buildFilterChip(
+                                    'Admin (${manageable.where((u) => u.isAdmin).length})',
+                                    UserRole.admin,
+                                    color: AppTheme.roleAdmin,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // Users List Table / Cards
-              if (filtered.isEmpty)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(48),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.borderLight),
-                  ),
-                  child: Column(
-                    children: const [
-                      Icon(Icons.people_outline_rounded, size: 56, color: Color(0xFFCBD5E1)),
-                      SizedBox(height: 12),
-                      Text('No Users Found', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                      SizedBox(height: 4),
-                      Text('Try adjusting your search criteria or create a new user account.', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                    ],
-                  ),
-                )
-              else
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: filtered.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final u = filtered[index];
-                    return _buildUserCard(u, currentUser);
-                  },
-                ),
-            ],
+            ),
           ),
         ),
-      ),
+
+        // Users List Table / Cards
+        if (filtered.isEmpty)
+          SliverToBoxAdapter(
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                width: double.infinity,
+                padding: const EdgeInsets.all(64),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                  boxShadow: AppTheme.premiumShadow,
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.surfaceMuted,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.people_outline_rounded, size: 64, color: Color(0xFFCBD5E1)),
+                    ),
+                    const SizedBox(height: 24),
+                    const Text('No Users Found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy)),
+                    const SizedBox(height: 8),
+                    const Text('Try adjusting your search criteria or create a new user account.', style: TextStyle(color: Color(0xFF64748B), fontSize: 15), textAlign: TextAlign.center,),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16).copyWith(bottom: 32),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  return Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 1000),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: _buildUserCard(filtered[index], currentUser),
+                    ),
+                  );
+                },
+                childCount: filtered.length,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -643,11 +670,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.borderLight),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderLight, width: 0.5),
+        boxShadow: AppTheme.premiumShadow,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
