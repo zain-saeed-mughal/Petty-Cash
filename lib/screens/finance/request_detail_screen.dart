@@ -337,12 +337,14 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            'Attached Bill / Receipt',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF64748B),
+                          const Expanded(
+                            child: Text(
+                              'Attached Bill / Receipt',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF64748B),
+                              ),
                             ),
                           ),
                           if (req.billImageUrl != null)
