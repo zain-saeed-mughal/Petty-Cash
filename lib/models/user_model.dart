@@ -1,4 +1,3 @@
-
 enum UserRole {
   superAdmin,
   admin,
@@ -56,6 +55,7 @@ class AppUser {
   final DateTime createdAt;
   final bool isActive;
   final String? password;
+  final String? fcmToken;
 
   AppUser({
     required this.uid,
@@ -65,6 +65,7 @@ class AppUser {
     required this.createdAt,
     this.isActive = true,
     this.password,
+    this.fcmToken,
   });
 
   bool get isSuperAdmin => role == UserRole.superAdmin;
@@ -87,13 +88,18 @@ class AppUser {
       'role': role.roleCode,
       'createdAt': createdAt.toUtc().toIso8601String(),
       'isActive': isActive,
+      if (fcmToken != null) 'fcmToken': fcmToken,
     };
   }
 
   factory AppUser.fromMap(Map<String, dynamic> map, {String? docId}) {
     DateTime parseDate(dynamic val) {
-      if (val is String) return DateTime.tryParse(val)?.toUtc() ?? DateTime.now().toUtc();
-      if (val is int) return DateTime.fromMillisecondsSinceEpoch(val, isUtc: true);
+      if (val is String) {
+        return DateTime.tryParse(val)?.toUtc() ?? DateTime.now().toUtc();
+      }
+      if (val is int) {
+        return DateTime.fromMillisecondsSinceEpoch(val, isUtc: true);
+      }
       return DateTime.now().toUtc();
     }
 
@@ -105,6 +111,7 @@ class AppUser {
       createdAt: parseDate(map['createdAt']),
       isActive: map['isActive'] == null ? true : (map['isActive'] as bool),
       password: null,
+      fcmToken: map['fcmToken']?.toString(),
     );
   }
 
@@ -116,6 +123,7 @@ class AppUser {
     DateTime? createdAt,
     bool? isActive,
     String? password,
+    String? fcmToken,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -125,6 +133,7 @@ class AppUser {
       createdAt: createdAt ?? this.createdAt,
       isActive: isActive ?? this.isActive,
       password: password ?? this.password,
+      fcmToken: fcmToken ?? this.fcmToken,
     );
   }
 }

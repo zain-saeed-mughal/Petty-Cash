@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/user_model.dart';
 import '../models/expense_request_model.dart';
 import '../models/notification_model.dart';
@@ -36,9 +38,11 @@ class DatabaseService {
         .stream(primaryKey: ['id'])
         .eq('requestedBy', uid)
         .order('createdAt', ascending: false)
-        .map((data) => data
-            .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
-            .toList());
+        .map(
+          (data) => data
+              .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
+              .toList(),
+        );
   }
 
   Stream<List<ExpenseRequest>> streamPendingRequests() {
@@ -47,9 +51,11 @@ class DatabaseService {
         .stream(primaryKey: ['id'])
         .eq('status', AppConstants.statusPending)
         .order('createdAt', ascending: false)
-        .map((data) => data
-            .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
-            .toList());
+        .map(
+          (data) => data
+              .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
+              .toList(),
+        );
   }
 
   Stream<List<ExpenseRequest>> streamAllRequests() {
@@ -57,9 +63,11 @@ class DatabaseService {
         .from(AppConstants.requestsCollection)
         .stream(primaryKey: ['id'])
         .order('createdAt', ascending: false)
-        .map((data) => data
-            .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
-            .toList());
+        .map(
+          (data) => data
+              .map((map) => ExpenseRequest.fromMap(map, docId: map['id']))
+              .toList(),
+        );
   }
 
   Future<void> updateRequestStatus({
@@ -126,23 +134,30 @@ class DatabaseService {
     return _client
         .from(AppConstants.usersCollection)
         .stream(primaryKey: ['uid'])
-        .map((data) => data
-            .map((map) => AppUser.fromMap(map, docId: map['uid']))
-            .toList());
+        .map(
+          (data) => data
+              .map((map) => AppUser.fromMap(map, docId: map['uid']))
+              .toList(),
+        );
   }
 
   Future<void> createUser(AppUser user) async {
     try {
-      await _client.rpc('admin_create_user', params: {
-        'user_email': user.email,
-        'user_password': user.password ?? '',
-        'user_name': user.name,
-        'user_role': user.role.roleCode,
-      });
+      await _client.rpc(
+        'admin_create_user',
+        params: {
+          'user_email': user.email,
+          'user_password': user.password ?? '',
+          'user_name': user.name,
+          'user_role': user.role.roleCode,
+        },
+      );
     } catch (e) {
       debugPrint('Supabase createUser RPC error: $e');
       if ((user.uid).trim().isEmpty) {
-        throw Exception('A valid user UID is required when the RPC fallback is used.');
+        throw Exception(
+          'A valid user UID is required when the RPC fallback is used.',
+        );
       }
       try {
         await _client.from(AppConstants.usersCollection).insert({
@@ -170,16 +185,22 @@ class DatabaseService {
         'isActive': user.isActive,
       };
 
-      await _client.from(AppConstants.usersCollection).update(updatedProfile).eq('uid', user.uid);
+      await _client
+          .from(AppConstants.usersCollection)
+          .update(updatedProfile)
+          .eq('uid', user.uid);
 
       final password = (user.password ?? '').trim();
       if (password.isNotEmpty) {
         try {
-          await _client.rpc('update_user_credentials', params: {
-            'user_id': user.uid,
-            'new_email': user.email,
-            'new_password': password,
-          });
+          await _client.rpc(
+            'update_user_credentials',
+            params: {
+              'user_id': user.uid,
+              'new_email': user.email,
+              'new_password': password,
+            },
+          );
         } catch (rpcError) {
           debugPrint('RPC update_user_credentials failed: $rpcError');
         }
@@ -198,8 +219,13 @@ class DatabaseService {
         await _client.rpc('delete_user', params: {'user_id': uid});
       } catch (rpcError) {
         // Fallback: If RPC is not created, at least delete from public.users
-        debugPrint('RPC delete_user failed (missing function?), falling back to table delete: $rpcError');
-        await _client.from(AppConstants.usersCollection).delete().eq('uid', uid);
+        debugPrint(
+          'RPC delete_user failed (missing function?), falling back to table delete: $rpcError',
+        );
+        await _client
+            .from(AppConstants.usersCollection)
+            .delete()
+            .eq('uid', uid);
       }
     } catch (e) {
       debugPrint('Supabase deleteUser error: $e');
@@ -213,9 +239,7 @@ class DatabaseService {
 
   Future<void> createNotification(AppNotification notification) async {
     try {
-      await _client
-          .from('notifications')
-          .insert(notification.toMap());
+      await _client.from('notifications').insert(notification.toMap());
     } catch (e) {
       debugPrint('Supabase createNotification error: $e');
       rethrow;
@@ -228,9 +252,11 @@ class DatabaseService {
         .stream(primaryKey: ['id'])
         .eq('user_id', uid)
         .order('created_at', ascending: false)
-        .map((data) => data
-            .map((map) => AppNotification.fromMap(map, docId: map['id']))
-            .toList());
+        .map(
+          (data) => data
+              .map((map) => AppNotification.fromMap(map, docId: map['id']))
+              .toList(),
+        );
   }
 
   Future<void> markNotificationAsRead(String notificationId) async {
@@ -254,6 +280,18 @@ class DatabaseService {
           .eq('is_read', false);
     } catch (e) {
       debugPrint('Supabase markAllAsRead error: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteNotification(String notificationId) async {
+    try {
+      await _client
+          .from('notifications')
+          .delete()
+          .eq('id', notificationId);
+    } catch (e) {
+      debugPrint('Supabase deleteNotification error: $e');
       rethrow;
     }
   }

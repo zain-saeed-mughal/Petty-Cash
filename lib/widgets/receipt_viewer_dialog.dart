@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
 import '../config/app_theme.dart';
 
 class ReceiptViewerDialog extends StatelessWidget {
@@ -13,7 +15,11 @@ class ReceiptViewerDialog extends StatelessWidget {
     this.title = 'Bill / Receipt Inspection',
   });
 
-  static void show(BuildContext context, {required String imageUrl, String title = 'Bill / Receipt Inspection'}) {
+  static void show(
+    BuildContext context, {
+    required String imageUrl,
+    String title = 'Bill / Receipt Inspection',
+  }) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -39,7 +45,7 @@ class ReceiptViewerDialog extends StatelessWidget {
                 color: Colors.black26,
                 blurRadius: 20,
                 offset: Offset(0, 10),
-              )
+              ),
             ],
           ),
           child: Column(
@@ -47,10 +53,16 @@ class ReceiptViewerDialog extends StatelessWidget {
             children: [
               // Header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
-                    const Icon(Icons.receipt_long_rounded, color: AppTheme.primaryBlue),
+                    const Icon(
+                      Icons.receipt_long_rounded,
+                      color: AppTheme.primaryBlue,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -77,7 +89,9 @@ class ReceiptViewerDialog extends StatelessWidget {
               // Interactive Zoomable Image
               Expanded(
                 child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(16),
+                  ),
                   child: Container(
                     color: const Color(0xFF0F172A),
                     width: double.infinity,
@@ -90,15 +104,19 @@ class ReceiptViewerDialog extends StatelessWidget {
                             ? Image.memory(
                                 base64Decode(imageUrl.split(',').last),
                                 fit: BoxFit.contain,
-                                errorBuilder: (ctx, err, stack) => _errorPlaceholder(),
+                                errorBuilder: (ctx, err, stack) =>
+                                    _errorPlaceholder(),
                               )
                             : CachedNetworkImage(
                                 imageUrl: imageUrl,
                                 fit: BoxFit.contain,
                                 placeholder: (context, url) => const Center(
-                                  child: CircularProgressIndicator(color: Colors.white),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
                                 ),
-                                errorWidget: (context, url, error) => _errorPlaceholder(),
+                                errorWidget: (context, url, error) =>
+                                    _errorPlaceholder(),
                               ),
                       ),
                     ),

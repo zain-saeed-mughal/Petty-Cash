@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'services/supabase_service.dart';
 import 'config/app_theme.dart';
 import 'config/app_constants.dart';
@@ -13,10 +14,24 @@ import 'screens/office_boy/office_boy_dashboard.dart';
 import 'screens/finance/finance_dashboard.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'screens/super_admin/super_admin_dashboard.dart';
+import 'services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const PettyCashApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProxyProvider<AuthProvider, NotificationProvider>(
+          create: (_) => NotificationProvider(),
+          update: (_, auth, notif) => notif!..updateUser(auth.currentUser?.uid),
+        ),
+      ],
+      child: const PettyCashApp(),
+    ),
+  );
 }
 
 class PettyCashApp extends StatefulWidget {
@@ -42,11 +57,20 @@ class _PettyCashAppState extends State<PettyCashApp> {
   }
 
   Future<void> _initializeServices() async {
-    // Enforce a 5-second minimum duration for the Splash Screen
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+
+    // Initialize Supabase first so the client is available for auth
+    await SupabaseService().initialize();
+
+    // Initialize Push Notifications
+    await PushNotificationService().initialize();
+
+    // Enforce a 5-second minimum duration and restore session concurrently
     await Future.wait([
-      SupabaseService().initialize(),
+      auth.restoreSession(),
       Future.delayed(const Duration(seconds: 5)),
     ]);
+
     if (mounted) {
       setState(() => _isInitialized = true);
     }
@@ -54,43 +78,31 @@ class _PettyCashAppState extends State<PettyCashApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isInitialized) {
-      return MaterialApp(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        home: const _StartupSplash(),
-      );
-    }
-
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProxyProvider<AuthProvider, NotificationProvider>(
-          create: (_) => NotificationProvider(),
-          update: (_, auth, notif) => notif!..updateUser(auth.currentUser?.uid),
-        ),
-      ],
-      child: MaterialApp(
-        title: AppConstants.appName,
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        home: const RoleRouter(),
+    return MaterialApp(
+      title: AppConstants.appName,
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      home: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 800),
+        switchInCurve: Curves.easeIn,
+        switchOutCurve: Curves.easeOut,
+        child: _isInitialized
+            ? const RoleRouter()
+            : const _StartupSplash(key: ValueKey('splash')),
       ),
     );
   }
 }
 
 class _StartupSplash extends StatefulWidget {
-  const _StartupSplash();
+  const _StartupSplash({super.key});
 
   @override
   State<_StartupSplash> createState() => _StartupSplashState();
 }
 
-class _StartupSplashState extends State<_StartupSplash> with SingleTickerProviderStateMixin {
+class _StartupSplashState extends State<_StartupSplash>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _logoScale;
   late Animation<double> _logoFade;
@@ -106,20 +118,33 @@ class _StartupSplashState extends State<_StartupSplash> with SingleTickerProvide
     );
 
     _logoScale = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack)),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
+      ),
     );
-    
+
     _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.0, 0.5, curve: Curves.easeIn)),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
     );
 
     _textFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.4, 1.0, curve: Curves.easeIn)),
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 1.0, curve: Curves.easeIn),
+      ),
     );
 
-    _textSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic)),
-    );
+    _textSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.4, 1.0, curve: Curves.easeOutCubic),
+          ),
+        );
 
     _controller.forward();
   }
@@ -137,7 +162,10 @@ class _StartupSplashState extends State<_StartupSplash> with SingleTickerProvide
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0F172A), Color(0xFF312E81)], // Deep navy to indigo
+            colors: [
+              Color(0xFF0F172A),
+              Color(0xFF312E81),
+            ], // Deep navy to indigo
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -159,10 +187,13 @@ class _StartupSplashState extends State<_StartupSplash> with SingleTickerProvide
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF6366F1).withValues(alpha: 0.5),
+                            color: const Color(0xFF6366F1)
+                                .withValues(alpha: 0.5),
                             blurRadius: 40,
                             spreadRadius: 10,
                           ),
@@ -179,7 +210,7 @@ class _StartupSplashState extends State<_StartupSplash> with SingleTickerProvide
               },
             ),
             const SizedBox(height: 32),
-            
+
             // Animated Typography
             SlideTransition(
               position: _textSlide,
@@ -211,7 +242,7 @@ class _StartupSplashState extends State<_StartupSplash> with SingleTickerProvide
               ),
             ),
             const Spacer(),
-            
+
             // Loading Indicator
             FadeTransition(
               opacity: _textFade,
@@ -234,40 +265,11 @@ class _StartupSplashState extends State<_StartupSplash> with SingleTickerProvide
   }
 }
 
-class RoleRouter extends StatefulWidget {
+class RoleRouter extends StatelessWidget {
   const RoleRouter({super.key});
 
   @override
-  State<RoleRouter> createState() => _RoleRouterState();
-}
-
-class _RoleRouterState extends State<RoleRouter> {
-  bool _isRestoring = true;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _restoreSession();
-    });
-  }
-
-  Future<void> _restoreSession() async {
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    await auth.restoreSession();
-    if (mounted) {
-      setState(() {
-        _isRestoring = false;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_isRestoring) {
-      return const _StartupSplash();
-    }
-
     final auth = Provider.of<AuthProvider>(context);
     final user = auth.currentUser;
 

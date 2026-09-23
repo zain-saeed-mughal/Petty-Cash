@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../providers/expense_provider.dart';
 import '../../services/storage_service.dart';
@@ -49,9 +51,8 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error selecting image: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
       }
     }
   }
@@ -72,7 +73,9 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
 
     if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('User session expired. Please sign in again.')),
+        const SnackBar(
+          content: Text('User session expired. Please sign in again.'),
+        ),
       );
       return;
     }
@@ -97,7 +100,9 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     if (parsedAmount == null || !parsedAmount.isFinite || parsedAmount <= 0) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter a valid amount greater than 0.')),
+          const SnackBar(
+            content: Text('Please enter a valid amount greater than 0.'),
+          ),
         );
       }
       return;
@@ -116,7 +121,9 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Expense request submitted successfully! Status is now Pending.'),
+          content: Text(
+            'Expense request submitted successfully! Status is now Pending.',
+          ),
           backgroundColor: AppTheme.statusApproved,
         ),
       );
@@ -170,7 +177,11 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                         color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 28),
+                      child: const Icon(
+                        Icons.receipt_long_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -217,7 +228,11 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                       // Item Description
                       const Text(
                         'Item Description *',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryNavy,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
@@ -227,7 +242,9 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                           prefixIcon: Icon(Icons.edit_note_rounded),
                         ),
                         validator: (val) {
-                          if (val == null || val.trim().isEmpty) return 'Please describe the item or service';
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Please describe the item or service';
+                          }
                           return null;
                         },
                       ),
@@ -236,24 +253,40 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                       // Amount Spent
                       const Text(
                         'Amount Spent *',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryNavy,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _amountController,
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         decoration: const InputDecoration(
                           prefixIcon: Padding(
-                            padding: EdgeInsets.only(left: 14, right: 6, top: 12),
+                            padding: EdgeInsets.only(
+                              left: 14,
+                              right: 6,
+                              top: 12,
+                            ),
                             child: Text(
                               AppConstants.defaultCurrencySymbol,
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primaryNavy),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryNavy,
+                              ),
                             ),
                           ),
                           hintText: '0.00',
                         ),
                         validator: (val) {
-                          if (val == null || val.trim().isEmpty) return 'Please enter the amount spent';
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Please enter the amount spent';
+                          }
                           final value = double.tryParse(val.trim());
                           if (value == null || !value.isFinite || value <= 0) {
                             return 'Please enter a valid amount greater than 0';
@@ -266,7 +299,11 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                       // Purpose / Reason
                       const Text(
                         'Purpose / Reason for Purchase *',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryNavy,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
@@ -277,7 +314,9 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                           alignLabelWithHint: true,
                         ),
                         validator: (val) {
-                          if (val == null || val.trim().isEmpty) return 'Please explain the reason for this expense';
+                          if (val == null || val.trim().isEmpty) {
+                            return 'Please explain the reason for this expense';
+                          }
                           return null;
                         },
                       ),
@@ -286,7 +325,11 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                       // Bill / Receipt Photo Upload Section
                       const Text(
                         'Bill / Receipt Photo (Optional but Recommended)',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.primaryNavy),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryNavy,
+                        ),
                       ),
                       const SizedBox(height: 8),
 
@@ -304,25 +347,42 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.check_circle_rounded, color: AppTheme.statusApproved, size: 18),
+                                  const Icon(
+                                    Icons.check_circle_rounded,
+                                    color: AppTheme.statusApproved,
+                                    size: 18,
+                                  ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
                                       _selectedImageName ?? 'Receipt Attached',
-                                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                      ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                   TextButton(
-                                    child: const Text('View Full', style: TextStyle(fontSize: 13)),
+                                    child: const Text(
+                                      'View Full',
+                                      style: TextStyle(fontSize: 13),
+                                    ),
                                     onPressed: () {
-                                      final url = 'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
-                                      ReceiptViewerDialog.show(context, imageUrl: url);
+                                      final url =
+                                          'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
+                                      ReceiptViewerDialog.show(
+                                        context,
+                                        imageUrl: url,
+                                      );
                                     },
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.statusRejected),
+                                    icon: const Icon(
+                                      Icons.delete_outline_rounded,
+                                      color: AppTheme.statusRejected,
+                                    ),
                                     tooltip: 'Remove',
                                     onPressed: _clearImage,
                                   ),
@@ -331,8 +391,12 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                               const SizedBox(height: 8),
                               GestureDetector(
                                 onTap: () {
-                                    final url = 'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
-                                  ReceiptViewerDialog.show(context, imageUrl: url);
+                                  final url =
+                                      'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
+                                  ReceiptViewerDialog.show(
+                                    context,
+                                    imageUrl: url,
+                                  );
                                 },
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
@@ -341,7 +405,10 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                                     width: double.infinity,
                                     color: Colors.black12,
                                     child: _selectedImageBytes != null
-                                        ? Image.memory(_selectedImageBytes!, fit: BoxFit.cover)
+                                        ? Image.memory(
+                                            _selectedImageBytes!,
+                                            fit: BoxFit.cover,
+                                          )
                                         : const SizedBox.shrink(),
                                   ),
                                 ),
@@ -364,33 +431,60 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                           ),
                           child: Column(
                             children: [
-                              const Icon(Icons.add_photo_alternate_outlined, size: 40, color: Color(0xFF94A3B8)),
+                              const Icon(
+                                Icons.add_photo_alternate_outlined,
+                                size: 40,
+                                color: Color(0xFF94A3B8),
+                              ),
                               const SizedBox(height: 8),
                               const Text(
                                 'Upload Bill or Receipt Photo',
-                                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: AppTheme.primaryNavy),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                  color: AppTheme.primaryNavy,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               const Text(
                                 'PNG, JPG, or JPEG up to 10MB',
-                                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                                style: TextStyle(
+                                  color: Color(0xFF94A3B8),
+                                  fontSize: 12,
+                                ),
                               ),
                               const SizedBox(height: 16),
                               Row(
                                 children: [
                                   Expanded(
                                     child: OutlinedButton.icon(
-                                      icon: const Icon(Icons.photo_library_outlined, size: 18),
-                                      label: const Text('Gallery', maxLines: 1, overflow: TextOverflow.ellipsis),
-                                      onPressed: () => _pickImage(ImageSource.gallery),
+                                      icon: const Icon(
+                                        Icons.photo_library_outlined,
+                                        size: 18,
+                                      ),
+                                      label: const Text(
+                                        'Gallery',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      onPressed: () =>
+                                          _pickImage(ImageSource.gallery),
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: OutlinedButton.icon(
-                                      icon: const Icon(Icons.camera_alt_outlined, size: 18),
-                                      label: const Text('Camera', maxLines: 1, overflow: TextOverflow.ellipsis),
-                                      onPressed: () => _pickImage(ImageSource.camera),
+                                      icon: const Icon(
+                                        Icons.camera_alt_outlined,
+                                        size: 18,
+                                      ),
+                                      label: const Text(
+                                        'Camera',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      onPressed: () =>
+                                          _pickImage(ImageSource.camera),
                                     ),
                                   ),
                                 ],
@@ -410,10 +504,17 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Icon(Icons.send_rounded),
-                          label: Text(_isSubmitting ? 'Submitting Expense Request...' : 'Submit Expense Request'),
+                          label: Text(
+                            _isSubmitting
+                                ? 'Submitting Expense Request...'
+                                : 'Submit Expense Request',
+                          ),
                           onPressed: _isSubmitting ? null : _submitRequest,
                         ),
                       ),

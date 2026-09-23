@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'supabase_service.dart';
 
 class StorageService {
@@ -13,7 +14,9 @@ class StorageService {
 
   SupabaseClient? get _client => SupabaseService().client;
 
-  Future<XFile?> pickReceiptImage({ImageSource source = ImageSource.gallery}) async {
+  Future<XFile?> pickReceiptImage({
+    ImageSource source = ImageSource.gallery,
+  }) async {
     try {
       final XFile? file = await _picker.pickImage(
         source: source,
@@ -46,13 +49,17 @@ class StorageService {
       final filePath = 'receipts/$fileName';
       final detectedMime = mimeType ?? 'image/jpeg';
 
-      await client.storage.from('receipts').uploadBinary(
-        filePath,
-        imageBytes,
-        fileOptions: FileOptions(contentType: detectedMime),
-      );
+      await client.storage
+          .from('receipts')
+          .uploadBinary(
+            filePath,
+            imageBytes,
+            fileOptions: FileOptions(contentType: detectedMime),
+          );
 
-      final signedUrl = await client.storage.from('receipts').createSignedUrl(filePath, 3600);
+      final signedUrl = await client.storage
+          .from('receipts')
+          .createSignedUrl(filePath, 3600);
       return signedUrl;
     } catch (e) {
       debugPrint('Supabase Storage upload failed: $e.');

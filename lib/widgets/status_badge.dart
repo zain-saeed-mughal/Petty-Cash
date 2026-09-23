@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/expense_request_model.dart';
 import '../config/app_theme.dart';
 
@@ -6,11 +7,7 @@ class StatusBadge extends StatelessWidget {
   final RequestStatus status;
   final bool isCompact;
 
-  const StatusBadge({
-    super.key,
-    required this.status,
-    this.isCompact = false,
-  });
+  const StatusBadge({super.key, required this.status, this.isCompact = false});
 
   @override
   Widget build(BuildContext context) {

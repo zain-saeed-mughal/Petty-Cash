@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../config/app_theme.dart';
 import '../config/app_constants.dart';
 
@@ -20,10 +21,8 @@ class RejectionReasonDialog extends StatefulWidget {
     return showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => RejectionReasonDialog(
-        requestTitle: requestTitle,
-        amount: amount,
-      ),
+      builder: (ctx) =>
+          RejectionReasonDialog(requestTitle: requestTitle, amount: amount),
     );
   }
 
@@ -86,10 +85,7 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
                 const SizedBox(height: 12),
                 const Text(
                   'A mandatory explanation is required. The requester will see this reason on their dashboard.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF334155),
-                  ),
+                  style: TextStyle(fontSize: 13, color: Color(0xFF334155)),
                 ),
                 const SizedBox(height: 14),
 

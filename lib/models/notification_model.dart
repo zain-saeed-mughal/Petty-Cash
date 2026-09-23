@@ -17,8 +17,8 @@ class AppNotification {
     this.isRead = false,
     this.relatedRequestId,
     DateTime? createdAt,
-  })  : id = id ?? const Uuid().v4(),
-        createdAt = createdAt ?? DateTime.now();
+  }) : id = id ?? const Uuid().v4(),
+       createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
     return {
@@ -40,8 +40,8 @@ class AppNotification {
       message: map['message'] ?? '',
       isRead: map['is_read'] ?? false,
       relatedRequestId: map['related_request_id'],
-      createdAt: map['created_at'] != null 
-          ? DateTime.parse(map['created_at']) 
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
           : DateTime.now(),
     );
   }

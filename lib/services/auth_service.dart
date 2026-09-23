@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../models/user_model.dart';
 import '../config/app_constants.dart';
 import 'supabase_service.dart';
+import 'push_notification_service.dart';
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -13,6 +15,24 @@ class AuthService {
   AppUser? get currentUser => _currentActiveUser;
 
   SupabaseClient? get _client => SupabaseService().client;
+
+  Future<void> _updateFcmToken(AppUser user) async {
+    final token = await PushNotificationService().getDeviceToken();
+    if (token != null && token != user.fcmToken) {
+      final client = _client;
+      if (client != null) {
+        try {
+          await client
+              .from(AppConstants.usersCollection)
+              .update({'fcmToken': token})
+              .eq('uid', user.uid);
+          _currentActiveUser = user.copyWith(fcmToken: token);
+        } catch (e) {
+          debugPrint('Failed to update FCM token: $e');
+        }
+      }
+    }
+  }
 
   Future<AppUser?> restoreSession() async {
     final client = _client;
@@ -41,7 +61,8 @@ class AuthService {
           final user = AppUser.fromMap(data, docId: userId);
           if (user.isActive) {
             _currentActiveUser = user;
-            return user;
+            await _updateFcmToken(user);
+            return _currentActiveUser;
           }
           await client.auth.signOut();
           _currentActiveUser = null;
@@ -84,12 +105,17 @@ class AuthService {
         if (data != null) {
           final user = AppUser.fromMap(data, docId: uid);
           if (!user.isActive) {
-            throw Exception('This account is inactive. Please contact your administrator.');
+            throw Exception(
+              'This account is inactive. Please contact your administrator.',
+            );
           }
           _currentActiveUser = user;
-          return user;
+          await _updateFcmToken(user);
+          return _currentActiveUser;
         } else {
-          throw Exception('User profile not found. Please contact an Administrator.');
+          throw Exception(
+            'User profile not found. Please contact an Administrator.',
+          );
         }
       }
       throw Exception('Authentication failed.');
@@ -135,12 +161,11 @@ class AuthService {
         createdAt: DateTime.now(),
       );
 
-      await client
-          .from(AppConstants.usersCollection)
-          .insert(newUser.toMap());
+      await client.from(AppConstants.usersCollection).insert(newUser.toMap());
 
       _currentActiveUser = newUser;
-      return newUser;
+      await _updateFcmToken(newUser);
+      return _currentActiveUser;
     } on AuthException catch (e) {
       debugPrint('Supabase AuthException: ${e.message}');
       throw Exception(e.message);

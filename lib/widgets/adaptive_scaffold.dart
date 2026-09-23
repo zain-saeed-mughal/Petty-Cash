@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/auth_provider.dart';
 import '../models/user_model.dart';
 import '../config/app_theme.dart';
@@ -85,8 +86,14 @@ class AdaptiveScaffold extends StatelessWidget {
                   radius: 10,
                   backgroundColor: roleColor,
                   child: Text(
-                    user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : 'U',
-                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    user?.name.isNotEmpty == true
+                        ? user!.name[0].toUpperCase()
+                        : 'U',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 if (isDesktop || screenWidth >= 380) ...[
@@ -117,7 +124,10 @@ class AdaptiveScaffold extends StatelessWidget {
             icon: Badge(
               isLabelVisible: notifProvider.unreadCount > 0,
               label: Text('${notifProvider.unreadCount}'),
-              child: const Icon(Icons.notifications_none_rounded, color: Color(0xFF64748B)),
+              child: const Icon(
+                Icons.notifications_none_rounded,
+                color: Color(0xFF64748B),
+              ),
             ),
             tooltip: 'Notifications',
             onPressed: () {
@@ -155,7 +165,11 @@ class AdaptiveScaffold extends StatelessWidget {
                   color: AppTheme.primaryBlue,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 20),
+                child: const Icon(
+                  Icons.account_balance_wallet_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Column(
@@ -163,11 +177,19 @@ class AdaptiveScaffold extends StatelessWidget {
                 children: [
                   const Text(
                     AppConstants.appName,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.primaryNavy,
+                    ),
                   ),
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -187,7 +209,9 @@ class AdaptiveScaffold extends StatelessWidget {
               extended: screenWidth >= 1024,
               minExtendedWidth: 200,
               backgroundColor: Colors.white,
-              selectedIconTheme: const IconThemeData(color: AppTheme.primaryBlue),
+              selectedIconTheme: const IconThemeData(
+                color: AppTheme.primaryBlue,
+              ),
               selectedLabelTextStyle: const TextStyle(
                 color: AppTheme.primaryBlue,
                 fontWeight: FontWeight.w700,
@@ -201,10 +225,16 @@ class AdaptiveScaffold extends StatelessWidget {
               destinations: destinations.map((d) {
                 return NavigationRailDestination(
                   icon: d.badgeCount != null && d.badgeCount! > 0
-                      ? Badge(label: Text('${d.badgeCount}'), child: Icon(d.icon))
+                      ? Badge(
+                          label: Text('${d.badgeCount}'),
+                          child: Icon(d.icon),
+                        )
                       : Icon(d.icon),
                   selectedIcon: d.badgeCount != null && d.badgeCount! > 0
-                      ? Badge(label: Text('${d.badgeCount}'), child: Icon(d.selectedIcon))
+                      ? Badge(
+                          label: Text('${d.badgeCount}'),
+                          child: Icon(d.selectedIcon),
+                        )
                       : Icon(d.selectedIcon),
                   label: Text(d.label),
                 );
@@ -253,7 +283,10 @@ class AdaptiveScaffold extends StatelessWidget {
                 ? Badge(label: Text('${d.badgeCount}'), child: Icon(d.icon))
                 : Icon(d.icon),
             selectedIcon: d.badgeCount != null && d.badgeCount! > 0
-                ? Badge(label: Text('${d.badgeCount}'), child: Icon(d.selectedIcon))
+                ? Badge(
+                    label: Text('${d.badgeCount}'),
+                    child: Icon(d.selectedIcon),
+                  )
                 : Icon(d.selectedIcon),
             label: label,
           );
@@ -262,8 +295,6 @@ class AdaptiveScaffold extends StatelessWidget {
       floatingActionButton: floatingActionButton,
     );
   }
-
-
 
   void _confirmSignOut(BuildContext context, AuthProvider auth) {
     showDialog(

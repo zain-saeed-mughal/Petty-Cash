@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/expense_provider.dart';
 import '../../config/app_theme.dart';
 import '../../config/app_constants.dart';
@@ -65,7 +66,9 @@ class AnalyticsScreen extends StatelessWidget {
                   }
 
                   final spacing = 16.0;
-                  final cardWidth = (availableWidth - (crossAxisCount - 1) * spacing) / crossAxisCount;
+                  final cardWidth =
+                      (availableWidth - (crossAxisCount - 1) * spacing) /
+                      crossAxisCount;
 
                   return Wrap(
                     spacing: spacing,
@@ -75,7 +78,8 @@ class AnalyticsScreen extends StatelessWidget {
                         width: cardWidth,
                         child: StatCard(
                           title: 'TOTAL DISBURSED',
-                          value: '${AppConstants.defaultCurrencySymbol}${totalSpent.toStringAsFixed(2)}',
+                          value:
+                              '${AppConstants.defaultCurrencySymbol}${totalSpent.toStringAsFixed(2)}',
                           subtitle: '$approvedCount approved payments',
                           icon: Icons.payments_rounded,
                           color: AppTheme.statusApproved,
@@ -85,7 +89,8 @@ class AnalyticsScreen extends StatelessWidget {
                         width: cardWidth,
                         child: StatCard(
                           title: 'PENDING QUEUE',
-                          value: '${AppConstants.defaultCurrencySymbol}${pendingAmount.toStringAsFixed(2)}',
+                          value:
+                              '${AppConstants.defaultCurrencySymbol}${pendingAmount.toStringAsFixed(2)}',
                           subtitle: '$pendingCount requests awaiting review',
                           icon: Icons.hourglass_top_rounded,
                           color: AppTheme.statusPending,
@@ -96,7 +101,8 @@ class AnalyticsScreen extends StatelessWidget {
                         child: StatCard(
                           title: 'APPROVAL RATE',
                           value: '${expense.approvalRate.toStringAsFixed(1)}%',
-                          subtitle: '$approvedCount of ${approvedCount + rejectedCount} reviewed',
+                          subtitle:
+                              '$approvedCount of ${approvedCount + rejectedCount} reviewed',
                           icon: Icons.verified_rounded,
                           color: AppTheme.primaryBlue,
                         ),
@@ -180,7 +186,11 @@ class AnalyticsScreen extends StatelessWidget {
         children: [
           const Text(
             'Request Status Distribution',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.primaryNavy),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryNavy,
+            ),
           ),
           const SizedBox(height: 4),
           const Text(
@@ -203,7 +213,11 @@ class AnalyticsScreen extends StatelessWidget {
                             value: approvedCount.toDouble(),
                             title: '$approvedCount',
                             radius: 50,
-                            titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                            titleStyle: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         if (pendingCount > 0)
                           PieChartSectionData(
@@ -211,7 +225,11 @@ class AnalyticsScreen extends StatelessWidget {
                             value: pendingCount.toDouble(),
                             title: '$pendingCount',
                             radius: 50,
-                            titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                            titleStyle: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                         if (rejectedCount > 0)
                           PieChartSectionData(
@@ -219,7 +237,11 @@ class AnalyticsScreen extends StatelessWidget {
                             value: rejectedCount.toDouble(),
                             title: '$rejectedCount',
                             radius: 50,
-                            titleStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+                            titleStyle: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
                       ],
                     ),
@@ -231,9 +253,18 @@ class AnalyticsScreen extends StatelessWidget {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _buildLegendItem('Approved ($approvedCount)', AppTheme.statusApproved),
-              _buildLegendItem('Pending ($pendingCount)', AppTheme.statusPending),
-              _buildLegendItem('Rejected ($rejectedCount)', AppTheme.statusRejected),
+              _buildLegendItem(
+                'Approved ($approvedCount)',
+                AppTheme.statusApproved,
+              ),
+              _buildLegendItem(
+                'Pending ($pendingCount)',
+                AppTheme.statusPending,
+              ),
+              _buildLegendItem(
+                'Rejected ($rejectedCount)',
+                AppTheme.statusRejected,
+              ),
             ],
           ),
         ],
@@ -254,7 +285,11 @@ class AnalyticsScreen extends StatelessWidget {
         Flexible(
           child: Text(
             label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF475569),
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -277,7 +312,11 @@ class AnalyticsScreen extends StatelessWidget {
         children: [
           const Text(
             'Recent Expense Amount Comparison',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.primaryNavy),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryNavy,
+            ),
           ),
           const SizedBox(height: 4),
           const Text(
@@ -292,7 +331,12 @@ class AnalyticsScreen extends StatelessWidget {
                 : BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
-                      maxY: requests.map((r) => r.amount).reduce((a, b) => a > b ? a : b) * 1.25 + 10,
+                      maxY:
+                          requests
+                                  .map((r) => r.amount)
+                                  .reduce((a, b) => a > b ? a : b) *
+                              1.25 +
+                          10,
                       barTouchData: BarTouchData(enabled: true),
                       titlesData: FlTitlesData(
                         show: true,
@@ -304,10 +348,18 @@ class AnalyticsScreen extends StatelessWidget {
                               final idx = val.toInt();
                               if (idx >= 0 && idx < requests.length) {
                                 final desc = requests[idx].itemDescription;
-                                final short = desc.length > 8 ? '${desc.substring(0, 6)}..' : desc;
+                                final short = desc.length > 8
+                                    ? '${desc.substring(0, 6)}..'
+                                    : desc;
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 6),
-                                  child: Text(short, style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                                  child: Text(
+                                    short,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
                                 );
                               }
                               return const SizedBox.shrink();
@@ -324,14 +376,21 @@ class AnalyticsScreen extends StatelessWidget {
                               }
                               return Text(
                                 NumberFormat.compact().format(val),
-                                style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF94A3B8),
+                                ),
                                 textAlign: TextAlign.right,
                               );
                             },
                           ),
                         ),
-                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
                       ),
                       borderData: FlBorderData(show: false),
                       gridData: FlGridData(
@@ -355,7 +414,9 @@ class AnalyticsScreen extends StatelessWidget {
                               toY: req.amount,
                               color: barColor,
                               width: 18,
-                              borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(6),
+                              ),
                             ),
                           ],
                         );
@@ -372,11 +433,13 @@ class AnalyticsScreen extends StatelessWidget {
     final Map<String, double> requesterTotals = {};
     for (final r in expense.allRequests) {
       if (r.isApproved || r.isPaid) {
-        requesterTotals[r.requesterName] = (requesterTotals[r.requesterName] ?? 0.0) + r.amount;
+        requesterTotals[r.requesterName] =
+            (requesterTotals[r.requesterName] ?? 0.0) + r.amount;
       }
     }
 
-    final sorted = requesterTotals.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    final sorted = requesterTotals.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -390,7 +453,11 @@ class AnalyticsScreen extends StatelessWidget {
         children: [
           const Text(
             'Disbursements by Requester',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.primaryNavy),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryNavy,
+            ),
           ),
           const SizedBox(height: 4),
           const Text(
@@ -417,20 +484,37 @@ class AnalyticsScreen extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 16,
-                        backgroundColor: AppTheme.primaryBlue.withValues(alpha: 0.1),
-                        child: Text('${idx + 1}', style: const TextStyle(color: AppTheme.primaryBlue, fontWeight: FontWeight.bold, fontSize: 12)),
+                        backgroundColor: AppTheme.primaryBlue.withValues(
+                          alpha: 0.1,
+                        ),
+                        child: Text(
+                          '${idx + 1}',
+                          style: const TextStyle(
+                            color: AppTheme.primaryBlue,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           entry.key,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.primaryNavy),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            color: AppTheme.primaryNavy,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
                         '${AppConstants.defaultCurrencySymbol}${entry.value.toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: AppTheme.primaryBlue),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          color: AppTheme.primaryBlue,
+                        ),
                       ),
                     ],
                   ),

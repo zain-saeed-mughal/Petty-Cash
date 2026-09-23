@@ -1,4 +1,3 @@
-
 enum RequestStatus {
   pending,
   approved,
@@ -122,8 +121,10 @@ class ExpenseRequest {
       reviewedByName: map['reviewedByName']?.toString(),
       createdAt: parseDate(map['createdAt']),
       updatedAt: parseDate(map['updatedAt']),
-      auditLogs: map['auditLogs'] != null 
-          ? (map['auditLogs'] as List).map((e) => AuditLogEntry.fromMap(Map<String, dynamic>.from(e))).toList() 
+      auditLogs: map['auditLogs'] != null
+          ? (map['auditLogs'] as List)
+                .map((e) => AuditLogEntry.fromMap(Map<String, dynamic>.from(e)))
+                .toList()
           : [],
     );
   }
@@ -206,4 +207,3 @@ class AuditLogEntry {
     );
   }
 }
-

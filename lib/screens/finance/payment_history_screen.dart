@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/expense_provider.dart';
 import '../../models/expense_request_model.dart';
 import '../../config/app_theme.dart';
@@ -65,17 +66,32 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                              border: Border.all(
+                                color: AppTheme.borderLight,
+                                width: 0.5,
+                              ),
                               boxShadow: AppTheme.premiumShadow,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Total Settled / Paid', style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                                const Text(
+                                  'Total Settled / Paid',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                                 const SizedBox(height: 6),
                                 Text(
                                   '${AppConstants.defaultCurrencySymbol}${expense.totalSpent.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppTheme.statusApproved, letterSpacing: -0.5),
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppTheme.statusApproved,
+                                    letterSpacing: -0.5,
+                                  ),
                                 ),
                               ],
                             ),
@@ -88,17 +104,32 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                              border: Border.all(
+                                color: AppTheme.borderLight,
+                                width: 0.5,
+                              ),
                               boxShadow: AppTheme.premiumShadow,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Settled Transactions', style: TextStyle(fontSize: 13, color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                                const Text(
+                                  'Settled Transactions',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                                 const SizedBox(height: 6),
                                 Text(
                                   '${expense.approvedCount} approved / ${expense.rejectedCount} rejected',
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy, letterSpacing: -0.5),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.primaryNavy,
+                                    letterSpacing: -0.5,
+                                  ),
                                 ),
                               ],
                             ),
@@ -114,7 +145,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                        border: Border.all(
+                          color: AppTheme.borderLight,
+                          width: 0.5,
+                        ),
                         boxShadow: AppTheme.premiumShadow,
                       ),
                       child: Column(
@@ -124,10 +158,16 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                             onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(
                               hintText: 'Search history by requester, description, or reason...',
-                              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF94A3B8)),
+                              prefixIcon: const Icon(
+                                Icons.search_rounded,
+                                color: Color(0xFF94A3B8),
+                              ),
                               suffixIcon: _searchController.text.isNotEmpty
                                   ? IconButton(
-                                      icon: const Icon(Icons.clear_rounded, color: Color(0xFF94A3B8)),
+                                      icon: const Icon(
+                                        Icons.clear_rounded,
+                                        color: Color(0xFF94A3B8),
+                                      ),
                                       onPressed: () {
                                         _searchController.clear();
                                         setState(() {});
@@ -143,9 +183,17 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                               children: [
                                 _buildFilterChip('All Settled', null),
                                 const SizedBox(width: 12),
-                                _buildFilterChip('Paid / Approved', RequestStatus.paid, color: AppTheme.statusApproved),
+                                _buildFilterChip(
+                                  'Paid / Approved',
+                                  RequestStatus.paid,
+                                  color: AppTheme.statusApproved,
+                                ),
                                 const SizedBox(width: 12),
-                                _buildFilterChip('Rejected', RequestStatus.rejected, color: AppTheme.statusRejected),
+                                _buildFilterChip(
+                                  'Rejected',
+                                  RequestStatus.rejected,
+                                  color: AppTheme.statusRejected,
+                                ),
                               ],
                             ),
                           ),
@@ -182,12 +230,27 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                         color: AppTheme.surfaceMuted,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.receipt_long_rounded, size: 64, color: Color(0xFFCBD5E1)),
+                      child: const Icon(
+                        Icons.receipt_long_rounded,
+                        size: 64,
+                        color: Color(0xFFCBD5E1),
+                      ),
                     ),
                     const SizedBox(height: 24),
-                    const Text('No Payment Records Found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy)),
+                    const Text(
+                      'No Payment Records Found',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primaryNavy,
+                      ),
+                    ),
                     const SizedBox(height: 8),
-                    const Text('Approved and rejected requests will appear here.', style: TextStyle(color: Color(0xFF64748B), fontSize: 15), textAlign: TextAlign.center),
+                    const Text(
+                      'Approved and rejected requests will appear here.',
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 15),
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               ),
@@ -195,20 +258,18 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           )
         else
           SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16).copyWith(bottom: 32),
+            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16)
+                .copyWith(bottom: 32),
             sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return Center(
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 950),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: _buildHistoryCard(history[index]),
-                    ),
-                  );
-                },
-                childCount: history.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                return Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 950),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: _buildHistoryCard(history[index]),
+                  ),
+                );
+              }, childCount: history.length),
             ),
           ),
       ],
@@ -233,7 +294,9 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected ? (color ?? AppTheme.primaryBlue) : AppTheme.borderLight,
+          color: isSelected
+              ? (color ?? AppTheme.primaryBlue)
+              : AppTheme.borderLight,
         ),
       ),
       onSelected: (_) {
@@ -245,6 +308,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   }
 
   Widget _buildHistoryCard(ExpenseRequest req) {
+    final isNarrow = MediaQuery.of(context).size.width < 420;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -257,72 +322,122 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              req.requesterName,
-                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppTheme.primaryNavy),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final details = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        Text(
+                          req.requesterName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                            color: AppTheme.primaryNavy,
                           ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              '• ${_dateFormat.format(req.updatedAt)}',
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                        ),
+                        Text(
+                          '• ${_dateFormat.format(req.updatedAt)}',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF94A3B8),
                           ),
-                        ],
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      req.itemDescription,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primaryNavy,
                       ),
-                      const SizedBox(height: 4),
+                    ),
+                    if (req.reviewedByName != null) ...[
+                      const SizedBox(height: 2),
                       Text(
-                        req.itemDescription,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.primaryNavy),
+                        'Reviewed by: ${req.reviewedByName}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF64748B),
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                    ]
+                  ],
+                );
+                
+                final amount = Column(
+                  crossAxisAlignment: isNarrow
+                      ? CrossAxisAlignment.start
+                      : CrossAxisAlignment.end,
                   children: [
                     Text(
                       '${AppConstants.defaultCurrencySymbol}${req.amount.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.primaryNavy),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.primaryNavy,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     StatusBadge(status: req.status, isCompact: true),
                   ],
-                ),
-              ],
+                );
+
+                return isNarrow
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [details, const SizedBox(height: 8), amount],
+                      )
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: details),
+                          amount,
+                        ],
+                      );
+              },
             ),
-            if (req.isRejected && req.rejectionReason != null) ...[
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppTheme.statusRejectedBg,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.info_outline_rounded, size: 16, color: AppTheme.statusRejected),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Reason: ${req.rejectionReason}',
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF7F1D1D), fontWeight: FontWeight.w500),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.notes_rounded,
+                    size: 14,
+                    color: Color(0xFF64748B),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Purpose: ${req.reason}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF334155),
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+            if (req.isRejected && req.rejectionReason != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Reason: ${req.rejectionReason}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.statusRejected,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -330,28 +445,22 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (req.reviewedByName != null)
-                  Text(
-                    'Reviewed by: ${req.reviewedByName}',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontStyle: FontStyle.italic),
+                if (req.billImageUrl != null)
+                  TextButton.icon(
+                    icon: const Icon(Icons.image_outlined, size: 16),
+                    label: const Text('View Receipt'),
+                    onPressed: () {
+                      ReceiptViewerDialog.show(
+                        context,
+                        imageUrl: req.billImageUrl!,
+                      );
+                    },
                   )
                 else
                   const SizedBox.shrink(),
-                Row(
-                  children: [
-                    if (req.billImageUrl != null)
-                      IconButton(
-                        icon: const Icon(Icons.image_outlined, size: 20, color: AppTheme.primaryBlue),
-                        tooltip: 'View Bill Receipt',
-                        onPressed: () {
-                          ReceiptViewerDialog.show(context, imageUrl: req.billImageUrl!);
-                        },
-                      ),
-                    TextButton(
-                      onPressed: () => RequestDetailScreen.show(context, req),
-                      child: const Text('View Details'),
-                    ),
-                  ],
+                TextButton(
+                  onPressed: () => RequestDetailScreen.show(context, req),
+                  child: const Text('Review Detail'),
                 ),
               ],
             ),

@@ -12,12 +12,15 @@ class SupabaseService {
 
   // Placeholder credentials. Update these with real values when deploying.
   static const String _supabaseUrl = 'https://ysrwvlminsuvwswgpuhh.supabase.co';
-  static const String _supabaseAnonKey = 'sb_publishable_6puU1eZ4bgDCZjSQWeDdMg_xs27lGMz';
+  static const String _supabaseAnonKey =
+      'sb_publishable_6puU1eZ4bgDCZjSQWeDdMg_xs27lGMz';
 
   Future<void> initialize() async {
     try {
       if (_supabaseUrl == 'YOUR_SUPABASE_URL' || _supabaseUrl.isEmpty) {
-        debugPrint('Supabase credentials not configured. Falling back to Demo/Offline Mode.');
+        debugPrint(
+          'Supabase credentials not configured. Falling back to Demo/Offline Mode.',
+        );
         _isSupabaseAvailable = false;
         return;
       }
@@ -29,7 +32,9 @@ class SupabaseService {
       _isSupabaseAvailable = true;
       debugPrint('Supabase initialized successfully.');
     } catch (e) {
-      debugPrint('Supabase initialization failed ($e). Falling back to Demo/Offline Mode.');
+      debugPrint(
+        'Supabase initialization failed ($e). Falling back to Demo/Offline Mode.',
+      );
       _isSupabaseAvailable = false;
     }
   }

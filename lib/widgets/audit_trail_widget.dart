@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import '../models/expense_request_model.dart';
 import '../config/app_theme.dart';
 
@@ -62,10 +63,7 @@ class AuditTrailWidget extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: _getLogColor(log.action),
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 2,
-                            ),
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
                         ),
                         if (!isLast)
@@ -109,7 +107,8 @@ class AuditTrailWidget extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  DateFormat('MMM dd, hh:mm a').format(log.timestamp),
+                                  DateFormat('MMM dd, hh:mm a')
+                                      .format(log.timestamp),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade600,
@@ -132,12 +131,18 @@ class AuditTrailWidget extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: Colors.amber.shade50,
                                   borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.amber.shade200),
+                                  border: Border.all(
+                                    color: Colors.amber.shade200,
+                                  ),
                                 ),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Icon(Icons.note_alt_outlined, size: 16, color: Colors.orange),
+                                    const Icon(
+                                      Icons.note_alt_outlined,
+                                      size: 16,
+                                      color: Colors.orange,
+                                    ),
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
@@ -151,7 +156,7 @@ class AuditTrailWidget extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                            ]
+                            ],
                           ],
                         ),
                       ),

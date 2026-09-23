@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/auth_provider.dart';
 import '../../providers/expense_provider.dart';
 import '../../models/expense_request_model.dart';
@@ -39,7 +40,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     if (reviewer == null || !reviewer.canApproveRequests) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You do not have permission to approve this request.')),
+          const SnackBar(
+            content: Text(
+              'You do not have permission to approve this request.',
+            ),
+          ),
         );
       }
       return;
@@ -48,7 +53,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     if (!widget.request.isPending) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('This request is no longer pending and cannot be approved.')),
+          const SnackBar(
+            content: Text(
+              'This request is no longer pending and cannot be approved.',
+            ),
+          ),
         );
       }
       return;
@@ -67,7 +76,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.statusApproved),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.statusApproved,
+            ),
             onPressed: () => Navigator.of(ctx).pop(true),
             child: const Text('Confirm Approval'),
           ),
@@ -104,7 +115,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     if (reviewer == null || !reviewer.canApproveRequests) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You do not have permission to reject this request.')),
+          const SnackBar(
+            content: Text('You do not have permission to reject this request.'),
+          ),
         );
       }
       return;
@@ -113,7 +126,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     if (!widget.request.isPending) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('This request is no longer pending and cannot be rejected.')),
+          const SnackBar(
+            content: Text(
+              'This request is no longer pending and cannot be rejected.',
+            ),
+          ),
         );
       }
       return;
@@ -138,7 +155,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Expense request rejected. Reason logged for requester.'),
+            content: Text(
+              'Expense request rejected. Reason logged for requester.',
+            ),
             backgroundColor: AppTheme.statusRejected,
           ),
         );
@@ -153,9 +172,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
     final isDesktop = MediaQuery.of(context).size.width >= 800;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Expense Review: ${req.id}'),
-      ),
+      appBar: AppBar(title: Text('Expense Review: ${req.id}')),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(isDesktop ? 32 : 16),
         child: Center(
@@ -176,7 +193,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         color: Colors.black.withValues(alpha: 0.02),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
-                      )
+                      ),
                     ],
                   ),
                   child: Column(
@@ -188,7 +205,10 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           StatusBadge(status: req.status),
                           Text(
                             _dateFormat.format(req.createdAt),
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                            ),
                           ),
                         ],
                       ),
@@ -239,8 +259,13 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: AppTheme.roleOfficeBoy.withValues(alpha: 0.15),
-                            child: const Icon(Icons.person, color: AppTheme.roleOfficeBoy),
+                            backgroundColor: AppTheme.roleOfficeBoy.withValues(
+                              alpha: 0.15,
+                            ),
+                            child: const Icon(
+                              Icons.person,
+                              color: AppTheme.roleOfficeBoy,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -249,11 +274,18 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                               children: [
                                 Text(
                                   req.requesterName,
-                                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.primaryNavy),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.primaryNavy,
+                                  ),
                                 ),
                                 Text(
                                   req.requesterEmail,
-                                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF64748B),
+                                  ),
                                 ),
                               ],
                             ),
@@ -289,7 +321,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           decoration: BoxDecoration(
                             color: AppTheme.statusRejectedBg,
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppTheme.statusRejected.withValues(alpha: 0.3)),
+                            border: Border.all(
+                              color: AppTheme.statusRejected.withValues(
+                                alpha: 0.3,
+                              ),
+                            ),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,13 +341,19 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                               const SizedBox(height: 4),
                               Text(
                                 req.rejectionReason!,
-                                style: const TextStyle(fontSize: 13, color: Color(0xFF7F1D1D)),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF7F1D1D),
+                                ),
                               ),
                               if (req.reviewedByName != null) ...[
                                 const SizedBox(height: 6),
                                 Text(
                                   'Reviewed by: ${req.reviewedByName}',
-                                  style: const TextStyle(fontSize: 11, color: Color(0xFF991B1B)),
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF991B1B),
+                                  ),
                                 ),
                               ],
                             ],
@@ -362,7 +404,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      if (req.billImageUrl != null && req.billImageUrl!.isNotEmpty)
+                      if (req.billImageUrl != null &&
+                          req.billImageUrl!.isNotEmpty)
                         GestureDetector(
                           onTap: () {
                             ReceiptViewerDialog.show(
@@ -382,16 +425,29 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                   imageUrl: req.billImageUrl!,
                                   fit: BoxFit.contain,
                                   placeholder: (context, url) => const Center(
-                                    child: CircularProgressIndicator(color: Colors.white54),
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white54,
+                                    ),
                                   ),
-                                  errorWidget: (context, url, error) => const Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.image_not_supported_rounded, color: Colors.white54, size: 48),
-                                      SizedBox(height: 8),
-                                      Text('Unable to display preview', style: TextStyle(color: Colors.white70)),
-                                    ],
-                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      const Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.image_not_supported_rounded,
+                                            color: Colors.white54,
+                                            size: 48,
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            'Unable to display preview',
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                 ),
                               ),
                             ),
@@ -408,9 +464,16 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           ),
                           child: Column(
                             children: const [
-                              Icon(Icons.receipt_long_rounded, color: Color(0xFFCBD5E1), size: 40),
+                              Icon(
+                                Icons.receipt_long_rounded,
+                                color: Color(0xFFCBD5E1),
+                                size: 40,
+                              ),
                               SizedBox(height: 8),
-                              Text('No receipt attached for this request', style: TextStyle(color: Color(0xFF94A3B8))),
+                              Text(
+                                'No receipt attached for this request',
+                                style: TextStyle(color: Color(0xFF94A3B8)),
+                              ),
                             ],
                           ),
                         ),
@@ -420,7 +483,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 const SizedBox(height: 32),
 
                 // Approval / Rejection Action Buttons (Shown only when Pending and the reviewer can approve)
-                if (req.isPending && (Provider.of<AuthProvider>(context).currentUser?.canApproveRequests ?? false)) ...[
+                if (req.isPending &&
+                    (Provider.of<AuthProvider>(context)
+                            .currentUser
+                            ?.canApproveRequests ??
+                        false)) ...[
                   Wrap(
                     spacing: 16,
                     runSpacing: 16,
@@ -429,17 +496,35 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       SizedBox(
                         width: isDesktop ? null : double.infinity,
                         child: OutlinedButton.icon(
-                          icon: const Icon(Icons.close_rounded, color: AppTheme.statusRejected),
-                          label: const Text('Reject', style: TextStyle(color: AppTheme.statusRejected, fontWeight: FontWeight.bold, fontSize: 16)),
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            color: AppTheme.statusRejected,
+                          ),
+                          label: const Text(
+                            'Reject',
+                            style: TextStyle(
+                              color: AppTheme.statusRejected,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppTheme.statusRejected, width: 2),
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            side: const BorderSide(
+                              color: AppTheme.statusRejected,
+                              width: 2,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 32,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                           onPressed: _isProcessing ? null : _handleReject,
                         ),
                       ),
-                      
+
                       // Approve Button
                       SizedBox(
                         width: isDesktop ? null : double.infinity,
@@ -448,14 +533,32 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
                                 )
-                              : const Icon(Icons.check_circle_rounded, color: Colors.white),
-                          label: const Text('Approve & Pay', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                              : const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: Colors.white,
+                                ),
+                          label: const Text(
+                            'Approve & Pay',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppTheme.statusApproved,
-                            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 32,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                             elevation: 0,
                           ),
                           onPressed: _isProcessing ? null : _handleApprove,
@@ -465,7 +568,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                   ),
                   const SizedBox(height: 24),
                 ],
-                
+
                 // Audit Trail
                 if (req.auditLogs.isNotEmpty) ...[
                   const SizedBox(height: 16),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/expense_provider.dart';
 import '../../widgets/adaptive_scaffold.dart';
 import 'pending_requests_screen.dart';
@@ -46,11 +47,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
       MonthlyReportingScreen(),
     ];
 
-    final titles = [
-      'Pending Approvals',
-      'Payment History',
-      'Monthly Reports',
-    ];
+    final titles = ['Pending Approvals', 'Payment History', 'Monthly Reports'];
 
     return AdaptiveScaffold(
       title: titles[_currentIndex],

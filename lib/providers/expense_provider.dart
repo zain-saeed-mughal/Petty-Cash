@@ -211,7 +211,7 @@ class ExpenseProvider extends ChangeNotifier {
             .from('users')
             .select('uid')
             .inFilter('role', ['finance', 'admin', 'super_admin']);
-        
+
         for (var manager in managers) {
           final notif = AppNotification(
             userId: manager['uid'],
@@ -269,7 +269,8 @@ class ExpenseProvider extends ChangeNotifier {
         final notif = AppNotification(
           userId: currentReq.requestedBy,
           title: 'Request ${status.displayName}',
-          message: 'Your request for ${currentReq.itemDescription} was ${status.displayName.toLowerCase()}',
+          message:
+              'Your request for ${currentReq.itemDescription} was ${status.displayName.toLowerCase()}',
           relatedRequestId: requestId,
         );
         await _databaseService.createNotification(notif);
@@ -326,7 +327,8 @@ class ExpenseProvider extends ChangeNotifier {
         final notif = AppNotification(
           userId: currentReq.requestedBy,
           title: 'Request Rejected',
-          message: 'Your request for ${currentReq.itemDescription} was rejected: $rejectionReason',
+          message:
+              'Your request for ${currentReq.itemDescription} was rejected: $rejectionReason',
           relatedRequestId: requestId,
         );
         await _databaseService.createNotification(notif);
@@ -378,7 +380,8 @@ class ExpenseProvider extends ChangeNotifier {
         final notif = AppNotification(
           userId: currentReq.requestedBy,
           title: 'Request Status Overridden',
-          message: 'Your request for ${currentReq.itemDescription} was changed to ${newStatus.displayName}',
+          message:
+              'Your request for ${currentReq.itemDescription} was changed to ${newStatus.displayName}',
           relatedRequestId: requestId,
         );
         await _databaseService.createNotification(notif);

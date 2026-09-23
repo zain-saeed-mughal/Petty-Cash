@@ -51,6 +51,9 @@ dependencies:
   cached_network_image: ^4.0.0
   http: ^1.6.0
   google_fonts: ^8.2.1
+  flutter_native_splash: ^2.4.8
+  firebase_core: ^4.15.0
+  firebase_messaging: ^16.7.0
 
 dev_dependencies:
   flutter_test:
