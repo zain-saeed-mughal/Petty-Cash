@@ -1,0 +1,27 @@
+[
+  {
+    "endpoint": "/rest/v1/requests?select=id&id=eq.REQ-00000000&limit=0",
+    "status": 200,
+    "body": "[]"
+  },
+  {
+    "endpoint": "/rest/v1/users?select=password&limit=0",
+    "status": 200,
+    "body": "[]"
+  },
+  {
+    "endpoint": "/rest/v1/users?select=fcmToken&limit=0",
+    "status": 400,
+    "body": "{\"code\":\"42703\",\"details\":null,\"hint\":null,\"message\":\"column users.fcmToken does not exist\"}"
+  },
+  {
+    "endpoint": "/rest/v1/notifications?select=is_read,related_request_id&limit=0",
+    "status": 200,
+    "body": "[]"
+  },
+  {
+    "endpoint": "/rest/v1/notifications?select=isRead,relatedRequestId&limit=0",
+    "status": 400,
+    "body": "{\"code\":\"42703\",\"details\":null,\"hint\":\"Perhaps you meant to reference the column \\\"notifications.is_read\\\".\",\"message\":\"column notifications.isRead does not exist\"}"
+  }
+]

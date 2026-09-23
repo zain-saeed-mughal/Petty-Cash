@@ -1,0 +1,436 @@
+[
+  {
+    "case": "login_320_1.0",
+    "errors": []
+  },
+  {
+    "case": "reports_320_1.0",
+    "errors": []
+  },
+  {
+    "case": "analytics_320_1.0",
+    "errors": []
+  },
+  {
+    "case": "transactions_320_1.0",
+    "errors": []
+  },
+  {
+    "case": "users_320_1.0",
+    "errors": []
+  },
+  {
+    "case": "pending_320_1.0",
+    "errors": []
+  },
+  {
+    "case": "history_320_1.0",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 12 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/finance/payment_history_screen.dart:445:13\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#c664e relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 226.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=251.0, 0.0<=h<=Infinity)\n  size: Size(251.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 12 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/finance/payment_history_screen.dart:445:13\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#87b32 relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 226.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=251.0, 0.0<=h<=Infinity)\n  size: Size(251.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 12 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/finance/payment_history_screen.dart:445:13\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#f2b5e relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 226.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=251.0, 0.0<=h<=Infinity)\n  size: Size(251.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "my_requests_320_1.0",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 62 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#ffbe8 relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 223.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=250.0, 0.0<=h<=Infinity)\n  size: Size(250.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 62 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#f2f66 relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 223.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=250.0, 0.0<=h<=Infinity)\n  size: Size(250.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 63 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#3546a relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 223.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=249.0, 0.0<=h<=Infinity)\n  size: Size(249.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 62 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#dfa0a relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 223.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=250.0, 0.0<=h<=Infinity)\n  size: Size(250.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "new_request_320_1.0",
+    "errors": []
+  },
+  {
+    "case": "detail_320_1.0",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 31 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/finance/request_detail_screen.dart:202:23\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#b608c relayoutBoundary=up17 OVERFLOWING:\n  parentData: offset=Offset(0.0, 0.0); flex=null; fit=null (can use\n    size)\n  constraints: BoxConstraints(0.0<=w<=238.0, 0.0<=h<=Infinity)\n  size: Size(238.0, 31.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "notifications_320_1.0",
+    "errors": []
+  },
+  {
+    "case": "reject_320_1.0",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 45 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/widgets/rejection_reason_dialog.dart:54:14\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#c5cc2 relayoutBoundary=up14 OVERFLOWING:\n  parentData: <none> (can use size)\n  constraints: BoxConstraints(w=192.0, 0.0<=h<=Infinity)\n  size: Size(192.0, 24.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "login_360_1.0",
+    "errors": []
+  },
+  {
+    "case": "reports_360_1.0",
+    "errors": []
+  },
+  {
+    "case": "analytics_360_1.0",
+    "errors": []
+  },
+  {
+    "case": "transactions_360_1.0",
+    "errors": []
+  },
+  {
+    "case": "users_360_1.0",
+    "errors": []
+  },
+  {
+    "case": "pending_360_1.0",
+    "errors": []
+  },
+  {
+    "case": "history_360_1.0",
+    "errors": []
+  },
+  {
+    "case": "my_requests_360_1.0",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 22 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#64ee8 relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 200.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=290.0, 0.0<=h<=Infinity)\n  size: Size(290.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 22 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#b546c relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 200.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=290.0, 0.0<=h<=Infinity)\n  size: Size(290.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 23 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#2715f relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 200.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=289.0, 0.0<=h<=Infinity)\n  size: Size(289.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 22 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#623c4 relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 200.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=290.0, 0.0<=h<=Infinity)\n  size: Size(290.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "new_request_360_1.0",
+    "errors": []
+  },
+  {
+    "case": "detail_360_1.0",
+    "errors": []
+  },
+  {
+    "case": "notifications_360_1.0",
+    "errors": []
+  },
+  {
+    "case": "reject_360_1.0",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 5.1 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/widgets/rejection_reason_dialog.dart:54:14\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#67205 relayoutBoundary=up14 OVERFLOWING:\n  parentData: <none> (can use size)\n  constraints: BoxConstraints(w=232.0, 0.0<=h<=Infinity)\n  size: Size(232.0, 24.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "login_360_1.5",
+    "errors": []
+  },
+  {
+    "case": "reports_360_1.5",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 35 pixels on the right.\n\nThe relevant error-causing widget was:\n  DropdownButton<String>\n  DropdownButton:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/reports/monthly_reporting_screen.dart:177:27\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#74473 relayoutBoundary=up17 OVERFLOWING:\n  parentData: offset=Offset(0.0, 0.0) (can use size)\n  constraints: BoxConstraints(0.0<=w<=287.0, 0.0<=h<=Infinity)\n  size: Size(287.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: min\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "analytics_360_1.5",
+    "errors": []
+  },
+  {
+    "case": "transactions_360_1.5",
+    "errors": []
+  },
+  {
+    "case": "users_360_1.5",
+    "errors": []
+  },
+  {
+    "case": "pending_360_1.5",
+    "errors": []
+  },
+  {
+    "case": "history_360_1.5",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 58 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/finance/payment_history_screen.dart:445:13\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#8ce11 relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 305.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=291.0, 0.0<=h<=Infinity)\n  size: Size(291.0, 51.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 58 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/finance/payment_history_screen.dart:445:13\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#aaf04 relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 305.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=291.0, 0.0<=h<=Infinity)\n  size: Size(291.0, 51.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 58 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/finance/payment_history_screen.dart:445:13\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#31abd relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 305.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=291.0, 0.0<=h<=Infinity)\n  size: Size(291.0, 51.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "my_requests_360_1.5",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 153 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#a896a relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 344.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=290.0, 0.0<=h<=Infinity)\n  size: Size(290.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 153 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#3ccde relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 344.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=290.0, 0.0<=h<=Infinity)\n  size: Size(290.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 154 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#dc201 relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 344.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=289.0, 0.0<=h<=Infinity)\n  size: Size(289.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 153 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/office_boy/my_requests_screen.dart:497:15\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#1712a relayoutBoundary=up12 OVERFLOWING:\n  parentData: offset=Offset(0.0, 344.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=290.0, 0.0<=h<=Infinity)\n  size: Size(290.0, 48.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "new_request_360_1.5",
+    "errors": []
+  },
+  {
+    "case": "detail_360_1.5",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 104 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/finance/request_detail_screen.dart:202:23\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#6597f relayoutBoundary=up17 OVERFLOWING:\n  parentData: offset=Offset(0.0, 0.0); flex=null; fit=null (can use\n    size)\n  constraints: BoxConstraints(0.0<=w<=278.0, 0.0<=h<=Infinity)\n  size: Size(278.0, 40.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "notifications_360_1.5",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 42 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/widgets/notifications_panel.dart:31:22\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#04005 relayoutBoundary=up8 OVERFLOWING:\n  parentData: offset=Offset(16.0, 16.0) (can use size)\n  constraints: BoxConstraints(0.0<=w<=328.0, 0.0<=h<=Infinity)\n  size: Size(328.0, 51.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "reject_360_1.5",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 92 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/widgets/rejection_reason_dialog.dart:54:14\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#ce75f relayoutBoundary=up14 OVERFLOWING:\n  parentData: <none> (can use size)\n  constraints: BoxConstraints(w=248.0, 0.0<=h<=Infinity)\n  size: Size(248.0, 36.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "login_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "reports_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "analytics_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "transactions_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "users_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "pending_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "history_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "my_requests_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "new_request_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "detail_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "notifications_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "reject_390_1.0",
+    "errors": []
+  },
+  {
+    "case": "login_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "reports_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "analytics_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "transactions_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "users_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "pending_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "history_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "my_requests_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "new_request_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "detail_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "notifications_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "reject_768_1.0",
+    "errors": []
+  },
+  {
+    "case": "login_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "reports_1024_1.0",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 8.2 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/reports/monthly_reporting_screen.dart:385:14\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#cb321 OVERFLOWING:\n  parentData: offset=Offset(20.5, 20.5) (can use size)\n  constraints: BoxConstraints(w=136.8, h=39.8)\n  size: Size(136.8, 39.8)\n  direction: vertical\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: start\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 23 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/reports/monthly_reporting_screen.dart:385:14\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#81dca OVERFLOWING:\n  parentData: offset=Offset(20.5, 20.5) (can use size)\n  constraints: BoxConstraints(w=136.8, h=39.8)\n  size: Size(136.8, 39.8)\n  direction: vertical\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: start\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 23 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/reports/monthly_reporting_screen.dart:385:14\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#9733d OVERFLOWING:\n  parentData: offset=Offset(20.5, 20.5) (can use size)\n  constraints: BoxConstraints(w=136.8, h=39.8)\n  size: Size(136.8, 39.8)\n  direction: vertical\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: start\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 23 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/reports/monthly_reporting_screen.dart:385:14\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#f0101 OVERFLOWING:\n  parentData: offset=Offset(20.5, 20.5) (can use size)\n  constraints: BoxConstraints(w=136.8, h=39.8)\n  size: Size(136.8, 39.8)\n  direction: vertical\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: start\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "analytics_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "transactions_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "users_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "pending_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "history_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "my_requests_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "new_request_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "detail_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "notifications_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "reject_1024_1.0",
+    "errors": []
+  },
+  {
+    "case": "login_1024_1.5",
+    "errors": []
+  },
+  {
+    "case": "reports_1024_1.5",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 28 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/reports/monthly_reporting_screen.dart:406:11\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#79e82 relayoutBoundary=up1 OVERFLOWING:\n  parentData: offset=Offset(0.0, 68.0); flex=null; fit=null (can\n    use size)\n  constraints: BoxConstraints(0.0<=w<=136.8, 0.0<=h<=Infinity)\n  size: Size(136.8, 24.0)\n  direction: horizontal\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: end\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 52 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/reports/monthly_reporting_screen.dart:385:14\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#71858 OVERFLOWING:\n  parentData: offset=Offset(20.5, 20.5) (can use size)\n  constraints: BoxConstraints(w=136.8, h=39.8)\n  size: Size(136.8, 39.8)\n  direction: vertical\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: start\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 47 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/reports/monthly_reporting_screen.dart:385:14\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#b9e2c OVERFLOWING:\n  parentData: offset=Offset(20.5, 20.5) (can use size)\n  constraints: BoxConstraints(w=136.8, h=39.8)\n  size: Size(136.8, 39.8)\n  direction: vertical\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: start\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 47 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/reports/monthly_reporting_screen.dart:385:14\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#7f5af OVERFLOWING:\n  parentData: offset=Offset(20.5, 20.5) (can use size)\n  constraints: BoxConstraints(w=136.8, h=39.8)\n  size: Size(136.8, 39.8)\n  direction: vertical\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: start\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 47 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/screens/reports/monthly_reporting_screen.dart:385:14\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#e1f5a OVERFLOWING:\n  parentData: offset=Offset(20.5, 20.5) (can use size)\n  constraints: BoxConstraints(w=136.8, h=39.8)\n  size: Size(136.8, 39.8)\n  direction: vertical\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: start\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "analytics_1024_1.5",
+    "errors": []
+  },
+  {
+    "case": "transactions_1024_1.5",
+    "errors": []
+  },
+  {
+    "case": "users_1024_1.5",
+    "errors": []
+  },
+  {
+    "case": "pending_1024_1.5",
+    "errors": []
+  },
+  {
+    "case": "history_1024_1.5",
+    "errors": []
+  },
+  {
+    "case": "my_requests_1024_1.5",
+    "errors": []
+  },
+  {
+    "case": "new_request_1024_1.5",
+    "errors": []
+  },
+  {
+    "case": "detail_1024_1.5",
+    "errors": []
+  },
+  {
+    "case": "notifications_1024_1.5",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 1.8 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/Users/DEV-BT/Desktop/Petty%20Cash/lib/widgets/notifications_panel.dart:31:22\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#fa4e0 relayoutBoundary=up8 OVERFLOWING:\n  parentData: offset=Offset(16.0, 16.0) (can use size)\n  constraints: BoxConstraints(0.0<=w<=368.0, 0.0<=h<=Infinity)\n  size: Size(368.0, 51.0)\n  direction: horizontal\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ]
+  },
+  {
+    "case": "reject_1024_1.5",
+    "errors": []
+  },
+  {
+    "case": "login_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "reports_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "analytics_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "transactions_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "users_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "pending_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "history_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "my_requests_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "new_request_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "detail_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "notifications_1440_1.0",
+    "errors": []
+  },
+  {
+    "case": "reject_1440_1.0",
+    "errors": []
+  }
+]
