@@ -1,189 +1,48 @@
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../models/user_model.dart';
-import '../config/app_constants.dart';
 import 'supabase_service.dart';
 import 'push_notification_service.dart';
 
 class AuthService {
-  static final AuthService _instance = AuthService._internal();
-  factory AuthService() => _instance;
+  static final AuthService _instance=AuthService._internal();
+  factory AuthService()=>_instance;
   AuthService._internal();
-
   AppUser? _currentActiveUser;
-  AppUser? get currentUser => _currentActiveUser;
-
-  SupabaseClient? get _client => SupabaseService().client;
-
-  Future<void> _updateFcmToken(AppUser user) async {
-    final token = await PushNotificationService().getDeviceToken();
-    if (token != null && token != user.fcmToken) {
-      final client = _client;
-      if (client != null) {
-        try {
-          await client
-              .from(AppConstants.usersCollection)
-              .update({'fcmToken': token})
-              .eq('uid', user.uid);
-          _currentActiveUser = user.copyWith(fcmToken: token);
-        } catch (e) {
-          debugPrint('Failed to update FCM token: $e');
-        }
-      }
-    }
-  }
+  AppUser? get currentUser=>_currentActiveUser;
+  SupabaseClient? get _client=>SupabaseService().client;
 
   Future<AppUser?> restoreSession() async {
-    final client = _client;
-    if (client == null) {
-      _currentActiveUser = null;
-      return null;
+    final client=_client;
+    final uid=client?.auth.currentSession?.user.id;
+    if(client==null||uid==null) { _currentActiveUser=null; return null; }
+    final data=await client.from('users').select().eq('uid',uid).maybeSingle();
+    if(data==null||data['isActive']!=true) {
+      await signOut(); return null;
     }
-
-    final Session? session = client.auth.currentSession;
-    final String? userId;
-    if (session != null) {
-      userId = session.user.id;
-    } else {
-      userId = null;
-    }
-
-    if (userId != null) {
-      try {
-        final data = await client
-            .from(AppConstants.usersCollection)
-            .select()
-            .eq('uid', userId)
-            .maybeSingle();
-
-        if (data != null) {
-          final user = AppUser.fromMap(data, docId: userId);
-          if (user.isActive) {
-            _currentActiveUser = user;
-            await _updateFcmToken(user);
-            return _currentActiveUser;
-          }
-          await client.auth.signOut();
-          _currentActiveUser = null;
-          return null;
-        }
-      } catch (e) {
-        debugPrint('Failed to restore session profile: $e');
-      }
-    }
-
-    _currentActiveUser = null;
-    return null;
+    return _currentActiveUser=AppUser.fromMap(data);
   }
-
-  Future<AppUser?> signIn({
-    required String email,
-    required String password,
-  }) async {
-    final client = _client;
-    if (client == null) {
-      throw Exception('Supabase is not initialized. Please try again later.');
-    }
-
-    final cleanEmail = email.trim().toLowerCase();
-
+  Future<AppUser?> signIn({required String email,required String password}) async {
+    final client=_client;
+    if(client==null) throw StateError('Connection unavailable. Restart and try again.');
     try {
-      final authResponse = await client.auth.signInWithPassword(
-        email: cleanEmail,
-        password: password,
-      );
-
-      final uid = authResponse.user?.id;
-      if (uid != null) {
-        final data = await client
-            .from(AppConstants.usersCollection)
-            .select()
-            .eq('uid', uid)
-            .maybeSingle();
-
-        if (data != null) {
-          final user = AppUser.fromMap(data, docId: uid);
-          if (!user.isActive) {
-            throw Exception(
-              'This account is inactive. Please contact your administrator.',
-            );
-          }
-          _currentActiveUser = user;
-          await _updateFcmToken(user);
-          return _currentActiveUser;
-        } else {
-          throw Exception(
-            'User profile not found. Please contact an Administrator.',
-          );
-        }
-      }
-      throw Exception('Authentication failed.');
-    } on AuthException catch (e) {
-      debugPrint('Supabase AuthException: ${e.message}');
-      throw Exception(e.message);
-    } catch (e) {
-      debugPrint('Supabase signIn error: $e');
-      throw Exception('An unexpected error occurred during login.');
+      await client.auth.signInWithPassword(email:email.trim().toLowerCase(),password:password);
+      final user=await restoreSession();
+      if(user==null) throw StateError('Your account is inactive or has not been provisioned. Contact an administrator.');
+      return user;
+    } catch(_) {
+      _currentActiveUser=null;
+      await client.auth.signOut(scope:SignOutScope.local);
+      rethrow;
     }
   }
-
-  Future<AppUser?> signUp({
-    required String name,
-    required String email,
-    required String password,
-    UserRole role = UserRole.officeBoy,
-  }) async {
-    final client = _client;
-    if (client == null) {
-      throw Exception('Supabase is not initialized. Please try again later.');
-    }
-
-    final cleanEmail = email.trim().toLowerCase();
-
-    try {
-      final authResponse = await client.auth.signUp(
-        email: cleanEmail,
-        password: password,
-        data: {'name': name.trim()},
-      );
-
-      final uid = authResponse.user?.id;
-      if (uid == null) {
-        throw Exception('Sign up failed: No UID returned.');
-      }
-
-      final newUser = AppUser(
-        uid: uid,
-        name: name.trim(),
-        email: cleanEmail,
-        role: role,
-        createdAt: DateTime.now(),
-      );
-
-      await client.from(AppConstants.usersCollection).insert(newUser.toMap());
-
-      _currentActiveUser = newUser;
-      await _updateFcmToken(newUser);
-      return _currentActiveUser;
-    } on AuthException catch (e) {
-      debugPrint('Supabase AuthException: ${e.message}');
-      throw Exception(e.message);
-    } catch (e) {
-      debugPrint('Supabase signUp error: $e');
-      throw Exception('An unexpected error occurred during sign up.');
-    }
+  Future<AppUser?> signUp({required String name,required String email,required String password,UserRole role=UserRole.officeBoy}) async {
+    throw StateError('Please ask an administrator to create your account.');
   }
-
   Future<void> signOut() async {
-    final client = _client;
-    if (client != null) {
-      try {
-        await client.auth.signOut();
-      } catch (e) {
-        debugPrint('Supabase signOut error: $e');
-      }
-    }
-    _currentActiveUser = null;
+    await PushNotificationService().bindUser(null);
+    _currentActiveUser=null;
+    // Local sign-out always removes this device's session, including offline use.
+    await _client?.auth.signOut(scope:SignOutScope.local);
   }
 }
+

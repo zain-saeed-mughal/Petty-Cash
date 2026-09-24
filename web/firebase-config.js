@@ -1,0 +1,2 @@
+self.PETTY_CASH_FIREBASE_CONFIG = null;
+

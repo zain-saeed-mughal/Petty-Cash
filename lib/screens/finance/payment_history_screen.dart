@@ -32,7 +32,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   Widget build(BuildContext context) {
     final expense = Provider.of<ExpenseProvider>(context);
     final history = expense.paymentHistory.where((req) {
-      if (_statusFilter != null && req.status != _statusFilter) return false;
+      if (_statusFilter != null && !(_statusFilter == RequestStatus.paid ? (req.isPaid || req.isApproved) : req.status == _statusFilter)) return false;
       final q = _searchController.text.toLowerCase().trim();
       if (q.isNotEmpty) {
         final matchDesc = req.itemDescription.toLowerCase().contains(q);
@@ -442,8 +442,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               ),
             ],
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              spacing:12,runSpacing:8,
               children: [
                 if (req.billImageUrl != null)
                   TextButton.icon(

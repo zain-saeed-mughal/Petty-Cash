@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'receipt_image.dart';
 
 import '../config/app_theme.dart';
 
@@ -107,7 +107,7 @@ class ReceiptViewerDialog extends StatelessWidget {
                                 errorBuilder: (ctx, err, stack) =>
                                     _errorPlaceholder(),
                               )
-                            : CachedNetworkImage(
+                            : ReceiptImage(
                                 imageUrl: imageUrl,
                                 fit: BoxFit.contain,
                                 placeholder: (context, url) => const Center(

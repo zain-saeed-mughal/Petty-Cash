@@ -43,7 +43,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     // Office Boy can ONLY see their own requests
     final allMyRequests = expense.getMyRequests(currentUser.uid);
     final filtered = allMyRequests.where((req) {
-      if (_statusFilter != null && req.status != _statusFilter) return false;
+      if (_statusFilter != null && !(_statusFilter == RequestStatus.paid ? (req.isPaid || req.isApproved) : req.status == _statusFilter)) return false;
       final query = _searchController.text.toLowerCase().trim();
       if (query.isNotEmpty) {
         final matchDesc = req.itemDescription.toLowerCase().contains(query);
@@ -494,11 +494,12 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
             // Receipt Attachment Action
             if (req.billImageUrl != null && req.billImageUrl!.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Row(
+              Wrap(
+                spacing:8,runSpacing:8,
                 children: [
                   OutlinedButton.icon(
                     icon: const Icon(Icons.image_outlined, size: 16),
-                    label: const Text('Inspect Bill / Receipt'),
+                    label: const Text('View receipt'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,

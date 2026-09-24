@@ -1,5 +1,5 @@
 name: petty_cash
-description: "A new Flutter project."
+description: "Secure petty cash requests, approvals and reporting."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -83,6 +83,10 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

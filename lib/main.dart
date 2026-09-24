@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,23 +16,25 @@ import 'screens/finance/finance_dashboard.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'screens/super_admin/super_admin_dashboard.dart';
 import 'services/push_notification_service.dart';
+import 'services/database_service.dart';
+import 'screens/finance/request_detail_screen.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => ExpenseProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProxyProvider<AuthProvider, NotificationProvider>(
-          create: (_) => NotificationProvider(),
-          update: (_, auth, notif) => notif!..updateUser(auth.currentUser?.uid),
-        ),
-      ],
-      child: const PettyCashApp(),
-    ),
-  );
+  runApp(const AppProviders(child: PettyCashApp()));
+}
+class AppProviders extends StatelessWidget {
+  final Widget child;
+  const AppProviders({super.key,required this.child});
+  @override Widget build(BuildContext context)=>MultiProvider(providers:[
+    ChangeNotifierProvider(create:(_)=>AuthProvider()),
+    ChangeNotifierProxyProvider<AuthProvider,ExpenseProvider>(
+      create:(_)=>ExpenseProvider(),update:(_,auth,expense)=>expense!..updateUser(auth.currentUser)),
+    ChangeNotifierProxyProvider<AuthProvider,UserProvider>(
+      create:(_)=>UserProvider(),update:(_,auth,users)=>users!..updateUserSession(auth.currentUser)),
+    ChangeNotifierProxyProvider<AuthProvider,NotificationProvider>(
+      create:(_)=>NotificationProvider(),update:(_,auth,notifications)=>notifications!..updateUser(auth.currentUser?.uid)),
+  ],child:child);
 }
 
 class PettyCashApp extends StatefulWidget {
@@ -45,6 +48,10 @@ class PettyCashApp extends StatefulWidget {
 
 class _PettyCashAppState extends State<PettyCashApp> {
   bool _isInitialized = false;
+  String? _startupError;
+  var _navigatorKey=GlobalKey<NavigatorState>();
+  String? _navigationIdentity;
+  StreamSubscription? _pushMessages, _pushOpens;
 
   @override
   void initState() {
@@ -59,34 +66,60 @@ class _PettyCashAppState extends State<PettyCashApp> {
   Future<void> _initializeServices() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
-    // Initialize Supabase first so the client is available for auth
-    await SupabaseService().initialize();
-
-    // Initialize Push Notifications
-    await PushNotificationService().initialize();
-
-    // Enforce a 5-second minimum duration and restore session concurrently
-    await Future.wait([
-      auth.restoreSession(),
-      Future.delayed(const Duration(seconds: 5)),
-    ]);
-
-    if (mounted) {
-      setState(() => _isInitialized = true);
-    }
+    try {
+      if(mounted) setState(()=>_startupError=null);
+      await SupabaseService().initialize();
+      await auth.restoreSession();
+      if(!mounted)return;
+      _pushMessages??=PushNotificationService().messages.stream.listen((message){
+        if(!mounted||!auth.isAuthenticated)return;
+        final ctx=_navigatorKey.currentContext;
+        if(ctx!=null && ctx.mounted) {
+          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
+          content:Text(message.notification?.title??'New notification'),
+          action:message.data['request_id'] is String?SnackBarAction(label:'Open',onPressed:()=>_openRequest(message.data['request_id'])):null,
+        ));
+        }
+      });
+      _pushOpens??=PushNotificationService().openedRequests.stream.listen(_openRequest);
+      setState(()=>_isInitialized=true);
+    }catch(_){if(mounted)setState(()=>_startupError='Unable to connect. Check your connection and try again.');}
   }
+  Future<void> _openRequest(String id) async {
+    final auth=context.read<AuthProvider>();
+    final uid=auth.currentUser?.uid;
+    if(uid==null)return;
+    try {
+      final request=await DatabaseService().getRequest(id);
+      if(!mounted||auth.currentUser?.uid!=uid)return;
+      _navigatorKey.currentState?.push(MaterialPageRoute(builder:(_)=>RequestDetailScreen(request:request)));
+    }catch(_){}
+  }
+  @override void dispose(){_pushMessages?.cancel();_pushOpens?.cancel();super.dispose();}
 
   @override
   Widget build(BuildContext context) {
+    final identity=context.watch<AuthProvider>().currentUser;
+    final navigationIdentity=identity==null?'signed-out':identity.uid+identity.role.roleCode;
+    if(_navigationIdentity!=navigationIdentity){_navigationIdentity=navigationIdentity;_navigatorKey=GlobalKey<NavigatorState>();}
     return MaterialApp(
+      key:ValueKey(identity==null?'signed-out':identity.uid+identity.role.roleCode),
+      navigatorKey:_navigatorKey,
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       home: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 800),
+        duration: const Duration(milliseconds: 200),
         switchInCurve: Curves.easeIn,
         switchOutCurve: Curves.easeOut,
-        child: _isInitialized
+        child: _startupError!=null
+            ? Scaffold(body:Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(
+              mainAxisSize:MainAxisSize.min,children:[
+                const Icon(Icons.cloud_off_rounded,size:48),
+                const SizedBox(height:16),Text(_startupError!,textAlign:TextAlign.center),
+                const SizedBox(height:16),FilledButton(onPressed:_initializeServices,child:const Text('Try again')),
+              ]))))
+            : _isInitialized
             ? const RoleRouter()
             : const _StartupSplash(key: ValueKey('splash')),
       ),

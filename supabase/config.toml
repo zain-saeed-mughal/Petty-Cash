@@ -1,0 +1,7 @@
+project_id = "petty-cash"
+[functions.manage-user]
+# JWT validation uses Auth.getUser in the handler, supporting asymmetric keys.
+verify_jwt = false
+[functions.send-push]
+verify_jwt = false
+

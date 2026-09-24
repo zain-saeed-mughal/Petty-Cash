@@ -55,14 +55,14 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
         children: const [
           Icon(Icons.cancel_rounded, color: AppTheme.statusRejected),
           SizedBox(width: 8),
-          Text(
+          Expanded(child: Text(
             'Reject Expense Request',
             style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 18,
               color: AppTheme.primaryNavy,
             ),
-          ),
+          )),
         ],
       ),
       content: SizedBox(

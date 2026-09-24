@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../models/user_model.dart';
 import '../../config/app_theme.dart';
+import '../../widgets/user_account_dialog.dart';
 
 class UserManagementScreen extends StatefulWidget {
   const UserManagementScreen({super.key});
@@ -26,158 +27,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     super.dispose();
   }
 
-  void _showAddUserDialog(BuildContext context, AppUser currentUser) {
-    final parentContext = context;
-    final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController();
-    final emailController = TextEditingController();
-    final passwordController = TextEditingController();
-
-    // Roles available to be assigned based on current actor
-    final List<UserRole> allowedRoles = currentUser.isSuperAdmin
-        ? [UserRole.officeBoy, UserRole.finance, UserRole.admin]
-        : [UserRole.officeBoy, UserRole.finance];
-
-    UserRole selectedRole = allowedRoles.first;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Row(
-            children: const [
-              Icon(Icons.person_add_rounded, color: AppTheme.primaryBlue),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Create New User Account',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
-          ),
-          content: Container(
-            constraints: const BoxConstraints(maxWidth: 440),
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      validator: (v) => v == null || v.trim().isEmpty
-                          ? 'Please enter full name'
-                          : null,
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Corporate Email',
-                        prefixIcon: Icon(Icons.email_outlined),
-                      ),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'Please enter corporate email';
-                        }
-                        if (!v.contains('@')) {
-                          return 'Please enter a valid email address';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: passwordController,
-                      decoration: const InputDecoration(
-                        labelText: 'Temporary Password',
-                        prefixIcon: Icon(Icons.lock_outline_rounded),
-                      ),
-                      validator: (v) => v == null || v.trim().isEmpty
-                          ? 'Please assign a temporary password'
-                          : null,
-                    ),
-                    const SizedBox(height: 14),
-                    DropdownButtonFormField<UserRole>(
-                      initialValue: selectedRole,
-                      decoration: const InputDecoration(
-                        labelText: 'Role Assignment',
-                        prefixIcon: Icon(Icons.badge_outlined),
-                      ),
-                      items: allowedRoles.map((r) {
-                        return DropdownMenuItem(
-                          value: r,
-                          child: Text(r.displayName),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          setDialogState(() => selectedRole = val);
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (formKey.currentState!.validate()) {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final navigator = Navigator.of(ctx);
-                  final userProvider = Provider.of<UserProvider>(
-                    context,
-                    listen: false,
-                  );
-                  final success = await userProvider.addUser(
-                    name: nameController.text.trim(),
-                    email: emailController.text.trim(),
-                    password: passwordController.text.trim(),
-                    role: selectedRole,
-                  );
-                  if (!parentContext.mounted) return;
-                  if (success) {
-                    final createdName = nameController.text.trim();
-                    final createdEmail = emailController.text
-                        .trim()
-                        .toLowerCase();
-                    final temporaryPassword = passwordController.text.trim();
-                    navigator.pop();
-                    _showTemporaryCredentialsDialog(
-                      parentContext,
-                      name: createdName,
-                      email: createdEmail,
-                      temporaryPassword: temporaryPassword,
-                    );
-                  } else {
-                    messenger.showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Failed to create account: ${userProvider.errorMessage}',
-                        ),
-                        backgroundColor: AppTheme.statusRejected,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Add Account'),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _showAddUserDialog(BuildContext context,AppUser currentUser) async {
+    final result=await showDialog<Map<String,String>>(context:context,barrierDismissible:false,
+      builder:(_)=>UserAccountDialog(actor:currentUser));
+    if(result!=null&&context.mounted) {
+      _showTemporaryCredentialsDialog(context,
+      name:result['name']!,email:result['email']!,temporaryPassword:result['password']!);
+    }
   }
 
   void _showTemporaryCredentialsDialog(
@@ -266,190 +122,24 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  void _showEditUserDialog(
-    BuildContext context,
-    AppUser userToEdit,
-    AppUser currentUser,
-  ) {
-    final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController(text: userToEdit.name);
-    final emailController = TextEditingController(text: userToEdit.email);
-    final passwordController = TextEditingController();
-    final allowedRoles = currentUser.isSuperAdmin
-        ? [UserRole.officeBoy, UserRole.finance, UserRole.admin]
-        : [UserRole.officeBoy, UserRole.finance];
-
-    if (userToEdit.role == UserRole.superAdmin) {
-      allowedRoles.insert(0, UserRole.superAdmin);
-    }
-
-    UserRole selectedRole = allowedRoles.contains(userToEdit.role)
-        ? userToEdit.role
-        : allowedRoles.first;
-    bool isActive = userToEdit.isActive;
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text('Edit Account: ${userToEdit.name}'),
-          content: Container(
-            constraints: const BoxConstraints(maxWidth: 440),
-            child: SingleChildScrollView(
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      validator: (v) =>
-                          v == null || v.trim().isEmpty ? 'Required' : null,
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: emailController,
-                      decoration: const InputDecoration(
-                        labelText: 'Corporate Email',
-                        prefixIcon: Icon(Icons.email_outlined),
-                      ),
-                      validator: (v) => v == null || !v.contains('@')
-                          ? 'Invalid email'
-                          : null,
-                    ),
-                    const SizedBox(height: 14),
-                    TextFormField(
-                      controller: passwordController,
-                      decoration: const InputDecoration(
-                        labelText: 'New Password (optional)',
-                        prefixIcon: Icon(Icons.lock_outline),
-                        hintText: 'Only set this when changing credentials',
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    DropdownButtonFormField<UserRole>(
-                      initialValue: selectedRole,
-                      decoration: const InputDecoration(
-                        labelText: 'Assigned Role',
-                      ),
-                      items: allowedRoles
-                          .map(
-                            (r) => DropdownMenuItem(
-                              value: r,
-                              child: Text(r.displayName),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: userToEdit.isSuperAdmin
-                          ? null
-                          : (val) {
-                              if (val != null) {
-                                setDialogState(() => selectedRole = val);
-                              }
-                            },
-                    ),
-                    const SizedBox(height: 14),
-                    SwitchListTile(
-                      title: const Text('Account Active'),
-                      subtitle: Text(
-                        isActive ? 'User can log in' : 'Access suspended',
-                      ),
-                      value: isActive,
-                      onChanged: userToEdit.isSuperAdmin
-                          ? null
-                          : (val) => setDialogState(() => isActive = val),
-                    ),
-                  ],
-                ), // Column
-              ), // Form
-            ), // SingleChildScrollView
-          ), // Container
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-
-                final messenger = ScaffoldMessenger.of(context);
-                final navigator = Navigator.of(ctx);
-                final userProvider = Provider.of<UserProvider>(
-                  context,
-                  listen: false,
-                );
-                final newPassword = passwordController.text.trim();
-                final updated = userToEdit.copyWith(
-                  name: nameController.text.trim(),
-                  email: emailController.text.trim().toLowerCase(),
-                  password: newPassword.isEmpty ? null : newPassword,
-                  role: selectedRole,
-                  isActive: isActive,
-                );
-                final success = await userProvider.updateUser(updated);
-                if (success) {
-                  navigator.pop();
-                  messenger.showSnackBar(
-                    const SnackBar(
-                      content: Text('Account updated successfully!'),
-                      backgroundColor: AppTheme.statusApproved,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Save Changes'),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> _showEditUserDialog(BuildContext context,AppUser userToEdit,AppUser currentUser) async {
+    await showDialog<Map<String,String>>(context:context,barrierDismissible:false,
+      builder:(_)=>UserAccountDialog(actor:currentUser,user:userToEdit));
   }
 
-  void _confirmDeleteUser(BuildContext context, AppUser userToDelete) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Delete User Account'),
-        content: Text(
-          'Are you sure you want to remove ${userToDelete.name} (${userToDelete.email})? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.statusRejected,
-            ),
-            onPressed: () async {
-              final messenger = ScaffoldMessenger.of(context);
-              final navigator = Navigator.of(ctx);
-              final userProvider = Provider.of<UserProvider>(
-                context,
-                listen: false,
-              );
-              final success = await userProvider.deleteUser(userToDelete.uid);
-              if (success) {
-                navigator.pop();
-                messenger.showSnackBar(
-                  const SnackBar(
-                    content: Text('User account removed.'),
-                    backgroundColor: AppTheme.statusRejected,
-                  ),
-                );
-              }
-            },
-            child: const Text('Delete Account'),
-          ),
-        ],
-      ),
-    );
+  Future<void> _confirmDeleteUser(BuildContext context,AppUser user) async {
+    final provider=context.read<UserProvider>();
+    final confirmed=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(
+      title:const Text('Deactivate account'),
+      content:Text('Disable access for ${user.name}? Their requests and payment history will be retained.'),
+      actions:[
+        TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('Cancel')),
+        FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('Deactivate')),
+      ],
+    ));
+    if(confirmed!=true||!context.mounted)return;
+    final success=await provider.deleteUser(user.uid);
+    if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(success?'Account deactivated.':provider.errorMessage??'Unable to deactivate this account.')));
   }
 
   @override

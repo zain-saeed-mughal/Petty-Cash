@@ -7,6 +7,7 @@ import '../config/app_theme.dart';
 import '../config/app_constants.dart';
 import '../providers/notification_provider.dart';
 import 'notifications_panel.dart';
+import 'data_status_view.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -241,7 +242,7 @@ class AdaptiveScaffold extends StatelessWidget {
               }).toList(),
             ),
             const VerticalDivider(thickness: 1, width: 1),
-            Expanded(child: body),
+            Expanded(child: DataStatusView(child: body)),
           ],
         ),
         floatingActionButton: floatingActionButton,
@@ -262,7 +263,7 @@ class AdaptiveScaffold extends StatelessWidget {
           child: Divider(height: 1),
         ),
       ),
-      body: body,
+      body: DataStatusView(child: body),
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: onNavigationIndexChanged,

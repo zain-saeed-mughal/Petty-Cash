@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import '../../widgets/receipt_image.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
@@ -50,7 +50,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
       return;
     }
 
-    if (!widget.request.isPending) {
+    final current=expense.findRequest(widget.request.id) ?? widget.request;
+    if (!current.isPending && !current.isApproved) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -86,14 +87,17 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       setState(() => _isProcessing = true);
       final success = await expense.approveRequest(
         requestId: widget.request.id,
+        expectedVersion: current.version,
         reviewer: reviewer,
         markAsPaidImmediately: true,
       );
+      if(!mounted)return;
       setState(() => _isProcessing = false);
+      if(!success) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(expense.errorMessage??'Unable to save. Try again.')));
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -123,7 +127,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
       return;
     }
 
-    if (!widget.request.isPending) {
+    final current=expense.findRequest(widget.request.id) ?? widget.request;
+    if (!current.isPending && !current.isApproved) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -143,14 +148,17 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
       amount: widget.request.amount,
     );
 
-    if (reason != null && reason.trim().isNotEmpty) {
+    if (reason != null && reason.trim().isNotEmpty && mounted) {
       setState(() => _isProcessing = true);
       final success = await expense.rejectRequest(
         requestId: widget.request.id,
+        expectedVersion: current.version,
         rejectionReason: reason,
         reviewer: reviewer,
       );
+      if(!mounted)return;
       setState(() => _isProcessing = false);
+      if(!success) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(expense.errorMessage??'Unable to save. Try again.')));
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -168,11 +176,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final req = widget.request;
+    final req = context.watch<ExpenseProvider>().findRequest(widget.request.id) ?? widget.request;
     final isDesktop = MediaQuery.of(context).size.width >= 800;
 
     return Scaffold(
-      appBar: AppBar(title: Text('Expense Review: ${req.id}')),
+      appBar: AppBar(title: Text('Expense Review: ${req.displayId}',maxLines:1,overflow:TextOverflow.ellipsis)),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(isDesktop ? 32 : 16),
         child: Center(
@@ -199,8 +207,8 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        spacing:12, runSpacing:8, crossAxisAlignment:WrapCrossAlignment.center,
                         children: [
                           StatusBadge(status: req.status),
                           Text(
@@ -421,7 +429,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                               width: double.infinity,
                               color: const Color(0xFF0F172A),
                               child: Center(
-                                child: CachedNetworkImage(
+                                child: ReceiptImage(
                                   imageUrl: req.billImageUrl!,
                                   fit: BoxFit.contain,
                                   placeholder: (context, url) => const Center(
@@ -483,7 +491,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 const SizedBox(height: 32),
 
                 // Approval / Rejection Action Buttons (Shown only when Pending and the reviewer can approve)
-                if (req.isPending &&
+                if ((req.isPending || req.isApproved) &&
                     (Provider.of<AuthProvider>(context)
                             .currentUser
                             ?.canApproveRequests ??

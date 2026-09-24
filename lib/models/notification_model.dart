@@ -28,7 +28,7 @@ class AppNotification {
       'message': message,
       'is_read': isRead,
       'related_request_id': relatedRequestId,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAt.toUtc().toIso8601String(),
     };
   }
 

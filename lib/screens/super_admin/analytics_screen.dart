@@ -432,9 +432,9 @@ class AnalyticsScreen extends StatelessWidget {
   Widget _buildTopRequestersCard(ExpenseProvider expense) {
     final Map<String, double> requesterTotals = {};
     for (final r in expense.allRequests) {
-      if (r.isApproved || r.isPaid) {
-        requesterTotals[r.requesterName] =
-            (requesterTotals[r.requesterName] ?? 0.0) + r.amount;
+      if (r.isPaid) {
+        requesterTotals[r.requestedBy] =
+            (requesterTotals[r.requestedBy] ?? 0.0) + r.amount;
       }
     }
 
@@ -461,14 +461,14 @@ class AnalyticsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Cumulative approved petty cash expenditure per staff member',
+            'Actual paid expenditure per staff member',
             style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 16),
           if (sorted.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
-              child: Text('No approved transactions found yet.'),
+              child: Text('No paid transactions found yet.'),
             )
           else
             ListView.separated(
@@ -499,7 +499,7 @@ class AnalyticsScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          entry.key,
+                          expense.allRequests.firstWhere((r)=>r.requestedBy==entry.key).requesterName,
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,

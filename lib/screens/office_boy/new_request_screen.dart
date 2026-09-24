@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:uuid/uuid.dart';
+import '../../services/app_error.dart';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -30,6 +32,8 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   Uint8List? _selectedImageBytes;
   String? _selectedImageName;
   bool _isSubmitting = false;
+  String _requestId=const Uuid().v4();
+  String? _uploadedPath;
 
   @override
   void dispose() {
@@ -40,10 +44,15 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    if(_isSubmitting)return;
     try {
       final file = await StorageService().pickReceiptImage(source: source);
       if (file != null) {
         final bytes = await file.readAsBytes();
+        if(!mounted)return;
+        if(bytes.length>StorageService.maxUploadBytes)throw StateError("Choose an image under 10 MB.");
+        StorageService.imageMime(bytes);
+        _discardUploadedReceipt();
         setState(() {
           _selectedImageBytes = bytes;
           _selectedImageName = file.name;
@@ -57,7 +66,12 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     }
   }
 
+  void _discardUploadedReceipt(){
+    final path=_uploadedPath; _uploadedPath=null;
+    if(path!=null) StorageService().removeUnusedReceipt(path).catchError((Object _){});
+  }
   void _clearImage() {
+    _discardUploadedReceipt();
     setState(() {
       _selectedImageBytes = null;
       _selectedImageName = null;
@@ -65,84 +79,34 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   }
 
   Future<void> _submitRequest() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final auth = Provider.of<AuthProvider>(context, listen: false);
-    final expense = Provider.of<ExpenseProvider>(context, listen: false);
-    final user = auth.currentUser;
-
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User session expired. Please sign in again.'),
-        ),
-      );
+    if(_isSubmitting||!_formKey.currentState!.validate())return;
+    final user=context.read<AuthProvider>().currentUser;
+    final expense=context.read<ExpenseProvider>();
+    if(user==null)return;
+    final item=_itemController.text.trim(),reason=_reasonController.text.trim();
+    final amount=double.tryParse(_amountController.text.trim());
+    if(amount==null||!amount.isFinite||amount<=0||amount>=10000000000||
+      (amount*100-(amount*100).round()).abs()>0.00001){
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Enter a positive amount with at most two decimal places.')));
       return;
     }
-
-    setState(() => _isSubmitting = true);
-
-    String? uploadedUrl;
-
-    // Upload picked image if present
-    if (_selectedImageBytes != null) {
-      final filename = 'receipt_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      uploadedUrl = await StorageService().uploadReceiptImage(
-        imageBytes: _selectedImageBytes!,
-        fileName: filename,
-      );
-    }
-
-    final String rawAmount = _amountController.text.trim();
-    final double? parsedAmount = double.tryParse(rawAmount);
-    final double amount = parsedAmount ?? 0.0;
-
-    if (parsedAmount == null || !parsedAmount.isFinite || parsedAmount <= 0) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please enter a valid amount greater than 0.'),
-          ),
-        );
+    setState(()=>_isSubmitting=true);
+    try {
+      if(_selectedImageBytes!=null&&_uploadedPath==null){
+        _uploadedPath=await StorageService().uploadReceiptImage(imageBytes:_selectedImageBytes!,fileName:_selectedImageName??'receipt');
       }
-      return;
-    }
-
-    final success = await expense.submitRequest(
-      user: user,
-      itemDescription: _itemController.text.trim(),
-      amount: amount,
-      reason: _reasonController.text.trim(),
-      billImageUrl: uploadedUrl,
-    );
-
-    setState(() => _isSubmitting = false);
-
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Expense request submitted successfully! Status is now Pending.',
-          ),
-          backgroundColor: AppTheme.statusApproved,
-        ),
-      );
-
-      // Clear Form
-      _itemController.clear();
-      _amountController.clear();
-      _reasonController.clear();
-      _clearImage();
-
-      widget.onRequestSubmitted?.call();
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(expense.errorMessage ?? 'Failed to submit request'),
-          backgroundColor: AppTheme.statusRejected,
-        ),
-      );
-    }
+      if(!mounted)return;
+      final success=await expense.submitRequest(user:user,itemDescription:item,amount:amount,
+        reason:reason,billImageUrl:_uploadedPath,requestId:_requestId);
+      if(!mounted)return;
+      if(!success)throw StateError(expense.errorMessage??'Unable to submit. Please retry.');
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Request submitted for approval.')));
+      _requestId=const Uuid().v4();_uploadedPath=null;
+      _itemController.clear();_amountController.clear();_reasonController.clear();
+      _clearImage();widget.onRequestSubmitted?.call();
+    }catch(e){
+      if(mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(userMessage(e))));
+    }finally{if(mounted)setState(()=>_isSubmitting=false);}
   }
 
   @override
@@ -236,6 +200,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
+                    enabled: !_isSubmitting,
                         controller: _itemController,
                         decoration: const InputDecoration(
                           hintText: 'e.g. A4 Copy Paper, Kitchen Coffee & Milk, Hardware Repair...',
@@ -261,6 +226,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
+                    enabled: !_isSubmitting,
                         controller: _amountController,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
@@ -307,6 +273,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
+                    enabled: !_isSubmitting,
                         controller: _reasonController,
                         maxLines: 3,
                         decoration: const InputDecoration(

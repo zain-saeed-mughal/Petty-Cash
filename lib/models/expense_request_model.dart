@@ -1,3 +1,5 @@
+const _unchanged = Object();
+
 enum RequestStatus {
   pending,
   approved,
@@ -48,6 +50,10 @@ class ExpenseRequest {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<AuditLogEntry> auditLogs;
+  final int version;
+  final DateTime? paidAt;
+  DateTime get reportingDate => (isPaid ? paidAt ?? updatedAt : createdAt).toLocal();
+  String get displayId => id.startsWith("REQ-") ? id : "REQ-${id.substring(0, id.length < 8 ? id.length : 8).toUpperCase()}";
 
   ExpenseRequest({
     required this.id,
@@ -65,6 +71,8 @@ class ExpenseRequest {
     required this.createdAt,
     required this.updatedAt,
     this.auditLogs = const [],
+    this.version = 0,
+    this.paidAt,
   });
 
   bool get isPending => status == RequestStatus.pending;
@@ -75,6 +83,8 @@ class ExpenseRequest {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'version': version,
+      'paidAt': paidAt?.toUtc().toIso8601String(),
       'requestedBy': requestedBy,
       'requesterName': requesterName,
       'requesterEmail': requesterEmail,
@@ -86,8 +96,8 @@ class ExpenseRequest {
       'rejectionReason': rejectionReason,
       'reviewedBy': reviewedBy,
       'reviewedByName': reviewedByName,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
+      'createdAt': createdAt.toUtc().toIso8601String(),
+      'updatedAt': updatedAt.toUtc().toIso8601String(),
       'auditLogs': auditLogs.map((e) => e.toMap()).toList(),
     };
   }
@@ -108,6 +118,8 @@ class ExpenseRequest {
 
     return ExpenseRequest(
       id: (map['id'] ?? docId ?? '').toString(),
+      version: (map['version'] as num?)?.toInt() ?? 0,
+      paidAt: map['paidAt'] == null ? null : parseDate(map['paidAt']),
       requestedBy: (map['requestedBy'] ?? '').toString(),
       requesterName: (map['requesterName'] ?? 'Staff Member').toString(),
       requesterEmail: (map['requesterEmail'] ?? '').toString(),
@@ -139,7 +151,7 @@ class ExpenseRequest {
     String? reason,
     String? billImageUrl,
     RequestStatus? status,
-    String? rejectionReason,
+    Object? rejectionReason = _unchanged,
     String? reviewedBy,
     String? reviewedByName,
     DateTime? createdAt,
@@ -156,12 +168,14 @@ class ExpenseRequest {
       reason: reason ?? this.reason,
       billImageUrl: billImageUrl ?? this.billImageUrl,
       status: status ?? this.status,
-      rejectionReason: rejectionReason ?? this.rejectionReason,
+      rejectionReason: identical(rejectionReason, _unchanged) ? this.rejectionReason : rejectionReason as String?,
       reviewedBy: reviewedBy ?? this.reviewedBy,
       reviewedByName: reviewedByName ?? this.reviewedByName,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       auditLogs: auditLogs ?? this.auditLogs,
+      version: version,
+      paidAt: paidAt,
     );
   }
 }
@@ -183,7 +197,7 @@ class AuditLogEntry {
 
   Map<String, dynamic> toMap() {
     return {
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': timestamp.toUtc().toIso8601String(),
       'action': action,
       'performerId': performerId,
       'performerName': performerName,

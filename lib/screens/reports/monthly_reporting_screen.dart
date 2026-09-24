@@ -1,440 +1,128 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-
 import '../../providers/expense_provider.dart';
 import '../../providers/user_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../models/expense_request_model.dart';
-import '../../models/user_model.dart';
 import '../../config/app_theme.dart';
 import '../../widgets/status_badge.dart';
 import '../finance/request_detail_screen.dart';
 
 class MonthlyReportingScreen extends StatefulWidget {
-  const MonthlyReportingScreen({super.key});
-
-  @override
-  State<MonthlyReportingScreen> createState() => _MonthlyReportingScreenState();
+ const MonthlyReportingScreen({super.key});
+ @override State<MonthlyReportingScreen> createState()=>_MonthlyReportingScreenState();
 }
-
 class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
-  DateTime _selectedDate = DateTime.now();
-  String? _selectedUserId;
-  RequestStatus? _selectedStatus;
-
-  final DateFormat _monthFormat = DateFormat('MMMM yyyy');
-  final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
-
-  void _previousMonth() {
-    setState(() {
-      _selectedDate = DateTime(_selectedDate.year, _selectedDate.month - 1);
-    });
-  }
-
-  void _nextMonth() {
-    setState(() {
-      _selectedDate = DateTime(_selectedDate.year, _selectedDate.month + 1);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final expense = Provider.of<ExpenseProvider>(context);
-    final userProvider = Provider.of<UserProvider>(context);
-
-    // Filter requests for selected month
-    final currentMonthRequests = expense.allRequests
-        .where(
-          (r) =>
-              r.createdAt.year == _selectedDate.year &&
-              r.createdAt.month == _selectedDate.month,
-        )
-        .toList();
-
-    // Filter requests for previous month for comparison
-    final previousMonth = DateTime(_selectedDate.year, _selectedDate.month - 1);
-    final prevMonthRequests = expense.allRequests
-        .where(
-          (r) =>
-              r.createdAt.year == previousMonth.year &&
-              r.createdAt.month == previousMonth.month,
-        )
-        .toList();
-
-    // Apply User & Status filters
-    final filteredRequests = currentMonthRequests.where((r) {
-      if (_selectedUserId != null &&
-          _selectedUserId != 'ALL' &&
-          r.requestedBy != _selectedUserId) {
-        return false;
-      }
-      if (_selectedStatus != null && r.status != _selectedStatus) {
-        return false;
-      }
-      return true;
-    }).toList();
-
-    // KPIs
-    int totalSubmitted = currentMonthRequests.length;
-    int pendingCount = currentMonthRequests.where((r) => r.isPending).length;
-    int rejectedCount = currentMonthRequests.where((r) => r.isRejected).length;
-
-    double totalPaidAmount = currentMonthRequests
-        .where((r) => r.isPaid)
-        .fold(0.0, (sum, r) => sum + r.amount);
-    double prevMonthPaidAmount = prevMonthRequests
-        .where((r) => r.isPaid)
-        .fold(0.0, (sum, r) => sum + r.amount);
-
-    double growth = 0;
-    if (prevMonthPaidAmount > 0) {
-      growth =
-          ((totalPaidAmount - prevMonthPaidAmount) / prevMonthPaidAmount) * 100;
-    }
-
-    final isDesktop = MediaQuery.of(context).size.width >= 900;
-
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: EdgeInsets.all(isDesktop ? 32 : 16),
-          sliver: SliverToBoxAdapter(
-            child: Center(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    const Text(
-                      'Monthly Reports',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primaryNavy,
-                        letterSpacing: -0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Detailed breakdown and audit of petty cash requests by month.',
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey.shade600,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Filter Bar
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppTheme.borderLight,
-                          width: 0.5,
-                        ),
-                        boxShadow: AppTheme.premiumShadow,
-                      ),
-                      child: Wrap(
-                        spacing: 16,
-                        runSpacing: 16,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          // Month Selector
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.chevron_left),
-                                onPressed: _previousMonth,
-                              ),
-                              Text(
-                                _monthFormat.format(_selectedDate),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.chevron_right),
-                                onPressed: _nextMonth,
-                              ),
-                            ],
-                          ),
-                          Container(
-                            height: 24,
-                            width: 1,
-                            color: Colors.grey.shade300,
-                          ),
-                          // User Filter
-                          DropdownButton<String>(
-                            value: _selectedUserId,
-                            hint: const Text('All Users'),
-                            underline: const SizedBox(),
-                            items: [
-                              const DropdownMenuItem(
-                                value: 'ALL',
-                                child: Text('All Users'),
-                              ),
-                              ...userProvider.allUsers
-                                  .where((u) {
-                                    final authUser = Provider.of<AuthProvider>(
-                                      context,
-                                      listen: false,
-                                    ).currentUser;
-                                    if (authUser?.isFinance == true) {
-                                      return u.role == UserRole.officeBoy;
-                                    }
-                                    if (authUser?.isAdmin == true) {
-                                      return u.role == UserRole.officeBoy ||
-                                          u.role == UserRole.finance;
-                                    }
-                                    return true; // Super Admin sees all
-                                  })
-                                  .map(
-                                    (u) => DropdownMenuItem(
-                                      value: u.uid,
-                                      child: Text(u.name),
-                                    ),
-                                  ),
-                            ],
-                            onChanged: (val) =>
-                                setState(() => _selectedUserId = val),
-                          ),
-                          Container(
-                            height: 24,
-                            width: 1,
-                            color: Colors.grey.shade300,
-                          ),
-                          // Status Filter
-                          DropdownButton<RequestStatus?>(
-                            value: _selectedStatus,
-                            hint: const Text('All Statuses'),
-                            underline: const SizedBox(),
-                            items: [
-                              const DropdownMenuItem(
-                                value: null,
-                                child: Text('All Statuses'),
-                              ),
-                              ...RequestStatus.values.map(
-                                (s) => DropdownMenuItem(
-                                  value: s,
-                                  child: Text(s.displayName),
-                                ),
-                              ),
-                            ],
-                            onChanged: (val) =>
-                                setState(() => _selectedStatus = val),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // KPIs
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        int crossAxisCount = isDesktop
-                            ? 4
-                            : (constraints.maxWidth > 600 ? 2 : 1);
-                        return GridView.count(
-                          crossAxisCount: crossAxisCount,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 2.2,
-                          children: [
-                            _buildKpiCard(
-                              'Total Paid (PKR)',
-                              'Rs. ${totalPaidAmount.toStringAsFixed(2)}',
-                              Icons.payments,
-                              Colors.teal,
-                              growth,
-                            ),
-                            _buildKpiCard(
-                              'Submitted',
-                              totalSubmitted.toString(),
-                              Icons.receipt,
-                              Colors.blue,
-                              null,
-                            ),
-                            _buildKpiCard(
-                              'Pending',
-                              pendingCount.toString(),
-                              Icons.pending,
-                              Colors.orange,
-                              null,
-                            ),
-                            _buildKpiCard(
-                              'Rejected',
-                              rejectedCount.toString(),
-                              Icons.cancel,
-                              Colors.red,
-                              null,
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Data Table
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppTheme.borderLight,
-                          width: 0.5,
-                        ),
-                        boxShadow: AppTheme.premiumShadow,
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            headingRowColor: WidgetStateProperty.all(
-                              AppTheme.primaryNavy,
-                            ),
-                            headingTextStyle: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            showCheckboxColumn: false,
-                            columns: const [
-                              DataColumn(label: Text('Date')),
-                              DataColumn(label: Text('ID')),
-                              DataColumn(label: Text('Requester')),
-                              DataColumn(label: Text('Item')),
-                              DataColumn(label: Text('Amount')),
-                              DataColumn(label: Text('Status')),
-                            ],
-                            rows: filteredRequests.map((req) {
-                              return DataRow(
-                                onSelectChanged: (_) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          RequestDetailScreen(request: req),
-                                    ),
-                                  );
-                                },
-                                cells: [
-                                  DataCell(
-                                    Text(_dateFormat.format(req.createdAt)),
-                                  ),
-                                  DataCell(
-                                    Text(
-                                      req.id,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(Text(req.requesterName)),
-                                  DataCell(Text(req.itemDescription)),
-                                  DataCell(
-                                    Text(
-                                      'Rs. ${req.amount.toStringAsFixed(2)}',
-                                    ),
-                                  ),
-                                  DataCell(StatusBadge(status: req.status)),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildKpiCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-    double? growth,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderLight, width: 0.5),
-        boxShadow: AppTheme.premiumShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 20, color: color),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: FittedBox(
-                  alignment: Alignment.centerLeft,
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryNavy,
-                    ),
-                  ),
-                ),
-              ),
-              if (growth != null) ...[
-                const SizedBox(width: 8),
-                Text(
-                  '${growth > 0 ? '+' : ''}${growth.toStringAsFixed(1)}% vs prev month',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: growth >= 0 ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+ DateTime _month=DateTime.now();
+ String? _user;
+ RequestStatus? _status;
+ int _page=0;
+ final _money=NumberFormat.currency(symbol:'Rs. ',decimalDigits:2);
+ void _move(int delta)=>setState((){_month=DateTime(_month.year,_month.month+delta);_page=0;});
+ bool _matches(ExpenseRequest r)=> (_user==null||r.requestedBy==_user)&&(_status==null||r.status==_status);
+ bool _inMonth(ExpenseRequest r,DateTime month){
+  if(r.isPaid&&r.paidAt==null)return false;
+  final d=r.reportingDate;
+  return d.year==month.year&&d.month==month.month;
+ }
+ @override Widget build(BuildContext context){
+  final expense=context.watch<ExpenseProvider>();
+  final users=context.watch<UserProvider>().allUsers;
+  final rows=expense.allRequests.where((r)=>_matches(r)&&_inMonth(r,_month)).toList();
+  final previous=DateTime(_month.year,_month.month-1);
+  final paid=rows.where((r)=>r.isPaid).fold(0.0,(sum,r)=>sum+r.amount);
+  final previousPaid=expense.allRequests.where((r)=>r.isPaid&&_matches(r)&&_inMonth(r,previous)).fold(0.0,(sum,r)=>sum+r.amount);
+  final undated=expense.allRequests.where((r)=>r.isPaid&&r.paidAt==null&&_matches(r)).length;
+  final pages=math.max(1,(rows.length/10).ceil());
+  final page=math.min(_page,pages-1);
+  final visible=rows.skip(page*10).take(10).toList();
+  return LayoutBuilder(builder:(context,bounds){
+   final inset=bounds.maxWidth>=900?32.0:16.0;
+   return ListView(padding:EdgeInsets.all(inset),children:[
+    Center(child:ConstrainedBox(constraints:const BoxConstraints(maxWidth:1200),child:Column(
+     crossAxisAlignment:CrossAxisAlignment.start,children:[
+      Text('Monthly Reports',style:Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight:FontWeight.w800)),
+      const SizedBox(height:8),
+      const Text('Paid amounts use the payment date. Other requests use their submission date.'),
+      const SizedBox(height:24),
+      Card(child:Padding(padding:const EdgeInsets.all(16),child:LayoutBuilder(builder:(context,c){
+       final width=math.min(280.0,c.maxWidth);
+       return Wrap(spacing:16,runSpacing:12,crossAxisAlignment:WrapCrossAlignment.center,children:[
+        SizedBox(width:width,child:Row(children:[
+         IconButton(tooltip:'Previous month',onPressed:()=>_move(-1),icon:const Icon(Icons.chevron_left)),
+         Expanded(child:Text(DateFormat('MMMM yyyy').format(_month),textAlign:TextAlign.center,style:const TextStyle(fontWeight:FontWeight.w700))),
+         IconButton(tooltip:'Next month',onPressed:()=>_move(1),icon:const Icon(Icons.chevron_right)),
+        ])),
+        SizedBox(width:width,child:DropdownButtonFormField<String>(
+         initialValue:users.any((u)=>u.uid==_user)?_user:null,isExpanded:true,
+         decoration:const InputDecoration(labelText:'Requester'),
+         items:[const DropdownMenuItem<String>(value:null,child:Text('All users')),
+          ...users.map((u)=>DropdownMenuItem(value:u.uid,child:Text(u.name,maxLines:1,overflow:TextOverflow.ellipsis)))],
+         onChanged:(v)=>setState((){_user=v;_page=0;}),
+        )),
+        SizedBox(width:width,child:DropdownButtonFormField<RequestStatus>(
+         initialValue:_status,isExpanded:true,decoration:const InputDecoration(labelText:'Status'),
+         items:[const DropdownMenuItem<RequestStatus>(value:null,child:Text('All statuses')),
+          ...RequestStatus.values.map((s)=>DropdownMenuItem(value:s,child:Text(s.displayName)))],
+         onChanged:(v)=>setState((){_status=v;_page=0;}),
+        )),
+       ]);
+      }))),
+      const SizedBox(height:20),
+      if(expense.errorMessage!=null) Padding(padding:const EdgeInsets.only(bottom:16),child:Text('Data could not be refreshed. Displayed values may be out of date.',style:TextStyle(color:Theme.of(context).colorScheme.error))),
+      LayoutBuilder(builder:(context,c){
+       final scale=MediaQuery.textScalerOf(context).scale(1);
+       final columns=c.maxWidth>=1100&&scale<1.3?4:c.maxWidth>=600?2:1;
+       final width=(c.maxWidth-(columns-1)*16)/columns;
+       return Wrap(spacing:16,runSpacing:16,children:[
+        _metric(width,'Total paid',_money.format(paid),Icons.payments_outlined,AppTheme.accentTeal,
+         previousPaid>0?'${(((paid-previousPaid)/previousPaid)*100).toStringAsFixed(1)}% vs previous month':'No previous paid amount'),
+        _metric(width,'Requests in view',rows.length.toString(),Icons.receipt_long_outlined,AppTheme.primaryBlue,'All active filters applied'),
+        _metric(width,'Pending',rows.where((r)=>r.isPending).length.toString(),Icons.schedule_outlined,AppTheme.statusPending,'Awaiting a decision'),
+        _metric(width,'Rejected',rows.where((r)=>r.isRejected).length.toString(),Icons.cancel_outlined,AppTheme.statusRejected,'Review reasons in request details'),
+       ]);
+      }),
+      if(undated>0) Padding(padding:const EdgeInsets.only(top:16),child:Text('$undated historical payment(s) have no verified payment date and are excluded from monthly totals.')),
+      const SizedBox(height:24),
+      Text('Request details',style:Theme.of(context).textTheme.titleLarge),
+      const SizedBox(height:12),
+      if(rows.isEmpty) const Card(child:Padding(padding:EdgeInsets.all(32),child:Center(child:Text('No requests match these filters.')))),
+      ...visible.map((r)=>Padding(padding:const EdgeInsets.only(bottom:12),child:Card(child:InkWell(
+       borderRadius:BorderRadius.circular(20),
+       onTap:()=>RequestDetailScreen.show(context,r),
+       child:Padding(padding:const EdgeInsets.all(20),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+        Wrap(spacing:12,runSpacing:8,crossAxisAlignment:WrapCrossAlignment.center,children:[
+         Text(r.displayId,style:const TextStyle(fontWeight:FontWeight.w700)),
+         StatusBadge(status:r.status),
+         Text(DateFormat('dd MMM yyyy').format(r.reportingDate),style:const TextStyle(color:Color(0xff64748b))),
+        ]),
+        const SizedBox(height:12),
+        Text(r.itemDescription,style:const TextStyle(fontSize:16,fontWeight:FontWeight.w600)),
+        const SizedBox(height:8),Text(r.requesterName),
+        const SizedBox(height:12),
+        Text(_money.format(r.amount),style:const TextStyle(fontSize:20,fontWeight:FontWeight.w800,color:AppTheme.primaryBlue)),
+       ])),
+      )))),
+      if(rows.isNotEmpty) Wrap(spacing:12,runSpacing:8,crossAxisAlignment:WrapCrossAlignment.center,children:[
+       Text('${rows.length} requests · Page ${page+1} of $pages'),
+       OutlinedButton(onPressed:page>0?()=>setState(()=>_page=page-1):null,child:const Text('Previous')),
+       OutlinedButton(onPressed:page+1<pages?()=>setState(()=>_page=page+1):null,child:const Text('Next')),
+      ]),
+     ],
+    ))),
+   ]);
+  });
+ }
+ Widget _metric(double width,String title,String value,IconData icon,Color color,String note)=>SizedBox(
+  width:width,child:Card(child:Padding(padding:const EdgeInsets.all(20),child:Column(
+   crossAxisAlignment:CrossAxisAlignment.start,children:[
+    Icon(icon,color:color),const SizedBox(height:12),
+    Text(title,style:const TextStyle(color:Color(0xff64748b),fontWeight:FontWeight.w600)),
+    const SizedBox(height:8),Text(value,style:const TextStyle(fontSize:24,fontWeight:FontWeight.w800,color:AppTheme.primaryNavy)),
+    const SizedBox(height:8),Text(note,style:const TextStyle(fontSize:12,color:Color(0xff64748b))),
+   ],
+  ))),
+ );
 }
+

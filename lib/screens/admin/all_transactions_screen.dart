@@ -186,7 +186,7 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
     if (currentUser == null) return const SizedBox.shrink();
 
     final all = expense.filteredAllTransactions.where((req) {
-      if (_statusFilter != null && req.status != _statusFilter) return false;
+      if (_statusFilter != null && !(_statusFilter == RequestStatus.paid ? (req.isPaid || req.isApproved) : req.status == _statusFilter)) return false;
       final q = _searchController.text.toLowerCase().trim();
       if (q.isNotEmpty) {
         final matchDesc = req.itemDescription.toLowerCase().contains(q);

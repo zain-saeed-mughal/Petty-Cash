@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 
 class AppTheme {
   // Brand Colors
@@ -42,10 +42,11 @@ class AppTheme {
   ];
 
   static ThemeData get lightTheme {
-    final baseTextTheme = GoogleFonts.interTextTheme();
+    final baseTextTheme = ThemeData.light().textTheme.apply(fontFamily:'Inter');
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Inter',
       brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryBlue,
