@@ -1,11 +1,11 @@
+import 'package:petty_cash/l10n/context_l10n.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/expense_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../models/expense_request_model.dart';
 import '../../config/app_theme.dart';
-import '../../config/app_constants.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/receipt_viewer_dialog.dart';
 import 'request_detail_screen.dart';
@@ -20,7 +20,6 @@ class PaymentHistoryScreen extends StatefulWidget {
 class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   RequestStatus? _statusFilter;
-  final DateFormat _dateFormat = DateFormat('MMM dd, yyyy • hh:mm a');
 
   @override
   void dispose() {
@@ -30,9 +29,15 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = Provider.of<LanguageProvider>(context);
     final expense = Provider.of<ExpenseProvider>(context);
     final history = expense.paymentHistory.where((req) {
-      if (_statusFilter != null && !(_statusFilter == RequestStatus.paid ? (req.isPaid || req.isApproved) : req.status == _statusFilter)) return false;
+      if (_statusFilter != null &&
+          !(_statusFilter == RequestStatus.paid
+              ? (req.hasDisbursement || req.isApproved)
+              : req.status == _statusFilter)) {
+        return false;
+      }
       final q = _searchController.text.toLowerCase().trim();
       if (q.isNotEmpty) {
         final matchDesc = req.itemDescription.toLowerCase().contains(q);
@@ -58,88 +63,179 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Summary KPI
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: AppTheme.borderLight,
-                                width: 0.5,
+                    LayoutBuilder(
+                      builder: (context, bounds) {
+                        final stacked =
+                            bounds.maxWidth < 500 ||
+                            MediaQuery.textScalerOf(context).scale(1) > 1.3;
+                        final cardWidth = stacked
+                            ? bounds.maxWidth
+                            : (bounds.maxWidth - 16) / 2;
+                        return Wrap(
+                          spacing: 16,
+                          runSpacing: 16,
+                          children: [
+                            SizedBox(
+                              width: cardWidth,
+                              child: Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: AppTheme.borderLight,
+                                    width: 0.5,
+                                  ),
+                                  boxShadow: AppTheme.premiumShadow,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      lang.tr('total_settled_paid'),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF64748B),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      context.language.money(
+                                        expense.totalSpent,
+                                      ),
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppTheme.statusApproved,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              boxShadow: AppTheme.premiumShadow,
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Total Settled / Paid',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF64748B),
-                                    fontWeight: FontWeight.w600,
+
+                            SizedBox(
+                              width: cardWidth,
+                              child: Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: AppTheme.borderLight,
+                                    width: 0.5,
                                   ),
+                                  boxShadow: AppTheme.premiumShadow,
                                 ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  '${AppConstants.defaultCurrencySymbol}${expense.totalSpent.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppTheme.statusApproved,
-                                    letterSpacing: -0.5,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      lang.tr('settled_transactions'),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF64748B),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      '${expense.approvedCount}${lang.tr('approved_word')}${expense.rejectedCount}${lang.tr('rejected_word')}',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.primaryNavy,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: AppTheme.borderLight,
-                                width: 0.5,
                               ),
-                              boxShadow: AppTheme.premiumShadow,
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Settled Transactions',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF64748B),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  '${expense.approvedCount} approved / ${expense.rejectedCount} rejected',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppTheme.primaryNavy,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
 
-                    // Search & Filter Bar
+                    // Advance Wallet Summary for Finance
+                    Builder(
+                      builder: (context) {
+                        final unsettledAdvances = expense.allRequests.where(
+                          (r) =>
+                              r.isAdvance &&
+                              (r.isPaid || r.isPendingSettlement) &&
+                              !r.isSettled,
+                        );
+                        final balance = unsettledAdvances.fold<double>(
+                          0,
+                          (sum, r) => sum + r.outstandingAdvance,
+                        );
+                        if (balance <= 0) return const SizedBox.shrink();
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 24),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 20,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryNavy,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: AppTheme.premiumShadow,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.account_balance_wallet_outlined,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      context.language.format(
+                                        'Total Outstanding Advances (Employees)',
+                                        'ملازمین کے پاس موجود ٹوٹل ایڈوانس رقم',
+                                        {},
+                                      ),
+                                      style: TextStyle(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.8,
+                                        ),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      context.language.money(balance),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: -0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ), // Search & Filter Bar
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -157,7 +253,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                             controller: _searchController,
                             onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(
-                              hintText: 'Search history by requester, description, or reason...',
+                              hintText: lang.tr('search_history'),
                               prefixIcon: const Icon(
                                 Icons.search_rounded,
                                 color: Color(0xFF94A3B8),
@@ -181,16 +277,16 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                             scrollDirection: Axis.horizontal,
                             child: Row(
                               children: [
-                                _buildFilterChip('All Settled', null),
+                                _buildFilterChip(lang.tr('all_settled'), null),
                                 const SizedBox(width: 12),
                                 _buildFilterChip(
-                                  'Paid / Approved',
+                                  lang.tr('paid_approved'),
                                   RequestStatus.paid,
                                   color: AppTheme.statusApproved,
                                 ),
                                 const SizedBox(width: 12),
                                 _buildFilterChip(
-                                  'Rejected',
+                                  lang.tr('rejected'),
                                   RequestStatus.rejected,
                                   color: AppTheme.statusRejected,
                                 ),
@@ -237,8 +333,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text(
-                      'No Payment Records Found',
+                    Text(
+                      lang.tr('no_payment_records'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -246,8 +342,8 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Approved and rejected requests will appear here.',
+                    Text(
+                      lang.tr('approved_rejected_appear'),
                       style: TextStyle(color: Color(0xFF64748B), fontSize: 15),
                       textAlign: TextAlign.center,
                     ),
@@ -308,6 +404,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   }
 
   Widget _buildHistoryCard(ExpenseRequest req) {
+    final lang = Provider.of<LanguageProvider>(context, listen: false);
     final isNarrow = MediaQuery.of(context).size.width < 420;
 
     return Container(
@@ -339,7 +436,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                           ),
                         ),
                         Text(
-                          '• ${_dateFormat.format(req.updatedAt)}',
+                          '• ${context.language.date(req.updatedAt)}',
                           style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFF94A3B8),
@@ -360,24 +457,28 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     if (req.reviewedByName != null) ...[
                       const SizedBox(height: 2),
                       Text(
-                        'Reviewed by: ${req.reviewedByName}',
+                        context.language.format(
+                          'Reviewed by: {name}',
+                          'جائزہ لینے والا: {name}',
+                          {'name': req.reviewedByName},
+                        ),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color(0xFF64748B),
                           fontStyle: FontStyle.italic,
                         ),
                       ),
-                    ]
+                    ],
                   ],
                 );
-                
+
                 final amount = Column(
                   crossAxisAlignment: isNarrow
                       ? CrossAxisAlignment.start
                       : CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${AppConstants.defaultCurrencySymbol}${req.amount.toStringAsFixed(2)}',
+                      context.language.money(req.amount),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
@@ -420,7 +521,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Purpose: ${req.reason}',
+                      '${lang.tr('purpose_prefix')}${req.reason}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF334155),
@@ -433,7 +534,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             if (req.isRejected && req.rejectionReason != null) ...[
               const SizedBox(height: 8),
               Text(
-                'Reason: ${req.rejectionReason}',
+                '${lang.tr('reason_prefix')}${req.rejectionReason}',
                 style: const TextStyle(
                   fontSize: 12,
                   color: AppTheme.statusRejected,
@@ -443,12 +544,13 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             ],
             const SizedBox(height: 12),
             Wrap(
-              spacing:12,runSpacing:8,
+              spacing: 12,
+              runSpacing: 8,
               children: [
                 if (req.billImageUrl != null)
                   TextButton.icon(
                     icon: const Icon(Icons.image_outlined, size: 16),
-                    label: const Text('View Receipt'),
+                    label: Text(lang.tr('view_receipt')),
                     onPressed: () {
                       ReceiptViewerDialog.show(
                         context,
@@ -460,7 +562,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   const SizedBox.shrink(),
                 TextButton(
                   onPressed: () => RequestDetailScreen.show(context, req),
-                  child: const Text('Review Detail'),
+                  child: Text(lang.tr('review_detail')),
                 ),
               ],
             ),

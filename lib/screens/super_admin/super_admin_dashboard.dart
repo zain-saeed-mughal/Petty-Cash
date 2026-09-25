@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/expense_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../widgets/adaptive_scaffold.dart';
 import 'analytics_screen.dart';
 import '../admin/all_transactions_screen.dart';
@@ -21,28 +22,29 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
   @override
   Widget build(BuildContext context) {
     final expense = Provider.of<ExpenseProvider>(context);
+    final lang = Provider.of<LanguageProvider>(context);
 
     final destinations = [
-      const NavigationItem(
+      NavigationItem(
         icon: Icons.dashboard_outlined,
         selectedIcon: Icons.dashboard_rounded,
-        label: 'Analytics',
+        label: lang.tr('analytics_nav'),
       ),
       NavigationItem(
         icon: Icons.receipt_long_outlined,
         selectedIcon: Icons.receipt_long_rounded,
-        label: 'Transactions',
+        label: lang.tr('transactions_nav'),
         badgeCount: expense.pendingCount > 0 ? expense.pendingCount : null,
       ),
-      const NavigationItem(
+      NavigationItem(
         icon: Icons.admin_panel_settings_outlined,
         selectedIcon: Icons.admin_panel_settings_rounded,
-        label: 'Users & Roles',
+        label: lang.tr('users_nav'),
       ),
-      const NavigationItem(
+      NavigationItem(
         icon: Icons.calendar_month_outlined,
         selectedIcon: Icons.calendar_month_rounded,
-        label: 'Reports',
+        label: lang.tr('reports_nav'),
       ),
     ];
 
@@ -54,10 +56,10 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
     ];
 
     final titles = [
-      'Executive Analytics Dashboard',
-      'Transactions Audit & Override',
-      'User & Role Management',
-      'Monthly Reports',
+      lang.tr('reports_analytics_title'),
+      lang.tr('all_transactions_title'),
+      lang.tr('user_management_title'),
+      lang.tr('monthly_reports_title'),
     ];
 
     return AdaptiveScaffold(

@@ -1,5 +1,9 @@
+import 'package:petty_cash/l10n/context_l10n.dart';
+
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'services/supabase_service.dart';
@@ -10,6 +14,7 @@ import 'providers/auth_provider.dart';
 import 'providers/expense_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/notification_provider.dart';
+import 'providers/language_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/office_boy/office_boy_dashboard.dart';
 import 'screens/finance/finance_dashboard.dart';
@@ -23,18 +28,31 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const AppProviders(child: PettyCashApp()));
 }
+
 class AppProviders extends StatelessWidget {
   final Widget child;
-  const AppProviders({super.key,required this.child});
-  @override Widget build(BuildContext context)=>MultiProvider(providers:[
-    ChangeNotifierProvider(create:(_)=>AuthProvider()),
-    ChangeNotifierProxyProvider<AuthProvider,ExpenseProvider>(
-      create:(_)=>ExpenseProvider(),update:(_,auth,expense)=>expense!..updateUser(auth.currentUser)),
-    ChangeNotifierProxyProvider<AuthProvider,UserProvider>(
-      create:(_)=>UserProvider(),update:(_,auth,users)=>users!..updateUserSession(auth.currentUser)),
-    ChangeNotifierProxyProvider<AuthProvider,NotificationProvider>(
-      create:(_)=>NotificationProvider(),update:(_,auth,notifications)=>notifications!..updateUser(auth.currentUser?.uid)),
-  ],child:child);
+  const AppProviders({super.key, required this.child});
+  @override
+  Widget build(BuildContext context) => MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => LanguageProvider()),
+      ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ChangeNotifierProxyProvider<AuthProvider, ExpenseProvider>(
+        create: (_) => ExpenseProvider(),
+        update: (_, auth, expense) => expense!..updateUser(auth.currentUser),
+      ),
+      ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
+        create: (_) => UserProvider(),
+        update: (_, auth, users) => users!..updateUserSession(auth.currentUser),
+      ),
+      ChangeNotifierProxyProvider<AuthProvider, NotificationProvider>(
+        create: (_) => NotificationProvider(),
+        update: (_, auth, notifications) =>
+            notifications!..updateUser(auth.currentUser?.uid),
+      ),
+    ],
+    child: child,
+  );
 }
 
 class PettyCashApp extends StatefulWidget {
@@ -49,7 +67,7 @@ class PettyCashApp extends StatefulWidget {
 class _PettyCashAppState extends State<PettyCashApp> {
   bool _isInitialized = false;
   String? _startupError;
-  var _navigatorKey=GlobalKey<NavigatorState>();
+  var _navigatorKey = GlobalKey<NavigatorState>();
   String? _navigationIdentity;
   StreamSubscription? _pushMessages, _pushOpens;
 
@@ -67,58 +85,133 @@ class _PettyCashAppState extends State<PettyCashApp> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
 
     try {
-      if(mounted) setState(()=>_startupError=null);
+      if (mounted) setState(() => _startupError = null);
+      await context.read<LanguageProvider>().ready;
       await SupabaseService().initialize();
       await auth.restoreSession();
-      if(!mounted)return;
-      _pushMessages??=PushNotificationService().messages.stream.listen((message){
-        if(!mounted||!auth.isAuthenticated)return;
-        final ctx=_navigatorKey.currentContext;
-        if(ctx!=null && ctx.mounted) {
-          ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-          content:Text(message.notification?.title??'New notification'),
-          action:message.data['request_id'] is String?SnackBarAction(label:'Open',onPressed:()=>_openRequest(message.data['request_id'])):null,
-        ));
+      if (!mounted) return;
+      _pushMessages ??= PushNotificationService().messages.stream.listen((
+        message,
+      ) {
+        if (!mounted || !auth.isAuthenticated) return;
+        final ctx = _navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          ScaffoldMessenger.of(ctx).showSnackBar(
+            SnackBar(
+              content: Text(ctx.t('New notification')),
+              action: message.data['request_id'] is String
+                  ? SnackBarAction(
+                      label: context.t('Open'),
+                      onPressed: () => _openRequest(message.data['request_id']),
+                    )
+                  : null,
+            ),
+          );
         }
       });
-      _pushOpens??=PushNotificationService().openedRequests.stream.listen(_openRequest);
-      setState(()=>_isInitialized=true);
-    }catch(_){if(mounted)setState(()=>_startupError='Unable to connect. Check your connection and try again.');}
+      _pushOpens ??= PushNotificationService().openedRequests.stream.listen(
+        _openRequest,
+      );
+      setState(() => _isInitialized = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) PushNotificationService().flushPendingOpen();
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _startupError = context.t(
+            'Unable to connect. Check your connection and try again.',
+          ),
+        );
+      }
+    }
   }
+
   Future<void> _openRequest(String id) async {
-    final auth=context.read<AuthProvider>();
-    final uid=auth.currentUser?.uid;
-    if(uid==null)return;
+    final auth = context.read<AuthProvider>();
+    final uid = auth.currentUser?.uid;
+    if (uid == null) return;
     try {
-      final request=await DatabaseService().getRequest(id);
-      if(!mounted||auth.currentUser?.uid!=uid)return;
-      _navigatorKey.currentState?.push(MaterialPageRoute(builder:(_)=>RequestDetailScreen(request:request)));
-    }catch(_){}
+      final request = await DatabaseService().getRequest(id);
+      if (!mounted || auth.currentUser?.uid != uid) return;
+      _navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => RequestDetailScreen(request: request),
+        ),
+      );
+    } catch (_) {}
   }
-  @override void dispose(){_pushMessages?.cancel();_pushOpens?.cancel();super.dispose();}
+
+  @override
+  void dispose() {
+    _pushMessages?.cancel();
+    _pushOpens?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final identity=context.watch<AuthProvider>().currentUser;
-    final navigationIdentity=identity==null?'signed-out':identity.uid+identity.role.roleCode;
-    if(_navigationIdentity!=navigationIdentity){_navigationIdentity=navigationIdentity;_navigatorKey=GlobalKey<NavigatorState>();}
+    final identity = context.watch<AuthProvider>().currentUser;
+    final language = context.watch<LanguageProvider>();
+    final navigationIdentity = identity == null
+        ? 'signed-out'
+        : identity.uid + identity.role.roleCode;
+    if (_navigationIdentity != navigationIdentity) {
+      _navigationIdentity = navigationIdentity;
+      _navigatorKey = GlobalKey<NavigatorState>();
+    }
     return MaterialApp(
-      key:ValueKey(identity==null?'signed-out':identity.uid+identity.role.roleCode),
-      navigatorKey:_navigatorKey,
-      title: AppConstants.appName,
+      key: ValueKey(
+        identity == null ? 'signed-out' : identity.uid + identity.role.roleCode,
+      ),
+      navigatorKey: _navigatorKey,
+      title: context.t(AppConstants.appName),
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.forLanguage(language.currentLanguage),
+      locale: language.locale,
+      supportedLocales: const [Locale('en'), Locale('ur')],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      builder: (context, child) {
+        final currentLanguage = context.watch<LanguageProvider>();
+        return Directionality(
+          textDirection: currentLanguage.isRtl
+              ? TextDirection.rtl
+              : TextDirection.ltr,
+          child: child ?? const SizedBox(),
+        );
+      },
       home: AnimatedSwitcher(
         duration: const Duration(milliseconds: 200),
         switchInCurve: Curves.easeIn,
         switchOutCurve: Curves.easeOut,
-        child: _startupError!=null
-            ? Scaffold(body:Center(child:Padding(padding:const EdgeInsets.all(24),child:Column(
-              mainAxisSize:MainAxisSize.min,children:[
-                const Icon(Icons.cloud_off_rounded,size:48),
-                const SizedBox(height:16),Text(_startupError!,textAlign:TextAlign.center),
-                const SizedBox(height:16),FilledButton(onPressed:_initializeServices,child:const Text('Try again')),
-              ]))))
+        child: _startupError != null
+            ? Scaffold(
+                body: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.cloud_off_rounded, size: 48),
+                        const SizedBox(height: 16),
+                        Text(
+                          context.language.error(_startupError!),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton(
+                          onPressed: _initializeServices,
+                          child: Text(context.t('Try again')),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
             : _isInitialized
             ? const RoleRouter()
             : const _StartupSplash(key: ValueKey('splash')),
@@ -262,7 +355,7 @@ class _StartupSplashState extends State<_StartupSplash>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Smart expense tracking, simplified',
+                      context.t('Smart expense tracking, simplified'),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 15,

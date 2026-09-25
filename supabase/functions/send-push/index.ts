@@ -33,7 +33,7 @@ Deno.serve(async(req)=>{
    try{
     const {data:user,error:userError}=await db.from("users").select("isActive").eq("uid",job.user_id).maybeSingle();
     if(userError)throw userError;
-    const {data:devices,error:deviceError}=await db.from("device_tokens").select("token").eq("user_id",job.user_id);
+    const {data:devices,error:deviceError}=await db.from("device_tokens").select("token,language_code").eq("user_id",job.user_id);
     if(deviceError)throw deviceError;
     if(user?.isActive){
      for(const device of devices??[]){
@@ -42,7 +42,7 @@ Deno.serve(async(req)=>{
        body:JSON.stringify({message:{
         token:device.token,
         // Lock-screen content stays generic; app fetches protected details after sign-in.
-        notification:{title:"Petty Cash update",body:"Open Petty Cash to view your notification."},
+        notification:device.language_code === "ur" ? {title:"پیٹی کیش کی نئی اطلاع",body:"اپنی اطلاع دیکھنے کے لیے پیٹی کیش کھولیں۔"} : {title:"Petty Cash update",body:"Open Petty Cash to view your notification."},
         data:{request_id:job.request_id??"",user_id:job.user_id},
         android:{priority:"high"},apns:{payload:{aps:{sound:"default"}}},
        }}),signal:AbortSignal.timeout(15000)});

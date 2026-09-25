@@ -8,7 +8,6 @@ import '../models/user_model.dart';
 import '../services/app_error.dart';
 import '../services/database_service.dart';
 
-
 class ExpenseProvider extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
   final Uuid _uuid = const Uuid();
@@ -31,24 +30,41 @@ class ExpenseProvider extends ChangeNotifier {
   String? _identity;
   bool _disposed = false;
   int _generation = 0;
-  ExpenseProvider();
+  final Stream<List<ExpenseRequest>> Function() _requestStream;
+  ExpenseProvider({Stream<List<ExpenseRequest>> Function()? requests})
+    : _requestStream = requests ?? DatabaseService().streamAllRequests;
   void updateUser(AppUser? user) {
-    final identity=user==null?null:'${user.uid}:${user.role.roleCode}';
-    if(identity==_identity) return;
-    _identity=identity; _generation++;
+    final identity = user == null ? null : '${user.uid}:${user.role.roleCode}';
+    if (identity == _identity) return;
+    _identity = identity;
+    _generation++;
     _requestsSubscription?.cancel();
-    _allRequests=[]; _errorMessage=null; _isLoading=false;
-    _searchQuery=''; _statusFilter=null;
-    if(identity!=null) _initSubscription();
+    _allRequests = [];
+    _errorMessage = null;
+    _isLoading = false;
+    _searchQuery = '';
+    _statusFilter = null;
+    if (identity != null) _initSubscription();
   }
-  void refresh() { if(_identity!=null) { _initSubscription(); notifyListeners(); } }
+
+  void refresh() {
+    if (_identity != null) {
+      _initSubscription();
+      notifyListeners();
+    }
+  }
+
   ExpenseRequest? findRequest(String id) {
-    for(final r in _allRequests) { if(r.id==id) return r; } return null;
+    for (final r in _allRequests) {
+      if (r.id == id) return r;
+    }
+    return null;
   }
+
   void _accept(ExpenseRequest request) {
-    _allRequests=[request,..._allRequests.where((r)=>r.id!=request.id)];
-    _errorMessage=null;
-    if(!_disposed) notifyListeners();
+    _allRequests = [request, ..._allRequests.where((r) => r.id != request.id)];
+    _errorMessage = null;
+    if (!_disposed) notifyListeners();
   }
 
   void _initSubscription() {
@@ -56,16 +72,16 @@ class ExpenseProvider extends ChangeNotifier {
     final generation = ++_generation;
 
     _requestsSubscription?.cancel();
-    _requestsSubscription = _databaseService.streamAllRequests().listen(
+    _requestsSubscription = _requestStream().listen(
       (requests) {
-        if(_disposed || generation!=_generation) return;
-        _errorMessage=null;
+        if (_disposed || generation != _generation) return;
+        _errorMessage = null;
         _allRequests = requests;
         _isLoading = false;
         notifyListeners();
       },
       onError: (err) {
-        if(_disposed || generation!=_generation) return;
+        if (_disposed || generation != _generation) return;
         _errorMessage = userMessage(err);
         _isLoading = false;
         notifyListeners();
@@ -75,7 +91,8 @@ class ExpenseProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _disposed=true; _generation++;
+    _disposed = true;
+    _generation++;
     _requestsSubscription?.cancel();
     super.dispose();
   }
@@ -109,7 +126,7 @@ class ExpenseProvider extends ChangeNotifier {
   // Pending requests for Finance approval
   List<ExpenseRequest> get pendingRequests {
     return _allRequests.where((req) {
-      if (req.status != RequestStatus.pending) return false;
+      if (!req.needsFinanceReview) return false;
       if (_searchQuery.isNotEmpty) {
         final matchDesc = req.itemDescription.toLowerCase().contains(
           _searchQuery,
@@ -160,21 +177,25 @@ class ExpenseProvider extends ChangeNotifier {
   }
 
   // Analytics getters
-  double get totalSpent => _allRequests.where((r)=>r.isPaid).fold(0.0,(sum,r)=>sum+r.amount);
+  double get totalSpent =>
+      _allRequests.fold(0.0, (sum, r) => sum + r.disbursedAmount);
+
+  double get verifiedExpenses =>
+      _allRequests.fold(0.0, (sum, r) => sum + r.verifiedExpense);
+  double get returnedAmount =>
+      _allRequests.fold(0.0, (sum, r) => sum + r.verifiedReturn);
+  double get outstandingAdvances =>
+      _allRequests.fold(0.0, (sum, r) => sum + r.outstandingAdvance);
 
   double get pendingAmount => _allRequests
-      .where((r) => r.status == RequestStatus.pending)
+      .where((r) => r.needsFinanceReview)
       .fold(0.0, (sum, r) => sum + r.amount);
 
   int get pendingCount =>
-      _allRequests.where((r) => r.status == RequestStatus.pending).length;
+      _allRequests.where((r) => r.needsFinanceReview).length;
 
   int get approvedCount => _allRequests
-      .where(
-        (r) =>
-            r.status == RequestStatus.approved ||
-            r.status == RequestStatus.paid,
-      )
+      .where((r) => r.status == RequestStatus.approved || r.hasDisbursement)
       .length;
 
   int get rejectedCount =>
@@ -188,61 +209,191 @@ class ExpenseProvider extends ChangeNotifier {
     return (approvedCount / reviewedCount) * 100;
   }
 
-
   Future<bool> submitRequest({
-    required AppUser user, required String itemDescription, required double amount,
-    required String reason, String? billImageUrl, String? requestId,
+    required AppUser user,
+    required String itemDescription,
+    required double amount,
+    required String reason,
+    String? billImageUrl,
+    String? requestId,
+    String requestType = 'reimbursement',
   }) async {
-    final generation=_generation;
+    final generation = _generation;
     try {
-      final now=DateTime.now().toUtc();
-      final request=ExpenseRequest(id:requestId??_uuid.v4(), requestedBy:user.uid,
-        requesterName:user.name,requesterEmail:user.email,itemDescription:itemDescription.trim(),
-        amount:amount,reason:reason.trim(),billImageUrl:billImageUrl,
-        createdAt:now,updatedAt:now);
-      final saved=await _databaseService.createRequest(request);
-      if(!_disposed && generation==_generation) _accept(saved);
+      final now = DateTime.now().toUtc();
+      final request = ExpenseRequest(
+        id: requestId ?? _uuid.v4(),
+        requestedBy: user.uid,
+        requesterName: user.name,
+        requesterEmail: user.email,
+        itemDescription: itemDescription.trim(),
+        amount: amount,
+        reason: reason.trim(),
+        billImageUrl: billImageUrl,
+        createdAt: now,
+        updatedAt: now,
+        requestType: requestType,
+      );
+      final saved = await _databaseService.createRequest(request);
+      if (!_disposed && generation == _generation) _accept(saved);
       return true;
-    } catch(e) {
-      if(!_disposed && generation==_generation) { _errorMessage=userMessage(e); notifyListeners(); }
+    } catch (e) {
+      if (!_disposed && generation == _generation) {
+        _errorMessage = userMessage(e);
+        notifyListeners();
+      }
       return false;
     }
   }
-  Future<bool> _review(String id,RequestStatus status,{String? note,bool override=false, int? expectedVersion}) async {
-    final generation=_generation;
+
+  Future<bool> _review(
+    String id,
+    RequestStatus status, {
+    String? note,
+    bool override = false,
+    int? expectedVersion,
+  }) async {
+    final generation = _generation;
     try {
-      final request=findRequest(id);
-      if(request==null) throw StateError('Request not found. Refresh and try again.');
-      if(expectedVersion!=null && expectedVersion!=request.version) throw StateError('This request changed. Please review its latest details.');
-      final saved=await _databaseService.reviewRequest(request,status,note:note,override:override);
-      if(!_disposed && generation==_generation) _accept(saved);
+      final request = findRequest(id);
+      if (request == null) {
+        throw StateError('Request not found. Refresh and try again.');
+      }
+      if (expectedVersion != null && expectedVersion != request.version) {
+        throw StateError(
+          'This request changed. Please review its latest details.',
+        );
+      }
+      final saved = await _databaseService.reviewRequest(
+        request,
+        status,
+        note: note,
+        override: override,
+      );
+      if (!_disposed && generation == _generation) _accept(saved);
       return true;
-    } catch(e) {
-      if(!_disposed && generation==_generation) { _errorMessage=userMessage(e); notifyListeners(); }
+    } catch (e) {
+      if (!_disposed && generation == _generation) {
+        _errorMessage = userMessage(e);
+        notifyListeners();
+      }
       return false;
     }
   }
-  Future<bool> approveRequest({required String requestId,required AppUser reviewer,
-    bool markAsPaidImmediately=true,int? expectedVersion}) =>
-      _review(requestId,markAsPaidImmediately?RequestStatus.paid:RequestStatus.approved,expectedVersion:expectedVersion);
-  Future<bool> rejectRequest({required String requestId,required String rejectionReason,
-    required AppUser reviewer,int? expectedVersion}) =>
-      _review(requestId,RequestStatus.rejected,note:rejectionReason,expectedVersion:expectedVersion);
-  Future<bool> overrideStatus({required String requestId,required RequestStatus newStatus,
-    required AppUser adminUser,String? note}) =>
-      _review(requestId,newStatus,note:note,override:true);
+
+  Future<bool> approveRequest({
+    required String requestId,
+    required AppUser reviewer,
+    bool markAsPaidImmediately = true,
+    int? expectedVersion,
+  }) => _review(
+    requestId,
+    markAsPaidImmediately ? RequestStatus.paid : RequestStatus.approved,
+    expectedVersion: expectedVersion,
+  );
+  Future<bool> rejectRequest({
+    required String requestId,
+    required String rejectionReason,
+    required AppUser reviewer,
+    int? expectedVersion,
+  }) => _review(
+    requestId,
+    RequestStatus.rejected,
+    note: rejectionReason,
+    expectedVersion: expectedVersion,
+  );
+  Future<bool> overrideStatus({
+    required String requestId,
+    required RequestStatus newStatus,
+    required AppUser adminUser,
+    String? note,
+    int? expectedVersion,
+  }) => _review(
+    requestId,
+    newStatus,
+    note: note,
+    override: true,
+    expectedVersion: expectedVersion,
+  );
+
+  Future<bool> settleAdvance({
+    required String requestId,
+    required double settlementAmount,
+    required String settlementMethod,
+    String? note,
+    int? expectedVersion,
+  }) async {
+    final generation = _generation;
+    try {
+      final request = findRequest(requestId);
+      if (request == null) throw StateError('Request not found.');
+      if (expectedVersion != null && expectedVersion != request.version) {
+        throw StateError(
+          'This request changed. Please review its latest details.',
+        );
+      }
+      final saved = await _databaseService.settleAdvanceRequest(
+        requestId,
+        request.version,
+        settlementAmount,
+        settlementMethod,
+        note,
+      );
+      if (!_disposed && generation == _generation) _accept(saved);
+      return true;
+    } catch (e) {
+      if (!_disposed && generation == _generation) {
+        _errorMessage = userMessage(e);
+        notifyListeners();
+      }
+      return false;
+    }
+  }
+
+  Future<bool> verifySettlement({
+    required String requestId,
+    int? expectedVersion,
+  }) async {
+    final generation = _generation;
+    try {
+      final request = findRequest(requestId);
+      if (request == null) throw StateError('Request not found.');
+      if (expectedVersion != null && expectedVersion != request.version) {
+        throw StateError(
+          'This request changed. Please review its latest details.',
+        );
+      }
+      final saved = await _databaseService.verifyAdvanceSettlement(
+        requestId,
+        request.version,
+      );
+      if (!_disposed && generation == _generation) _accept(saved);
+      return true;
+    } catch (e) {
+      if (!_disposed && generation == _generation) {
+        _errorMessage = userMessage(e);
+        notifyListeners();
+      }
+      return false;
+    }
+  }
+
   Future<bool> deleteRequest(String requestId) async {
-    final generation=_generation;
+    final generation = _generation;
     try {
       await _databaseService.deleteRequest(requestId);
-      if(!_disposed && generation==_generation) {
-        _allRequests.removeWhere((r)=>r.id==requestId); _errorMessage=null; notifyListeners();
+      if (!_disposed && generation == _generation) {
+        _allRequests.removeWhere((r) => r.id == requestId);
+        _errorMessage = null;
+        notifyListeners();
       }
       return true;
-    } catch(e) {
-      if(!_disposed && generation==_generation) { _errorMessage=userMessage(e); notifyListeners(); }
+    } catch (e) {
+      if (!_disposed && generation == _generation) {
+        _errorMessage = userMessage(e);
+        notifyListeners();
+      }
       return false;
     }
   }
 }
-

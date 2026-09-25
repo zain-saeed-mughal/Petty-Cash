@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-
 class AppTheme {
   // Brand Colors
   static const Color primaryNavy = Color(0xFF0F172A); // Slate 900
@@ -41,12 +40,19 @@ class AppTheme {
     ),
   ];
 
-  static ThemeData get lightTheme {
-    final baseTextTheme = ThemeData.light().textTheme.apply(fontFamily:'Inter');
+  static ThemeData get lightTheme => forLanguage('en');
+
+  static ThemeData forLanguage(String language) {
+    final family = language == 'ur' ? 'NotoSansArabic' : 'Inter';
+    final baseTextTheme = ThemeData.light().textTheme.apply(
+      fontFamily: family,
+      fontFamilyFallback: const ['NotoSansArabic', 'Inter'],
+    );
 
     return ThemeData(
       useMaterial3: true,
-      fontFamily: 'Inter',
+      fontFamily: family,
+      fontFamilyFallback: const ['NotoSansArabic', 'Inter'],
       brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryBlue,
@@ -60,26 +66,28 @@ class AppTheme {
       textTheme: baseTextTheme.copyWith(
         titleLarge: baseTextTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w700,
-          letterSpacing: -0.5,
+          letterSpacing: language == 'ur' ? 0 : -0.5,
         ),
         titleMedium: baseTextTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w600,
-          letterSpacing: -0.3,
+          letterSpacing: language == 'ur' ? 0 : -0.3,
         ),
         bodyLarge: baseTextTheme.bodyLarge?.copyWith(letterSpacing: 0),
         bodyMedium: baseTextTheme.bodyMedium?.copyWith(letterSpacing: 0),
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0, // Prevents tinting on scroll
         backgroundColor: surfaceLight,
         foregroundColor: primaryNavy,
         centerTitle: false,
         titleTextStyle: TextStyle(
+          fontFamily: family,
+          fontFamilyFallback: const ['NotoSansArabic', 'Inter'],
           fontSize: 22,
           fontWeight: FontWeight.w800,
           color: primaryNavy,
-          letterSpacing: -0.8,
+          letterSpacing: language == 'ur' ? 0 : -0.8,
         ),
         iconTheme: IconThemeData(color: primaryNavy),
       ),
@@ -133,7 +141,7 @@ class AppTheme {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              textStyle: const TextStyle(
+              textStyle: baseTextTheme.labelLarge?.copyWith(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.2,
@@ -157,7 +165,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: baseTextTheme.labelLarge?.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -167,7 +178,10 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          textStyle: baseTextTheme.labelLarge?.copyWith(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       dialogTheme: DialogThemeData(

@@ -1,14 +1,15 @@
+import 'package:petty_cash/l10n/context_l10n.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/expense_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../models/expense_request_model.dart';
 import '../../config/app_theme.dart';
-import '../../config/app_constants.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/receipt_viewer_dialog.dart';
+import '../../widgets/settle_advance_dialog.dart';
 
 class MyRequestsScreen extends StatefulWidget {
   final VoidCallback? onNewRequestTap;
@@ -22,7 +23,6 @@ class MyRequestsScreen extends StatefulWidget {
 class _MyRequestsScreenState extends State<MyRequestsScreen> {
   final TextEditingController _searchController = TextEditingController();
   RequestStatus? _statusFilter;
-  final DateFormat _dateFormat = DateFormat('MMM dd, yyyy • hh:mm a');
 
   @override
   void dispose() {
@@ -34,16 +34,22 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
     final expense = Provider.of<ExpenseProvider>(context);
+    final lang = Provider.of<LanguageProvider>(context);
     final currentUser = auth.currentUser;
 
     if (currentUser == null) {
-      return const Center(child: Text('Please log in to view requests'));
+      return Center(child: Text(lang.tr('please_log_in')));
     }
 
     // Office Boy can ONLY see their own requests
     final allMyRequests = expense.getMyRequests(currentUser.uid);
     final filtered = allMyRequests.where((req) {
-      if (_statusFilter != null && !(_statusFilter == RequestStatus.paid ? (req.isPaid || req.isApproved) : req.status == _statusFilter)) return false;
+      if (_statusFilter != null &&
+          !(_statusFilter == RequestStatus.paid
+              ? (req.hasDisbursement || req.isApproved)
+              : req.status == _statusFilter)) {
+        return false;
+      }
       final query = _searchController.text.toLowerCase().trim();
       if (query.isNotEmpty) {
         final matchDesc = req.itemDescription.toLowerCase().contains(query);
@@ -56,218 +62,325 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
 
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: EdgeInsets.all(isDesktop ? 32 : 16),
-          sliver: SliverToBoxAdapter(
-            child: Center(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 950),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header with Title & Action Button
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'My Expense History',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.primaryNavy,
-                                  letterSpacing: -0.8,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Showing requests submitted by ${currentUser.name}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (widget.onNewRequestTap != null) ...[
-                          const SizedBox(width: 8),
-                          ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            icon: const Icon(Icons.add_rounded, size: 16),
-                            label: const Text('New'),
-                            onPressed: widget.onNewRequestTap,
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Search & Filter Bar
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppTheme.borderLight,
-                          width: 0.5,
-                        ),
-                        boxShadow: AppTheme.premiumShadow,
-                      ),
-                      child: Column(
+    return RefreshIndicator(
+      onRefresh: () async {
+        expense.refresh();
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.all(isDesktop ? 32 : 16),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 950),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header with Title & Action Button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          TextField(
-                            controller: _searchController,
-                            onChanged: (_) => setState(() {}),
-                            decoration: InputDecoration(
-                              hintText: 'Search my requests by description or purpose...',
-                              prefixIcon: const Icon(
-                                Icons.search_rounded,
-                                color: Color(0xFF94A3B8),
-                              ),
-                              suffixIcon: _searchController.text.isNotEmpty
-                                  ? IconButton(
-                                      icon: const Icon(
-                                        Icons.clear_rounded,
-                                        color: Color(0xFF94A3B8),
-                                      ),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        setState(() {});
-                                      },
-                                    )
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Filter Chips
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildFilterChip(
-                                  'All (${allMyRequests.length})',
-                                  null,
+                                Text(
+                                  context.t('My Expense History'),
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.primaryNavy,
+                                    letterSpacing: -0.8,
+                                  ),
                                 ),
-                                const SizedBox(width: 12),
-                                _buildFilterChip(
-                                  'Pending (${allMyRequests.where((r) => r.isPending).length})',
-                                  RequestStatus.pending,
-                                  color: AppTheme.statusPending,
-                                ),
-                                const SizedBox(width: 12),
-                                _buildFilterChip(
-                                  'Approved / Paid (${allMyRequests.where((r) => r.isApproved || r.isPaid).length})',
-                                  RequestStatus.paid,
-                                  color: AppTheme.statusApproved,
-                                ),
-                                const SizedBox(width: 12),
-                                _buildFilterChip(
-                                  'Rejected (${allMyRequests.where((r) => r.isRejected).length})',
-                                  RequestStatus.rejected,
-                                  color: AppTheme.statusRejected,
+                                const SizedBox(height: 6),
+                                Text(
+                                  context.language.format(
+                                    'Showing requests submitted by {name}',
+                                    '{name} کی جمع کردہ درخواستیں',
+                                    {'name': currentUser.name},
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
                           ),
+                          if (widget.onNewRequestTap != null) ...[
+                            const SizedBox(width: 8),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                textStyle: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                              ),
+                              icon: const Icon(Icons.add_rounded, size: 16),
+                              label: Text(lang.tr('new_btn')),
+                              onPressed: widget.onNewRequestTap,
+                            ),
+                          ],
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-        if (filtered.isEmpty)
-          SliverToBoxAdapter(
-            child: Center(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 950),
-                width: double.infinity,
-                padding: const EdgeInsets.all(64),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.borderLight, width: 0.5),
-                  boxShadow: AppTheme.premiumShadow,
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: const BoxDecoration(
-                        color: AppTheme.surfaceMuted,
-                        shape: BoxShape.circle,
+                      const SizedBox(height: 24),
+
+                      // Advance Wallet Summary
+                      if (allMyRequests.any(
+                        (r) =>
+                            r.isAdvance &&
+                            (r.isPaid || r.isPendingSettlement) &&
+                            !r.isSettled,
+                      )) ...[
+                        Builder(
+                          builder: (context) {
+                            final unsettledAdvances = allMyRequests.where(
+                              (r) =>
+                                  r.isAdvance &&
+                                  (r.isPaid || r.isPendingSettlement) &&
+                                  !r.isSettled,
+                            );
+                            final balance = unsettledAdvances.fold<double>(
+                              0,
+                              (sum, r) => sum + r.outstandingAdvance,
+                            );
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 24),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 20,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryNavy,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: AppTheme.premiumShadow,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.account_balance_wallet_outlined,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          context.language.format(
+                                            'Active Advance Balance',
+                                            'آپ کے پاس موجود ایڈوانس رقم',
+                                            {},
+                                          ),
+                                          style: TextStyle(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.8,
+                                            ),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          context.language.money(balance),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: -0.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+
+                      // Search & Filter Bar
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppTheme.borderLight,
+                            width: 0.5,
+                          ),
+                          boxShadow: AppTheme.premiumShadow,
+                        ),
+                        child: Column(
+                          children: [
+                            TextField(
+                              controller: _searchController,
+                              onChanged: (_) => setState(() {}),
+                              decoration: InputDecoration(
+                                hintText: context.t(
+                                  'Search my requests by description or purpose...',
+                                ),
+                                prefixIcon: const Icon(
+                                  Icons.search_rounded,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                                suffixIcon: _searchController.text.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(
+                                          Icons.clear_rounded,
+                                          color: Color(0xFF94A3B8),
+                                        ),
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          setState(() {});
+                                        },
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Filter Chips
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  _buildFilterChip(
+                                    '${context.t('All')} (${allMyRequests.length})',
+                                    null,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _buildFilterChip(
+                                    '${context.t('Pending')} (${allMyRequests.where((r) => r.isPending).length})',
+                                    RequestStatus.pending,
+                                    color: AppTheme.statusPending,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _buildFilterChip(
+                                    '${context.t('Approved / Paid')} (${allMyRequests.where((r) => r.isApproved || r.hasDisbursement).length})',
+                                    RequestStatus.paid,
+                                    color: AppTheme.statusApproved,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _buildFilterChip(
+                                    '${context.t('Rejected')} (${allMyRequests.where((r) => r.isRejected).length})',
+                                    RequestStatus.rejected,
+                                    color: AppTheme.statusRejected,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Icon(
-                        Icons.receipt_long_outlined,
-                        size: 64,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'No Expense Requests Found',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primaryNavy,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _searchController.text.isNotEmpty || _statusFilter != null
-                          ? 'Try clearing your search query or filter chips.'
-                          : 'You haven\'t submitted any expense requests yet.',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Color(0xFF64748B),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          )
-        else
-          SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16)
-                .copyWith(bottom: 32),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                return Center(
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 950),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: _buildRequestCard(filtered[index]),
+                      const SizedBox(height: 24),
+                    ],
                   ),
-                );
-              }, childCount: filtered.length),
+                ),
+              ),
             ),
           ),
-      ],
+          if (filtered.isEmpty)
+            SliverToBoxAdapter(
+              child: Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 950),
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(64),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                    boxShadow: AppTheme.premiumShadow,
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: const BoxDecoration(
+                          color: AppTheme.surfaceMuted,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.receipt_long_outlined,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        context.t('No Expense Requests Found'),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primaryNavy,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _searchController.text.isNotEmpty ||
+                                _statusFilter != null
+                            ? context.t(
+                                'Try clearing your search query or filter chips.',
+                              )
+                            : context.t(
+                                'You haven\'t submitted any expense requests yet.',
+                              ),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF64748B),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16)
+                  .copyWith(bottom: 32),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 950),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: _buildRequestCard(filtered[index]),
+                    ),
+                  );
+                }, childCount: filtered.length),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -338,7 +451,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       spacing: 8,
                       children: [
                         Text(
-                          req.id,
+                          req.displayId,
                           style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -347,7 +460,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                           ),
                         ),
                         Text(
-                          _dateFormat.format(req.createdAt),
+                          context.language.date(req.createdAt),
                           style: const TextStyle(
                             fontSize: 11,
                             color: Color(0xFF94A3B8),
@@ -372,7 +485,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       : CrossAxisAlignment.end,
                   children: [
                     Text(
-                      '${AppConstants.defaultCurrencySymbol}${req.amount.toStringAsFixed(2)}',
+                      context.language.money(req.amount),
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -456,8 +569,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Reason for Rejection:',
+                          Text(
+                            context.t('Reason for Rejection:'),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
@@ -476,7 +589,11 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                           if (req.reviewedByName != null) ...[
                             const SizedBox(height: 4),
                             Text(
-                              'Reviewed by: ${req.reviewedByName}',
+                              context.language.format(
+                                'Reviewed by: {name}',
+                                'جائزہ لینے والا: {name}',
+                                {'name': req.reviewedByName},
+                              ),
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: Color(0xFF991B1B),
@@ -495,30 +612,118 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
             if (req.billImageUrl != null && req.billImageUrl!.isNotEmpty) ...[
               const SizedBox(height: 12),
               Wrap(
-                spacing:8,runSpacing:8,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   OutlinedButton.icon(
                     icon: const Icon(Icons.image_outlined, size: 16),
-                    label: const Text('View receipt'),
+                    label: Text(context.t('View receipt')),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
                       ),
-                      textStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      textStyle: Theme.of(context).textTheme.labelLarge
+                          ?.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                     onPressed: () {
                       ReceiptViewerDialog.show(
                         context,
                         imageUrl: req.billImageUrl!,
-                        title: 'Bill: ${req.itemDescription}',
+                        title:
+                            '${context.t('Receipt')}: ${req.itemDescription}',
                       );
                     },
                   ),
                 ],
+              ),
+            ],
+
+            // Advance Settlement Action
+            if ((req.isPaid || req.isPendingSettlement) &&
+                req.isAdvance &&
+                !req.isSettled) ...[
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                icon: const Icon(Icons.calculate, size: 16),
+                label: Text(
+                  context.t(
+                    req.isPendingSettlement
+                        ? 'Update Settlement'
+                        : 'Settle Advance',
+                  ),
+                ),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (ctx) => SettleAdvanceDialog(request: req),
+                  ).then((settled) {
+                    if (!mounted) return;
+                    if (settled == true) {
+                      context.read<ExpenseProvider>().refresh();
+                    }
+                  });
+                },
+              ),
+            ],
+            if (req.isAdvance && req.isSettled) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.statusApprovedBg,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppTheme.statusApproved.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.check_circle_outline,
+                      size: 18,
+                      color: AppTheme.statusApproved,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.t('Advance Settled'),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.statusApproved,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${context.t('Spent')}: ${context.language.money(req.settlementAmount ?? 0)}\n${context.t('Returned via')}: ${context.t(req.settlementMethod ?? 'None')}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF065F46),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          if (req.settlementNote != null &&
+                              req.settlementNote!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              req.settlementNote!,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF064E3B),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ],

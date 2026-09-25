@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/expense_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../widgets/adaptive_scaffold.dart';
 import 'all_transactions_screen.dart';
 import 'user_management_screen.dart';
@@ -21,28 +22,29 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   Widget build(BuildContext context) {
     final expense = Provider.of<ExpenseProvider>(context);
+    final lang = Provider.of<LanguageProvider>(context);
 
     final destinations = [
-      const NavigationItem(
+      NavigationItem(
         icon: Icons.bar_chart_rounded,
         selectedIcon: Icons.insert_chart_rounded,
-        label: 'Analytics',
+        label: lang.tr('analytics_nav'),
       ),
       NavigationItem(
         icon: Icons.receipt_long_outlined,
         selectedIcon: Icons.receipt_long_rounded,
-        label: 'Transactions',
+        label: lang.tr('transactions_nav'),
         badgeCount: expense.pendingCount > 0 ? expense.pendingCount : null,
       ),
-      const NavigationItem(
+      NavigationItem(
         icon: Icons.people_alt_outlined,
         selectedIcon: Icons.people_alt_rounded,
-        label: 'Users',
+        label: lang.tr('users_nav'),
       ),
-      const NavigationItem(
+      NavigationItem(
         icon: Icons.calendar_month_outlined,
         selectedIcon: Icons.calendar_month_rounded,
-        label: 'Reports',
+        label: lang.tr('reports_nav'),
       ),
     ];
 
@@ -54,10 +56,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
     ];
 
     final titles = [
-      'Reports & Analytics',
-      'All Transactions',
-      'User Management',
-      'Monthly Reports',
+      lang.tr('reports_analytics_title'),
+      lang.tr('all_transactions_title'),
+      lang.tr('user_management_title'),
+      lang.tr('monthly_reports_title'),
     ];
 
     return AdaptiveScaffold(

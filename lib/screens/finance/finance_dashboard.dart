@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/expense_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../widgets/adaptive_scaffold.dart';
 import 'pending_requests_screen.dart';
 import 'payment_history_screen.dart';
@@ -20,24 +21,25 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
   @override
   Widget build(BuildContext context) {
     final expense = Provider.of<ExpenseProvider>(context);
+    final lang = Provider.of<LanguageProvider>(context);
     final pendingCount = expense.pendingCount;
 
     final destinations = [
       NavigationItem(
         icon: Icons.pending_actions_outlined,
         selectedIcon: Icons.pending_actions_rounded,
-        label: 'Pending Reviews',
+        label: lang.tr('pending_reviews'),
         badgeCount: pendingCount > 0 ? pendingCount : null,
       ),
-      const NavigationItem(
+      NavigationItem(
         icon: Icons.payments_outlined,
         selectedIcon: Icons.payments_rounded,
-        label: 'Payment History',
+        label: lang.tr('payment_history'),
       ),
-      const NavigationItem(
+      NavigationItem(
         icon: Icons.calendar_month_outlined,
         selectedIcon: Icons.calendar_month_rounded,
-        label: 'Monthly Reports',
+        label: lang.tr('monthly_reports'),
       ),
     ];
 
@@ -47,14 +49,23 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
       MonthlyReportingScreen(),
     ];
 
-    final titles = ['Pending Approvals', 'Payment History', 'Monthly Reports'];
+    final titles = [
+      lang.tr('pending_approvals'),
+      lang.tr('payment_history'),
+      lang.tr('monthly_reports'),
+    ];
 
-    return AdaptiveScaffold(
-      title: titles[_currentIndex],
-      currentIndex: _currentIndex,
-      onNavigationIndexChanged: (idx) => setState(() => _currentIndex = idx),
-      destinations: destinations,
-      body: screens[_currentIndex],
+    return Directionality(
+      textDirection: lang.currentLanguage == 'ur'
+          ? TextDirection.rtl
+          : TextDirection.ltr,
+      child: AdaptiveScaffold(
+        title: titles[_currentIndex],
+        currentIndex: _currentIndex,
+        onNavigationIndexChanged: (idx) => setState(() => _currentIndex = idx),
+        destinations: destinations,
+        body: screens[_currentIndex],
+      ),
     );
   }
 }

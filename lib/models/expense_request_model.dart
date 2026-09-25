@@ -4,7 +4,9 @@ enum RequestStatus {
   pending,
   approved,
   rejected,
-  paid;
+  paid,
+  pendingSettlement,
+  settled;
 
   String get displayName {
     switch (this) {
@@ -16,6 +18,10 @@ enum RequestStatus {
         return 'Rejected';
       case RequestStatus.paid:
         return 'Paid';
+      case RequestStatus.pendingSettlement:
+        return 'Pending Settlement';
+      case RequestStatus.settled:
+        return 'Settled';
     }
   }
 
@@ -27,6 +33,12 @@ enum RequestStatus {
         return RequestStatus.rejected;
       case 'paid':
         return RequestStatus.paid;
+      case 'pending settlement':
+      case 'pending_settlement':
+      case 'pendingsettlement':
+        return RequestStatus.pendingSettlement;
+      case 'settled':
+        return RequestStatus.settled;
       case 'pending':
       default:
         return RequestStatus.pending;
@@ -52,8 +64,18 @@ class ExpenseRequest {
   final List<AuditLogEntry> auditLogs;
   final int version;
   final DateTime? paidAt;
-  DateTime get reportingDate => (isPaid ? paidAt ?? updatedAt : createdAt).toLocal();
-  String get displayId => id.startsWith("REQ-") ? id : "REQ-${id.substring(0, id.length < 8 ? id.length : 8).toUpperCase()}";
+
+  // Advance & Settlement Fields
+  final String requestType; // 'reimbursement' or 'advance'
+  final double? settlementAmount;
+  final String? settlementMethod; // 'Cash', 'Card', etc.
+  final String? settlementNote;
+  final DateTime? settlementDate;
+  DateTime get reportingDate =>
+      (hasDisbursement ? paidAt ?? updatedAt : createdAt).toLocal();
+  String get displayId => id.startsWith("REQ-")
+      ? id
+      : "REQ-${id.substring(0, id.length < 8 ? id.length : 8).toUpperCase()}";
 
   ExpenseRequest({
     required this.id,
@@ -73,12 +95,37 @@ class ExpenseRequest {
     this.auditLogs = const [],
     this.version = 0,
     this.paidAt,
+    this.requestType = 'reimbursement',
+    this.settlementAmount,
+    this.settlementMethod,
+    this.settlementNote,
+    this.settlementDate,
   });
 
   bool get isPending => status == RequestStatus.pending;
   bool get isApproved => status == RequestStatus.approved;
   bool get isRejected => status == RequestStatus.rejected;
   bool get isPaid => status == RequestStatus.paid;
+  bool get isPendingSettlement => status == RequestStatus.pendingSettlement;
+  bool get isSettled => status == RequestStatus.settled;
+  // Settlement is a later stage of an already disbursed payment.
+  bool get hasDisbursement => isPaid || isPendingSettlement || isSettled;
+  bool get needsFinanceReview => isPending || isPendingSettlement;
+  double get disbursedAmount => hasDisbursement ? amount : 0;
+  double get verifiedExpense => !hasDisbursement
+      ? 0
+      : (isAdvance ? (isSettled ? settlementAmount ?? 0 : 0) : amount);
+  double get verifiedReturn =>
+      isAdvance && isSettled ? amount - (settlementAmount ?? amount) : 0;
+  double get outstandingAdvance =>
+      isAdvance && hasDisbursement && !isSettled ? amount : 0;
+  static const overrideStatuses = [
+    RequestStatus.pending,
+    RequestStatus.approved,
+    RequestStatus.rejected,
+    RequestStatus.paid,
+  ];
+  bool get isAdvance => requestType == 'advance';
 
   Map<String, dynamic> toMap() {
     return {
@@ -99,6 +146,11 @@ class ExpenseRequest {
       'createdAt': createdAt.toUtc().toIso8601String(),
       'updatedAt': updatedAt.toUtc().toIso8601String(),
       'auditLogs': auditLogs.map((e) => e.toMap()).toList(),
+      'request_type': requestType,
+      'settlement_amount': settlementAmount,
+      'settlement_method': settlementMethod,
+      'settlement_note': settlementNote,
+      'settlement_date': settlementDate?.toUtc().toIso8601String(),
     };
   }
 
@@ -138,6 +190,15 @@ class ExpenseRequest {
                 .map((e) => AuditLogEntry.fromMap(Map<String, dynamic>.from(e)))
                 .toList()
           : [],
+      requestType: map['request_type']?.toString() ?? 'reimbursement',
+      settlementAmount: map['settlement_amount'] != null
+          ? parseAmount(map['settlement_amount'])
+          : null,
+      settlementMethod: map['settlement_method']?.toString(),
+      settlementNote: map['settlement_note']?.toString(),
+      settlementDate: map['settlement_date'] == null
+          ? null
+          : parseDate(map['settlement_date']),
     );
   }
 
@@ -157,6 +218,11 @@ class ExpenseRequest {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<AuditLogEntry>? auditLogs,
+    String? requestType,
+    Object? settlementAmount = _unchanged,
+    Object? settlementMethod = _unchanged,
+    Object? settlementNote = _unchanged,
+    Object? settlementDate = _unchanged,
   }) {
     return ExpenseRequest(
       id: id ?? this.id,
@@ -168,7 +234,9 @@ class ExpenseRequest {
       reason: reason ?? this.reason,
       billImageUrl: billImageUrl ?? this.billImageUrl,
       status: status ?? this.status,
-      rejectionReason: identical(rejectionReason, _unchanged) ? this.rejectionReason : rejectionReason as String?,
+      rejectionReason: identical(rejectionReason, _unchanged)
+          ? this.rejectionReason
+          : rejectionReason as String?,
       reviewedBy: reviewedBy ?? this.reviewedBy,
       reviewedByName: reviewedByName ?? this.reviewedByName,
       createdAt: createdAt ?? this.createdAt,
@@ -176,6 +244,19 @@ class ExpenseRequest {
       auditLogs: auditLogs ?? this.auditLogs,
       version: version,
       paidAt: paidAt,
+      requestType: requestType ?? this.requestType,
+      settlementAmount: identical(settlementAmount, _unchanged)
+          ? this.settlementAmount
+          : settlementAmount as double?,
+      settlementMethod: identical(settlementMethod, _unchanged)
+          ? this.settlementMethod
+          : settlementMethod as String?,
+      settlementNote: identical(settlementNote, _unchanged)
+          ? this.settlementNote
+          : settlementNote as String?,
+      settlementDate: identical(settlementDate, _unchanged)
+          ? this.settlementDate
+          : settlementDate as DateTime?,
     );
   }
 }

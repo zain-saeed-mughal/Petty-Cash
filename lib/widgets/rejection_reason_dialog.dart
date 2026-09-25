@@ -1,7 +1,7 @@
+import 'package:petty_cash/l10n/context_l10n.dart';
 import 'package:flutter/material.dart';
 
 import '../config/app_theme.dart';
-import '../config/app_constants.dart';
 
 class RejectionReasonDialog extends StatefulWidget {
   final String requestTitle;
@@ -52,17 +52,19 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Row(
-        children: const [
+        children: [
           Icon(Icons.cancel_rounded, color: AppTheme.statusRejected),
           SizedBox(width: 8),
-          Expanded(child: Text(
-            'Reject Expense Request',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 18,
-              color: AppTheme.primaryNavy,
+          Expanded(
+            child: Text(
+              context.t('Reject Expense Request'),
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                color: AppTheme.primaryNavy,
+              ),
             ),
-          )),
+          ),
         ],
       ),
       content: SizedBox(
@@ -75,7 +77,14 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Item: "${widget.requestTitle}" (${AppConstants.defaultCurrencySymbol}${widget.amount.toStringAsFixed(2)})',
+                  context.language.format(
+                    'Item: {item} ({amount})',
+                    'تفصیل: {item} ({amount})',
+                    {
+                      'item': widget.requestTitle,
+                      'amount': context.language.money(widget.amount),
+                    },
+                  ),
                   style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF64748B),
@@ -83,8 +92,10 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'A mandatory explanation is required. The requester will see this reason on their dashboard.',
+                Text(
+                  context.t(
+                    'A mandatory explanation is required. The requester will see this reason on their dashboard.',
+                  ),
                   style: TextStyle(fontSize: 13, color: Color(0xFF334155)),
                 ),
                 const SizedBox(height: 14),
@@ -95,11 +106,14 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
                   runSpacing: 6,
                   children: _quickReasons.map((preset) {
                     return ActionChip(
-                      label: Text(preset, style: const TextStyle(fontSize: 11)),
+                      label: Text(
+                        context.t(preset),
+                        style: const TextStyle(fontSize: 11),
+                      ),
                       backgroundColor: const Color(0xFFF1F5F9),
                       onPressed: () {
                         setState(() {
-                          _reasonController.text = preset;
+                          _reasonController.text = context.t(preset);
                         });
                       },
                     );
@@ -111,17 +125,21 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
                   controller: _reasonController,
                   maxLines: 3,
                   autofocus: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Rejection Reason *',
-                    hintText: 'e.g. Please provide a stamped tax receipt or get prior supervisor approval...',
+                  decoration: InputDecoration(
+                    labelText: context.t('Rejection Reason *'),
+                    hintText: context.t(
+                      'e.g. Please provide a stamped tax receipt or get prior supervisor approval...',
+                    ),
                     alignLabelWithHint: true,
                   ),
                   validator: (val) {
                     if (val == null || val.trim().isEmpty) {
-                      return 'Please provide a clear reason for rejection';
+                      return context.t(
+                        'Please provide a clear reason for rejection',
+                      );
                     }
                     if (val.trim().length < 5) {
-                      return 'Reason must be at least 5 characters';
+                      return context.t('Reason must be at least 5 characters');
                     }
                     return null;
                   },
@@ -134,7 +152,7 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(null),
-          child: const Text('Cancel'),
+          child: Text(context.t('Cancel')),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -146,7 +164,7 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
               Navigator.of(context).pop(_reasonController.text.trim());
             }
           },
-          child: const Text('Confirm Rejection'),
+          child: Text(context.t('Confirm Rejection')),
         ),
       ],
     );

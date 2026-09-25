@@ -1,11 +1,10 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 const cors = {"Access-Control-Allow-Origin":"*", "Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods":"POST, OPTIONS"};
 const reply = (body: unknown, status=200) => Response.json(body,{status,headers:cors});
-Deno.serve(async (req) => {
+export const createHandler = (db: SupabaseClient) => async (req: Request): Promise<Response> => {
  if(req.method==="OPTIONS") return new Response("ok",{headers:cors});
  if(req.method!=="POST") return reply({error:"Method not allowed"},405);
  try {
-  const db=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,{auth:{persistSession:false,autoRefreshToken:false}});
   const bearer=req.headers.get("Authorization")?.replace(/^Bearer\s+/i,"");
   if(!bearer) return reply({error:"Sign in to continue"},401);
   const {data:identity,error:authError}=await db.auth.getUser(bearer);
@@ -14,14 +13,14 @@ Deno.serve(async (req) => {
   if(actorError||!actor?.isActive||!["admin","super_admin"].includes(actor.role)) return reply({error:"Not authorized"},403);
   const body=await req.json();
   const {action,uid}=body;
-  if(!["create","update","deactivate"].includes(action)) return reply({error:"Invalid action"},400);
+  if(!["create","update","deactivate","delete"].includes(action)) return reply({error:"Invalid action"},400);
   let target: Record<string,unknown>|null=null;
   if(action!=="create"){
    const {data,error}=await db.from("users").select("uid,role,isActive").eq("uid",uid).single();
    if(error||!data) return reply({error:"User not found"},404);
    target=data;
    if(actor.role==="admin"&&!["office_boy","finance"].includes(String(data.role))) return reply({error:"You cannot manage this role"},403);
-   if(action==="deactivate"&&uid===actor.uid) return reply({error:"You cannot deactivate your own account"},400);
+   if((action==="deactivate"||action==="delete")&&uid===actor.uid) return reply({error:"You cannot delete or deactivate your own account"},400);
   }
   if(action==="deactivate"){
    // Preserve history. Auth and the profile are updated atomically by the DB trigger.
@@ -31,12 +30,28 @@ Deno.serve(async (req) => {
    if(error) return reply({error:error.message},400);
    return reply({ok:true});
   }
+  if(action==="delete"){
+   if(actor.role!=="super_admin") return reply({error:"Only super-admins can delete users completely"},403);
+   // Hard delete all dependent data to satisfy foreign key constraints
+   await db.from("notifications").delete().eq("user_id", uid);
+   await db.from("device_tokens").delete().eq("user_id", uid);
+   await db.from("requests").delete().eq("requestedBy", uid);
+   
+   // Hard delete the auth user (cascades to public.users via trigger or we can delete manually)
+   const {error}=await db.auth.admin.deleteUser(uid);
+   if(error) {
+     // fallback if trigger doesn't cascade
+     await db.from("users").delete().eq("uid", uid);
+     await db.auth.admin.deleteUser(uid);
+   }
+   return reply({ok:true});
+  }
   const name=String(body.name??"").trim(), email=String(body.email??"").trim().toLowerCase();
   const role=String(body.role??""), password=body.password==null?null:String(body.password);
   if(!name||name.length>120||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return reply({error:"Enter a valid name and email"},400);
   if(!["office_boy","finance","admin","super_admin"].includes(role)||(actor.role==="admin"&&!["office_boy","finance"].includes(role))) return reply({error:"Role is not allowed"},403);
   if(uid===actor.uid && (role!==actor.role||body.isActive===false)) return reply({error:"Ask another super-admin to change your access"},400);
-  if((action==="create"||password)&&(!password||password.length<12)) return reply({error:"Use a password with at least 12 characters"},400);
+  if((action==="create"||password)&&(!password||password.length<6||password.length>8)) return reply({error:"Use a password with 6 to 8 characters"},400);
   const attributes={
    email,user_metadata:{name},app_metadata:{petty_cash_role:role,petty_cash_active:body.isActive!==false},
    ...(password?{password}:{}),
@@ -50,5 +65,6 @@ Deno.serve(async (req) => {
   console.error("manage-user request failed",error instanceof Error?error.name:"unknown");
   return reply({error:"The account could not be updated. Please try again."},500);
  }
-});
+};
 
+Deno.serve(createHandler(createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {auth:{persistSession:false,autoRefreshToken:false}})));

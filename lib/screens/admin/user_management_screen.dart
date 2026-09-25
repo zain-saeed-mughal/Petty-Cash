@@ -1,10 +1,11 @@
+import 'package:petty_cash/l10n/context_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../models/user_model.dart';
 import '../../config/app_theme.dart';
 import '../../widgets/user_account_dialog.dart';
@@ -19,7 +20,6 @@ class UserManagementScreen extends StatefulWidget {
 class _UserManagementScreenState extends State<UserManagementScreen> {
   final TextEditingController _searchController = TextEditingController();
   UserRole? _roleFilter;
-  final DateFormat _dateFormat = DateFormat('MMM dd, yyyy');
 
   @override
   void dispose() {
@@ -27,12 +27,22 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     super.dispose();
   }
 
-  Future<void> _showAddUserDialog(BuildContext context,AppUser currentUser) async {
-    final result=await showDialog<Map<String,String>>(context:context,barrierDismissible:false,
-      builder:(_)=>UserAccountDialog(actor:currentUser));
-    if(result!=null&&context.mounted) {
-      _showTemporaryCredentialsDialog(context,
-      name:result['name']!,email:result['email']!,temporaryPassword:result['password']!);
+  Future<void> _showAddUserDialog(
+    BuildContext context,
+    AppUser currentUser,
+  ) async {
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => UserAccountDialog(actor: currentUser),
+    );
+    if (result != null && context.mounted) {
+      _showTemporaryCredentialsDialog(
+        context,
+        name: result['name']!,
+        email: result['email']!,
+        temporaryPassword: result['password']!,
+      );
     }
   }
 
@@ -45,11 +55,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
             Icon(Icons.verified_user_outlined, color: AppTheme.statusApproved),
             SizedBox(width: 8),
-            Expanded(child: Text('Account Created')),
+            Expanded(child: Text(context.t('Account Created'))),
           ],
         ),
         content: SingleChildScrollView(
@@ -57,15 +67,32 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('$name can use these temporary credentials:'),
+              Text(
+                '$name${Provider.of<LanguageProvider>(context, listen: false).tr('can_use_temp_creds')}',
+              ),
               const SizedBox(height: 16),
-              _credentialRow('Email', email),
+              _credentialRow(
+                Provider.of<LanguageProvider>(
+                  context,
+                  listen: false,
+                ).tr('email_label'),
+                email,
+              ),
               const SizedBox(height: 10),
-              _credentialRow('Temporary password', temporaryPassword),
+              _credentialRow(
+                Provider.of<LanguageProvider>(
+                  context,
+                  listen: false,
+                ).tr('temp_password_label'),
+                temporaryPassword,
+              ),
               const SizedBox(height: 14),
-              const Text(
-                'Share this password securely. It is shown only once and is not saved in the profile.',
-                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              Text(
+                Provider.of<LanguageProvider>(
+                  context,
+                  listen: false,
+                ).tr('share_password_securely'),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
               ),
             ],
           ),
@@ -73,7 +100,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Done'),
+            child: Text(
+              Provider.of<LanguageProvider>(context, listen: false).tr('done'),
+            ),
           ),
         ],
       ),
@@ -111,7 +140,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ),
           ),
           IconButton(
-            tooltip: 'Copy $label',
+            tooltip:
+                '${Provider.of<LanguageProvider>(context, listen: false).tr('copy_tooltip')}$label',
             icon: const Icon(Icons.copy_outlined, size: 18),
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: value));
@@ -122,24 +152,73 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Future<void> _showEditUserDialog(BuildContext context,AppUser userToEdit,AppUser currentUser) async {
-    await showDialog<Map<String,String>>(context:context,barrierDismissible:false,
-      builder:(_)=>UserAccountDialog(actor:currentUser,user:userToEdit));
+  Future<void> _showEditUserDialog(
+    BuildContext context,
+    AppUser userToEdit,
+    AppUser currentUser,
+  ) async {
+    await showDialog<Map<String, String>>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => UserAccountDialog(actor: currentUser, user: userToEdit),
+    );
   }
 
-  Future<void> _confirmDeleteUser(BuildContext context,AppUser user) async {
-    final provider=context.read<UserProvider>();
-    final confirmed=await showDialog<bool>(context:context,builder:(ctx)=>AlertDialog(
-      title:const Text('Deactivate account'),
-      content:Text('Disable access for ${user.name}? Their requests and payment history will be retained.'),
-      actions:[
-        TextButton(onPressed:()=>Navigator.pop(ctx,false),child:const Text('Cancel')),
-        FilledButton(onPressed:()=>Navigator.pop(ctx,true),child:const Text('Deactivate')),
-      ],
-    ));
-    if(confirmed!=true||!context.mounted)return;
-    final success=await provider.deleteUser(user.uid);
-    if(context.mounted)ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text(success?'Account deactivated.':provider.errorMessage??'Unable to deactivate this account.')));
+  Future<void> _confirmDeleteUser(BuildContext context, AppUser user) async {
+    final provider = context.read<UserProvider>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          Provider.of<LanguageProvider>(
+            context,
+            listen: false,
+          ).tr('deactivate_account_title'),
+        ),
+        content: Text(
+          '${Provider.of<LanguageProvider>(context, listen: false).tr('deactivate_account_confirm')}${user.name}${Provider.of<LanguageProvider>(context, listen: false).tr('deactivate_account_confirm_end')}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+              Provider.of<LanguageProvider>(
+                context,
+                listen: false,
+              ).tr('cancel'),
+            ),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              Provider.of<LanguageProvider>(
+                context,
+                listen: false,
+              ).tr('deactivate_btn'),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final langProvider = Provider.of<LanguageProvider>(context, listen: false);
+
+    final success = await provider.deleteUser(user.uid);
+    if (mounted) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? langProvider.tr('account_deactivated')
+                : langProvider.error(
+                    provider.errorMessage ??
+                        langProvider.tr('unable_to_deactivate'),
+                  ),
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -164,222 +243,245 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
 
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: EdgeInsets.all(isDesktop ? 32 : 16),
-          sliver: SliverToBoxAdapter(
-            child: Center(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 1000),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header & Add Button
-                    Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 12,
-                      runSpacing: 8,
-                      children: [
-                        ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: isDesktop ? 700 : 320,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'User Accounts Management',
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.primaryNavy,
-                                  letterSpacing: -0.8,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                currentUser.isSuperAdmin
-                                    ? 'Super Admin: Manage all organizational users, Finance, Admins & Staff'
-                                    : 'Admin: Manage Office Boy and Finance accounts',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                            textStyle: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          icon: const Icon(Icons.person_add_rounded, size: 16),
-                          label: const Text('Add'),
-                          onPressed: () =>
-                              _showAddUserDialog(context, currentUser),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Search & Filter Bar
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: AppTheme.borderLight,
-                          width: 0.5,
-                        ),
-                        boxShadow: AppTheme.premiumShadow,
-                      ),
-                      child: Column(
+    return RefreshIndicator(
+      onRefresh: () async {
+        userProvider.refresh();
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.all(isDesktop ? 32 : 16),
+            sliver: SliverToBoxAdapter(
+              child: Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header & Add Button
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 12,
+                        runSpacing: 8,
                         children: [
-                          TextField(
-                            controller: _searchController,
-                            onChanged: (_) => setState(() {}),
-                            decoration: InputDecoration(
-                              hintText: 'Search users by name or email...',
-                              prefixIcon: const Icon(
-                                Icons.search_rounded,
-                                color: Color(0xFF94A3B8),
-                              ),
-                              suffixIcon: _searchController.text.isNotEmpty
-                                  ? IconButton(
-                                      icon: const Icon(
-                                        Icons.clear_rounded,
-                                        color: Color(0xFF94A3B8),
-                                      ),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        setState(() {});
-                                      },
-                                    )
-                                  : null,
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: isDesktop ? 700 : 320,
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildFilterChip(
-                                  'All Users (${manageable.length})',
-                                  null,
-                                ),
-                                const SizedBox(width: 12),
-                                _buildFilterChip(
-                                  'Office Boy (${manageable.where((u) => u.isOfficeBoy).length})',
-                                  UserRole.officeBoy,
-                                  color: AppTheme.roleOfficeBoy,
-                                ),
-                                const SizedBox(width: 12),
-                                _buildFilterChip(
-                                  'Finance (${manageable.where((u) => u.isFinance).length})',
-                                  UserRole.finance,
-                                  color: AppTheme.roleFinance,
-                                ),
-                                if (currentUser.isSuperAdmin) ...[
-                                  const SizedBox(width: 12),
-                                  _buildFilterChip(
-                                    'Admin (${manageable.where((u) => u.isAdmin).length})',
-                                    UserRole.admin,
-                                    color: AppTheme.roleAdmin,
+                                Text(
+                                  Provider.of<LanguageProvider>(context)
+                                      .tr('user_accounts_management'),
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.primaryNavy,
+                                    letterSpacing: -0.8,
                                   ),
-                                ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  currentUser.isSuperAdmin
+                                      ? Provider.of<LanguageProvider>(context)
+                                            .tr('super_admin_manage_desc')
+                                      : Provider.of<LanguageProvider>(context)
+                                            .tr('admin_manage_desc'),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ],
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              textStyle: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                            icon: const Icon(
+                              Icons.person_add_rounded,
+                              size: 16,
+                            ),
+                            label: Text(
+                              Provider.of<LanguageProvider>(context)
+                                  .tr('add_btn'),
+                            ),
+                            onPressed: () =>
+                                _showAddUserDialog(context, currentUser),
+                          ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+                      const SizedBox(height: 24),
 
-        // Users List Table / Cards
-        if (filtered.isEmpty)
-          SliverToBoxAdapter(
-            child: Center(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 1000),
-                width: double.infinity,
-                padding: const EdgeInsets.all(64),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.borderLight, width: 0.5),
-                  boxShadow: AppTheme.premiumShadow,
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: const BoxDecoration(
-                        color: AppTheme.surfaceMuted,
-                        shape: BoxShape.circle,
+                      // Search & Filter Bar
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppTheme.borderLight,
+                            width: 0.5,
+                          ),
+                          boxShadow: AppTheme.premiumShadow,
+                        ),
+                        child: Column(
+                          children: [
+                            TextField(
+                              controller: _searchController,
+                              onChanged: (_) => setState(() {}),
+                              decoration: InputDecoration(
+                                hintText: Provider.of<LanguageProvider>(context)
+                                    .tr('search_users_hint'),
+                                prefixIcon: const Icon(
+                                  Icons.search_rounded,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                                suffixIcon: _searchController.text.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(
+                                          Icons.clear_rounded,
+                                          color: Color(0xFF94A3B8),
+                                        ),
+                                        onPressed: () {
+                                          _searchController.clear();
+                                          setState(() {});
+                                        },
+                                      )
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  _buildFilterChip(
+                                    '${Provider.of<LanguageProvider>(context).tr('all_users')} (${manageable.length})',
+                                    null,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _buildFilterChip(
+                                    '${Provider.of<LanguageProvider>(context).tr('office_boy')} (${manageable.where((u) => u.isOfficeBoy).length})',
+                                    UserRole.officeBoy,
+                                    color: AppTheme.roleOfficeBoy,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _buildFilterChip(
+                                    '${Provider.of<LanguageProvider>(context).tr('finance')} (${manageable.where((u) => u.isFinance).length})',
+                                    UserRole.finance,
+                                    color: AppTheme.roleFinance,
+                                  ),
+                                  if (currentUser.isSuperAdmin) ...[
+                                    const SizedBox(width: 12),
+                                    _buildFilterChip(
+                                      '${Provider.of<LanguageProvider>(context).tr('admin')} (${manageable.where((u) => u.isAdmin).length})',
+                                      UserRole.admin,
+                                      color: AppTheme.roleAdmin,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.people_outline_rounded,
-                        size: 64,
-                        color: Color(0xFFCBD5E1),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'No Users Found',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primaryNavy,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Try adjusting your search criteria or create a new user account.',
-                      style: TextStyle(color: Color(0xFF64748B), fontSize: 15),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
             ),
-          )
-        else
-          SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16)
-                .copyWith(bottom: 32),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                return Center(
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 1000),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: _buildUserCard(filtered[index], currentUser),
-                  ),
-                );
-              }, childCount: filtered.length),
-            ),
           ),
-      ],
+
+          // Users List Table / Cards
+          if (filtered.isEmpty)
+            SliverToBoxAdapter(
+              child: Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 1000),
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(64),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                    boxShadow: AppTheme.premiumShadow,
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: const BoxDecoration(
+                          color: AppTheme.surfaceMuted,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.people_outline_rounded,
+                          size: 64,
+                          color: Color(0xFFCBD5E1),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        Provider.of<LanguageProvider>(context)
+                            .tr('no_users_found'),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primaryNavy,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        Provider.of<LanguageProvider>(context)
+                            .tr('try_adjusting_search_users'),
+                        style: TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 15,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: isDesktop ? 32 : 16)
+                  .copyWith(bottom: 32),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  return Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 1000),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: _buildUserCard(filtered[index], currentUser),
+                    ),
+                  );
+                }, childCount: filtered.length),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -473,7 +575,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      user.role.displayName,
+                      context.t(user.role.displayName),
                       style: TextStyle(
                         color: roleColor,
                         fontSize: 11,
@@ -499,7 +601,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
-          _dateFormat.format(user.createdAt),
+          context.language.date(user.createdAt),
           style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
         ),
         Row(
@@ -514,7 +616,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ),
                 constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
                 padding: EdgeInsets.zero,
-                tooltip: 'Edit User',
+                tooltip: Provider.of<LanguageProvider>(
+                  context,
+                  listen: false,
+                ).tr('edit_user_tooltip'),
                 onPressed: () =>
                     _showEditUserDialog(context, user, currentUser),
               ),
@@ -527,7 +632,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ),
                 constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
                 padding: EdgeInsets.zero,
-                tooltip: 'Remove User',
+                tooltip: Provider.of<LanguageProvider>(
+                  context,
+                  listen: false,
+                ).tr('remove_user_tooltip'),
                 onPressed: () => _confirmDeleteUser(context, user),
               ),
           ],

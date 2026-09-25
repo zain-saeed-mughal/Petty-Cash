@@ -1,5 +1,5 @@
+import 'package:petty_cash/l10n/context_l10n.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../models/expense_request_model.dart';
 import '../config/app_theme.dart';
@@ -12,10 +12,10 @@ class AuditTrailWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (auditLogs.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(16.0),
         child: Text(
-          'No audit logs available.',
+          context.t('No audit logs available.'),
           style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
         ),
       );
@@ -28,10 +28,10 @@ class AuditTrailWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
-            'Audit Trail',
+            context.t('Audit Trail'),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class AuditTrailWidget extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    log.action,
+                                    context.language.auditAction(log.action),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 14,
@@ -107,8 +107,10 @@ class AuditTrailWidget extends StatelessWidget {
                                   ),
                                 ),
                                 Text(
-                                  DateFormat('MMM dd, hh:mm a')
-                                      .format(log.timestamp),
+                                  context.language.date(
+                                    log.timestamp,
+                                    pattern: 'MMM dd, hh:mm a',
+                                  ),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey.shade600,
@@ -118,7 +120,11 @@ class AuditTrailWidget extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'By: ${log.performerName}',
+                              context.language.format(
+                                'By: {name}',
+                                'از: {name}',
+                                {'name': log.performerName},
+                              ),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.grey.shade700,

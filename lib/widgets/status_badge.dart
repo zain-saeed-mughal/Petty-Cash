@@ -1,3 +1,4 @@
+import 'package:petty_cash/l10n/context_l10n.dart';
 import 'package:flutter/material.dart';
 
 import '../models/expense_request_model.dart';
@@ -36,6 +37,16 @@ class StatusBadge extends StatelessWidget {
         bgColor = AppTheme.statusApprovedBg;
         icon = Icons.verified_rounded;
         break;
+      case RequestStatus.pendingSettlement:
+        textColor = AppTheme.primaryBlue;
+        bgColor = AppTheme.primaryBlue.withValues(alpha: 0.1);
+        icon = Icons.calculate_outlined;
+        break;
+      case RequestStatus.settled:
+        textColor = AppTheme.statusApproved;
+        bgColor = AppTheme.statusApprovedBg;
+        icon = Icons.fact_check_outlined;
+        break;
     }
 
     if (isCompact) {
@@ -51,7 +62,7 @@ class StatusBadge extends StatelessWidget {
             Icon(icon, size: 12, color: textColor),
             const SizedBox(width: 4),
             Text(
-              status.displayName,
+              context.t(status.displayName),
               style: TextStyle(
                 color: textColor,
                 fontSize: 11,
@@ -76,7 +87,7 @@ class StatusBadge extends StatelessWidget {
           Icon(icon, size: 14, color: textColor),
           const SizedBox(width: 6),
           Text(
-            status.displayName,
+            context.t(status.displayName),
             style: TextStyle(
               color: textColor,
               fontSize: 12,

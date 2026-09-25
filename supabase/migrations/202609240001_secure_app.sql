@@ -109,9 +109,9 @@ DECLARE actor public.users; result public.requests;
 BEGIN
  SELECT * INTO actor FROM public.users WHERE uid=auth.uid() AND "isActive";
  IF actor.uid IS NULL THEN RAISE EXCEPTION 'Your account is not active' USING ERRCODE='42501'; END IF;
- IF request_id IS NULL OR request_id !~ '^[0-9a-fA-F-]{36}$' THEN RAISE EXCEPTION 'Invalid request reference'; END IF;
+ IF request_id IS NULL OR request_id !~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$' THEN RAISE EXCEPTION 'Invalid request reference'; END IF;
  IF request_amount IS NULL OR request_amount::text IN ('NaN','Infinity','-Infinity') OR request_amount<=0 OR request_amount>=10000000000 OR request_amount<>round(request_amount,2) THEN RAISE EXCEPTION 'Enter a positive amount with at most two decimal places'; END IF;
- IF length(trim(item_description)) NOT BETWEEN 1 AND 500 OR length(trim(request_reason)) NOT BETWEEN 1 AND 2000 THEN RAISE EXCEPTION 'Description and reason are required'; END IF;
+ IF item_description IS NULL OR request_reason IS NULL OR length(trim(item_description)) NOT BETWEEN 1 AND 500 OR length(trim(request_reason)) NOT BETWEEN 1 AND 2000 THEN RAISE EXCEPTION 'Description and reason are required'; END IF;
  IF receipt_path IS NOT NULL AND (receipt_path NOT LIKE actor.uid::text||'/%' OR receipt_path LIKE '%..%') THEN RAISE EXCEPTION 'Invalid receipt path'; END IF;
  -- A retry after a network timeout must not create a second payment request.
  SELECT * INTO result FROM public.requests WHERE id=request_id;
@@ -133,8 +133,9 @@ BEGIN
  IF actor.role IS NULL OR actor.role NOT IN ('finance','super_admin') THEN RAISE EXCEPTION 'You cannot review requests' USING ERRCODE='42501'; END IF;
  SELECT * INTO result FROM public.requests WHERE id=request_id FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'Request not found'; END IF;
- IF result.version<>expected_version THEN RAISE EXCEPTION 'This request changed. Refresh it before reviewing.' USING ERRCODE='40001'; END IF;
- IF new_status NOT IN ('Pending','Approved','Rejected','Paid') OR new_status=result.status THEN RAISE EXCEPTION 'Invalid status transition'; END IF;
+ IF expected_version IS NULL OR result.version<>expected_version THEN RAISE EXCEPTION 'This request changed. Refresh it before reviewing.' USING ERRCODE='40001'; END IF;
+ IF length(review_note)>2000 THEN RAISE EXCEPTION 'Review reason is too long'; END IF;
+ IF new_status IS NULL OR new_status NOT IN ('Pending','Approved','Rejected','Paid') OR new_status=result.status THEN RAISE EXCEPTION 'Invalid status transition'; END IF;
  IF is_override THEN
   IF actor.role<>'super_admin' OR coalesce(length(trim(review_note)),0)=0 THEN RAISE EXCEPTION 'A super-admin and an override reason are required' USING ERRCODE='42501'; END IF;
  ELSE
@@ -205,7 +206,7 @@ CREATE OR REPLACE FUNCTION public.register_device(device_token text,device_platf
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 BEGIN
  IF public.current_user_role() IS NULL THEN RAISE EXCEPTION 'Not authorized' USING ERRCODE='42501'; END IF;
- IF length(device_token) NOT BETWEEN 10 AND 4096 THEN RAISE EXCEPTION 'Invalid device token'; END IF;
+ IF device_token IS NULL OR length(device_token) NOT BETWEEN 10 AND 4096 THEN RAISE EXCEPTION 'Invalid device token'; END IF;
  INSERT INTO public.device_tokens(token,user_id,platform) VALUES(device_token,auth.uid(),device_platform)
  ON CONFLICT(token) DO UPDATE SET user_id=EXCLUDED.user_id,platform=EXCLUDED.platform,updated_at=now();
 END $$;

@@ -1,6 +1,9 @@
+import 'package:petty_cash/l10n/context_l10n.dart';
+
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+
 import 'receipt_image.dart';
 
 import '../config/app_theme.dart';
@@ -78,7 +81,7 @@ class ReceiptViewerDialog extends StatelessWidget {
                     ),
                     IconButton(
                       icon: const Icon(Icons.close_rounded),
-                      tooltip: 'Close',
+                      tooltip: context.t('Close'),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
@@ -105,7 +108,7 @@ class ReceiptViewerDialog extends StatelessWidget {
                                 base64Decode(imageUrl.split(',').last),
                                 fit: BoxFit.contain,
                                 errorBuilder: (ctx, err, stack) =>
-                                    _errorPlaceholder(),
+                                    _errorPlaceholder(context),
                               )
                             : ReceiptImage(
                                 imageUrl: imageUrl,
@@ -116,7 +119,7 @@ class ReceiptViewerDialog extends StatelessWidget {
                                   ),
                                 ),
                                 errorWidget: (context, url, error) =>
-                                    _errorPlaceholder(),
+                                    _errorPlaceholder(context),
                               ),
                       ),
                     ),
@@ -130,14 +133,14 @@ class ReceiptViewerDialog extends StatelessWidget {
     );
   }
 
-  Widget _errorPlaceholder() {
+  Widget _errorPlaceholder(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: const [
+      children: [
         Icon(Icons.broken_image_rounded, size: 64, color: Colors.white60),
         SizedBox(height: 12),
         Text(
-          'Unable to load receipt image preview',
+          context.t('Unable to load receipt image preview'),
           style: TextStyle(color: Colors.white70, fontSize: 14),
         ),
       ],

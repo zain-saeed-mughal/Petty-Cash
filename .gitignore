@@ -46,3 +46,16 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Deployment credentials and local build products
+/android/key.properties
+**/*.jks
+**/*.keystore
+/config/production.json
+/config/*.secret.json
+.env
+.env.*
+!/config/production.example.json
+/android/build/
+/deployment/**/*.apk
+/deployment/**/*.zip

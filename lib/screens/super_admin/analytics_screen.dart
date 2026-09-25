@@ -1,11 +1,12 @@
+import 'package:petty_cash/l10n/context_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/expense_provider.dart';
+import '../../providers/language_provider.dart';
 import '../../config/app_theme.dart';
-import '../../config/app_constants.dart';
 import '../../widgets/stat_card.dart';
 
 class AnalyticsScreen extends StatelessWidget {
@@ -14,6 +15,7 @@ class AnalyticsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final expense = Provider.of<ExpenseProvider>(context);
+    final lang = Provider.of<LanguageProvider>(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 950;
 
@@ -24,144 +26,191 @@ class AnalyticsScreen extends StatelessWidget {
     final rejectedCount = expense.rejectedCount;
     final totalCount = expense.totalTransactionsCount;
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 32 : 16),
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 1100),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'Financial Analytics & Reports',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.primaryNavy,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Real-time overview of petty cash outflows, approvals, and queue bottlenecks',
-                    style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // KPI Cards Grid
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final availableWidth = constraints.maxWidth;
-                  int crossAxisCount = 1;
-                  if (availableWidth >= 800) {
-                    crossAxisCount = 4;
-                  } else if (availableWidth >= 500) {
-                    crossAxisCount = 2;
-                  }
-
-                  final spacing = 16.0;
-                  final cardWidth =
-                      (availableWidth - (crossAxisCount - 1) * spacing) /
-                      crossAxisCount;
-
-                  return Wrap(
-                    spacing: spacing,
-                    runSpacing: spacing,
-                    children: [
-                      SizedBox(
-                        width: cardWidth,
-                        child: StatCard(
-                          title: 'TOTAL DISBURSED',
-                          value:
-                              '${AppConstants.defaultCurrencySymbol}${totalSpent.toStringAsFixed(2)}',
-                          subtitle: '$approvedCount approved payments',
-                          icon: Icons.payments_rounded,
-                          color: AppTheme.statusApproved,
-                        ),
-                      ),
-                      SizedBox(
-                        width: cardWidth,
-                        child: StatCard(
-                          title: 'PENDING QUEUE',
-                          value:
-                              '${AppConstants.defaultCurrencySymbol}${pendingAmount.toStringAsFixed(2)}',
-                          subtitle: '$pendingCount requests awaiting review',
-                          icon: Icons.hourglass_top_rounded,
-                          color: AppTheme.statusPending,
-                        ),
-                      ),
-                      SizedBox(
-                        width: cardWidth,
-                        child: StatCard(
-                          title: 'APPROVAL RATE',
-                          value: '${expense.approvalRate.toStringAsFixed(1)}%',
-                          subtitle:
-                              '$approvedCount of ${approvedCount + rejectedCount} reviewed',
-                          icon: Icons.verified_rounded,
-                          color: AppTheme.primaryBlue,
-                        ),
-                      ),
-                      SizedBox(
-                        width: cardWidth,
-                        child: StatCard(
-                          title: 'REJECTION COUNT',
-                          value: '$rejectedCount',
-                          subtitle: 'Returned to requester',
-                          icon: Icons.cancel_rounded,
-                          color: AppTheme.statusRejected,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 28),
-
-              // Charts Row / Column
-              if (isDesktop)
-                Row(
+    return RefreshIndicator(
+      onRefresh: () async {
+        expense.refresh();
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.all(isDesktop ? 32 : 16),
+        child: Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 1100),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      flex: 5,
-                      child: _buildStatusPieChartCard(
+                    Text(
+                      lang.tr('financial_analytics_reports'),
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primaryNavy,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      lang.tr('financial_analytics_sub'),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // KPI Cards Grid
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final availableWidth = constraints.maxWidth;
+                    int crossAxisCount = 1;
+                    if (availableWidth >= 800) {
+                      crossAxisCount = 4;
+                    } else if (availableWidth >= 500) {
+                      crossAxisCount = 2;
+                    }
+
+                    final spacing = 16.0;
+                    final cardWidth =
+                        (availableWidth - (crossAxisCount - 1) * spacing) /
+                        crossAxisCount;
+
+                    return Wrap(
+                      spacing: spacing,
+                      runSpacing: spacing,
+                      children: [
+                        SizedBox(
+                          width: cardWidth,
+                          child: StatCard(
+                            title: Provider.of<LanguageProvider>(context)
+                                .tr('total_disbursed'),
+                            value: context.language.money(totalSpent),
+                            subtitle:
+                                '$approvedCount${Provider.of<LanguageProvider>(context).tr('approved_payments_suffix')}',
+                            icon: Icons.payments_rounded,
+                            color: AppTheme.statusApproved,
+                          ),
+                        ),
+                        SizedBox(
+                          width: cardWidth,
+                          child: StatCard(
+                            title: Provider.of<LanguageProvider>(context)
+                                .tr('pending_queue'),
+                            value: context.language.money(pendingAmount),
+                            subtitle:
+                                '$pendingCount${Provider.of<LanguageProvider>(context).tr('requests_awaiting_review')}',
+                            icon: Icons.hourglass_top_rounded,
+                            color: AppTheme.statusPending,
+                          ),
+                        ),
+                        SizedBox(
+                          width: cardWidth,
+                          child: StatCard(
+                            title: Provider.of<LanguageProvider>(context)
+                                .tr('approval_rate'),
+                            value:
+                                '${expense.approvalRate.toStringAsFixed(1)}%',
+                            subtitle: context.language.format(
+                              '{approved} of {total} reviewed',
+                              '{total} میں سے {approved} منظور',
+                              {
+                                'approved': approvedCount,
+                                'total': approvedCount + rejectedCount,
+                              },
+                            ),
+                            icon: Icons.verified_rounded,
+                            color: AppTheme.primaryBlue,
+                          ),
+                        ),
+                        SizedBox(
+                          width: cardWidth,
+                          child: StatCard(
+                            title: Provider.of<LanguageProvider>(context)
+                                .tr('rejection_count'),
+                            value: '$rejectedCount',
+                            subtitle: Provider.of<LanguageProvider>(context)
+                                .tr('returned_to_requester'),
+                            icon: Icons.cancel_rounded,
+                            color: AppTheme.statusRejected,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 28),
+
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    for (final metric in [
+                      (
+                        context.t('Verified expenses'),
+                        expense.verifiedExpenses,
+                      ),
+                      (context.t('Verified returns'), expense.returnedAmount),
+                      (
+                        context.t('Unsettled advances'),
+                        expense.outstandingAdvances,
+                      ),
+                    ])
+                      Chip(
+                        label: Text(
+                          '${metric.$1}: ${context.language.money(metric.$2)}',
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // Charts Row / Column
+                if (isDesktop)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child: _buildStatusPieChartCard(
+                          context: context,
+                          pendingCount: pendingCount,
+                          approvedCount: approvedCount,
+                          rejectedCount: rejectedCount,
+                          totalCount: totalCount,
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        flex: 7,
+                        child: _buildSpendingBarChartCard(context, expense),
+                      ),
+                    ],
+                  )
+                else
+                  Column(
+                    children: [
+                      _buildStatusPieChartCard(
+                        context: context,
                         pendingCount: pendingCount,
                         approvedCount: approvedCount,
                         rejectedCount: rejectedCount,
                         totalCount: totalCount,
                       ),
-                    ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      flex: 7,
-                      child: _buildSpendingBarChartCard(expense),
-                    ),
-                  ],
-                )
-              else
-                Column(
-                  children: [
-                    _buildStatusPieChartCard(
-                      pendingCount: pendingCount,
-                      approvedCount: approvedCount,
-                      rejectedCount: rejectedCount,
-                      totalCount: totalCount,
-                    ),
-                    const SizedBox(height: 20),
-                    _buildSpendingBarChartCard(expense),
-                  ],
-                ),
-              const SizedBox(height: 28),
+                      const SizedBox(height: 20),
+                      _buildSpendingBarChartCard(context, expense),
+                    ],
+                  ),
+                const SizedBox(height: 28),
 
-              // Recent Transaction Log Overview
-              _buildTopRequestersCard(expense),
-            ],
+                // Recent Transaction Log Overview
+                _buildTopRequestersCard(context, expense),
+              ],
+            ),
           ),
         ),
       ),
@@ -169,11 +218,13 @@ class AnalyticsScreen extends StatelessWidget {
   }
 
   Widget _buildStatusPieChartCard({
+    required BuildContext context,
     required int pendingCount,
     required int approvedCount,
     required int rejectedCount,
     required int totalCount,
   }) {
+    final lang = Provider.of<LanguageProvider>(context);
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -184,24 +235,24 @@ class AnalyticsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Request Status Distribution',
-            style: TextStyle(
+          Text(
+            lang.tr('req_status_dist'),
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: AppTheme.primaryNavy,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Proportion of approved, pending, and rejected requests',
-            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+          Text(
+            lang.tr('req_status_dist_sub'),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 24),
           SizedBox(
             height: 200,
             child: totalCount == 0
-                ? const Center(child: Text('No request data available'))
+                ? Center(child: Text(lang.tr('no_req_data')))
                 : PieChart(
                     PieChartData(
                       sectionsSpace: 3,
@@ -254,15 +305,15 @@ class AnalyticsScreen extends StatelessWidget {
             runSpacing: 12,
             children: [
               _buildLegendItem(
-                'Approved ($approvedCount)',
+                '${lang.tr('approved_word')} ($approvedCount)',
                 AppTheme.statusApproved,
               ),
               _buildLegendItem(
-                'Pending ($pendingCount)',
+                '${lang.tr('pending')} ($pendingCount)',
                 AppTheme.statusPending,
               ),
               _buildLegendItem(
-                'Rejected ($rejectedCount)',
+                '${lang.tr('rejected')} ($rejectedCount)',
                 AppTheme.statusRejected,
               ),
             ],
@@ -297,7 +348,11 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSpendingBarChartCard(ExpenseProvider expense) {
+  Widget _buildSpendingBarChartCard(
+    BuildContext context,
+    ExpenseProvider expense,
+  ) {
+    final lang = Provider.of<LanguageProvider>(context);
     final requests = expense.allRequests.take(6).toList();
 
     return Container(
@@ -310,24 +365,24 @@ class AnalyticsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Recent Expense Amount Comparison',
-            style: TextStyle(
+          Text(
+            lang.tr('recent_exp_amt_comp'),
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: AppTheme.primaryNavy,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Amounts of the latest expense submissions (${AppConstants.defaultCurrencySymbol})',
-            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+          Text(
+            lang.tr('recent_exp_amt_sub'),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 24),
           SizedBox(
             height: 200,
             child: requests.isEmpty
-                ? const Center(child: Text('No transactions recorded yet.'))
+                ? Center(child: Text(lang.tr('no_transactions_recorded_yet')))
                 : BarChart(
                     BarChartData(
                       alignment: BarChartAlignment.spaceAround,
@@ -375,7 +430,9 @@ class AnalyticsScreen extends StatelessWidget {
                                 return const SizedBox.shrink();
                               }
                               return Text(
-                                NumberFormat.compact().format(val),
+                                NumberFormat.compact(
+                                  locale: context.language.currentLanguage,
+                                ).format(val),
                                 style: const TextStyle(
                                   fontSize: 10,
                                   color: Color(0xFF94A3B8),
@@ -429,10 +486,14 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopRequestersCard(ExpenseProvider expense) {
+  Widget _buildTopRequestersCard(
+    BuildContext context,
+    ExpenseProvider expense,
+  ) {
+    final lang = Provider.of<LanguageProvider>(context);
     final Map<String, double> requesterTotals = {};
     for (final r in expense.allRequests) {
-      if (r.isPaid) {
+      if (r.hasDisbursement) {
         requesterTotals[r.requestedBy] =
             (requesterTotals[r.requestedBy] ?? 0.0) + r.amount;
       }
@@ -451,24 +512,24 @@ class AnalyticsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Disbursements by Requester',
-            style: TextStyle(
+          Text(
+            lang.tr('disbursements_by_req'),
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: AppTheme.primaryNavy,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Actual paid expenditure per staff member',
-            style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+          Text(
+            lang.tr('disbursements_by_req_sub'),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 16),
           if (sorted.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Text('No paid transactions found yet.'),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Text(lang.tr('no_paid_transactions_yet')),
             )
           else
             ListView.separated(
@@ -499,7 +560,9 @@ class AnalyticsScreen extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          expense.allRequests.firstWhere((r)=>r.requestedBy==entry.key).requesterName,
+                          expense.allRequests
+                              .firstWhere((r) => r.requestedBy == entry.key)
+                              .requesterName,
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
@@ -509,7 +572,7 @@ class AnalyticsScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '${AppConstants.defaultCurrencySymbol}${entry.value.toStringAsFixed(2)}',
+                        context.language.money(entry.value),
                         style: const TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 15,

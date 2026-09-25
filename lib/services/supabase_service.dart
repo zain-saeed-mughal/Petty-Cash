@@ -12,12 +12,17 @@ class SupabaseService {
   bool get isSupabaseAvailable => _isSupabaseAvailable;
 
   // Placeholder credentials. Update these with real values when deploying.
-  static const String _supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://ysrwvlminsuvwswgpuhh.supabase.co');
-  static const String _supabaseAnonKey =
-      String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY', defaultValue: 'sb_publishable_6puU1eZ4bgDCZjSQWeDdMg_xs27lGMz');
+  static const String _supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'https://ysrwvlminsuvwswgpuhh.supabase.co',
+  );
+  static const String _supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_PUBLISHABLE_KEY',
+    defaultValue: 'sb_publishable_6puU1eZ4bgDCZjSQWeDdMg_xs27lGMz',
+  );
 
   Future<void> initialize() async {
-    if(_isSupabaseAvailable) return;
+    if (_isSupabaseAvailable) return;
     try {
       if (_supabaseUrl == 'YOUR_SUPABASE_URL' || _supabaseUrl.isEmpty) {
         debugPrint(

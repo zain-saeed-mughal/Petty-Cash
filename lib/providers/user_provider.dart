@@ -23,34 +23,45 @@ class UserProvider extends ChangeNotifier {
   UserRole? get roleFilter => _roleFilter;
 
   String? _identity;
-  bool _disposed=false;
-  int _generation=0;
+  bool _disposed = false;
+  int _generation = 0;
   UserProvider();
   void updateUserSession(AppUser? user) {
-    final identity=user==null?null:'${user.uid}:${user.role.roleCode}';
-    if(identity==_identity) return;
-    _identity=identity; _generation++;
-    _usersSubscription?.cancel(); _allUsers=[]; _errorMessage=null; _isLoading=false;
-    _searchQuery=''; _roleFilter=null;
-    if(identity!=null) _initSubscription();
+    final identity = user == null ? null : '${user.uid}:${user.role.roleCode}';
+    if (identity == _identity) return;
+    _identity = identity;
+    _generation++;
+    _usersSubscription?.cancel();
+    _allUsers = [];
+    _errorMessage = null;
+    _isLoading = false;
+    _searchQuery = '';
+    _roleFilter = null;
+    if (identity != null) _initSubscription();
   }
-  void refresh() { if(_identity!=null) { _initSubscription(); notifyListeners(); } }
+
+  void refresh() {
+    if (_identity != null) {
+      _initSubscription();
+      notifyListeners();
+    }
+  }
 
   void _initSubscription() {
     _isLoading = true;
-    final generation=++_generation;
+    final generation = ++_generation;
 
     _usersSubscription?.cancel();
     _usersSubscription = _databaseService.streamAllUsers().listen(
       (users) {
-        if(_disposed || generation!=_generation) return;
-        _errorMessage=null;
+        if (_disposed || generation != _generation) return;
+        _errorMessage = null;
         _allUsers = users;
         _isLoading = false;
         notifyListeners();
       },
       onError: (err) {
-        if(_disposed || generation!=_generation) return;
+        if (_disposed || generation != _generation) return;
         _errorMessage = userMessage(err);
         _isLoading = false;
         notifyListeners();
@@ -60,7 +71,8 @@ class UserProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _disposed=true; _generation++;
+    _disposed = true;
+    _generation++;
     _usersSubscription?.cancel();
     super.dispose();
   }
@@ -83,7 +95,6 @@ class UserProvider extends ChangeNotifier {
         final matchEmail = user.email.toLowerCase().contains(_searchQuery);
         return matchName || matchEmail;
       }
-      if(!_disposed) { _errorMessage=null; refresh(); }
       return true;
     }).toList();
   }
@@ -120,10 +131,16 @@ class UserProvider extends ChangeNotifier {
       );
 
       await _databaseService.createUser(newUser);
-      if(!_disposed) { _errorMessage=null; refresh(); }
+      if (!_disposed) {
+        _errorMessage = null;
+        refresh();
+      }
       return true;
     } catch (e) {
-      if(!_disposed) { _errorMessage = userMessage(e); notifyListeners(); }
+      if (!_disposed) {
+        _errorMessage = userMessage(e);
+        notifyListeners();
+      }
       return false;
     }
   }
@@ -131,10 +148,16 @@ class UserProvider extends ChangeNotifier {
   Future<bool> updateUser(AppUser user) async {
     try {
       await _databaseService.updateUser(user);
-      if(!_disposed) { _errorMessage=null; refresh(); }
+      if (!_disposed) {
+        _errorMessage = null;
+        refresh();
+      }
       return true;
     } catch (e) {
-      if(!_disposed) { _errorMessage = userMessage(e); notifyListeners(); }
+      if (!_disposed) {
+        _errorMessage = userMessage(e);
+        notifyListeners();
+      }
       return false;
     }
   }
@@ -142,10 +165,16 @@ class UserProvider extends ChangeNotifier {
   Future<bool> deleteUser(String uid) async {
     try {
       await _databaseService.deleteUser(uid);
-      if(!_disposed) { _errorMessage=null; refresh(); }
+      if (!_disposed) {
+        _errorMessage = null;
+        refresh();
+      }
       return true;
     } catch (e) {
-      if(!_disposed) { _errorMessage = userMessage(e); notifyListeners(); }
+      if (!_disposed) {
+        _errorMessage = userMessage(e);
+        notifyListeners();
+      }
       return false;
     }
   }
