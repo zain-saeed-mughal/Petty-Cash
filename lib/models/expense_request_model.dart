@@ -118,7 +118,7 @@ class ExpenseRequest {
   double get verifiedReturn =>
       isAdvance && isSettled ? amount - (settlementAmount ?? amount) : 0;
   double get outstandingAdvance =>
-      isAdvance && hasDisbursement && !isSettled ? amount : 0;
+      isAdvance && hasDisbursement && !isSettled ? (amount - (settlementAmount ?? 0)) : 0;
   static const overrideStatuses = [
     RequestStatus.pending,
     RequestStatus.approved,

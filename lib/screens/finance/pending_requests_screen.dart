@@ -338,6 +338,7 @@ class _PendingRequestsScreenState extends State<PendingRequestsScreen> {
                         children: [
                           Wrap(
                             spacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(
                                 req.requesterName,
@@ -352,6 +353,25 @@ class _PendingRequestsScreenState extends State<PendingRequestsScreen> {
                                 style: const TextStyle(
                                   fontSize: 11,
                                   color: Color(0xFF94A3B8),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: req.isAdvance 
+                                      ? Colors.purple.withValues(alpha: 0.1)
+                                      : Colors.blue.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  req.isAdvance 
+                                      ? context.language.format('Advance', 'ایڈوانس', {})
+                                      : context.language.format('Expense', 'خرچہ', {}),
+                                  style: TextStyle(
+                                    fontSize: 10, 
+                                    color: req.isAdvance ? Colors.purple : Colors.blue, 
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
