@@ -86,9 +86,18 @@ class _PettyCashAppState extends State<PettyCashApp> {
 
     try {
       if (mounted) setState(() => _startupError = null);
-      await context.read<LanguageProvider>().ready;
-      await SupabaseService().initialize();
-      await auth.restoreSession();
+      final langProvider = context.read<LanguageProvider>();
+      
+      // Initialize services while ensuring a minimum splash duration of 5 seconds
+      await Future.wait([
+        Future(() async {
+          await langProvider.ready;
+          await SupabaseService().initialize();
+          await auth.restoreSession();
+        }),
+        Future.delayed(const Duration(seconds: 5)),
+      ]);
+      
       if (!mounted) return;
       _pushMessages ??= PushNotificationService().messages.stream.listen((
         message,

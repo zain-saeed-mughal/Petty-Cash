@@ -387,7 +387,7 @@ class _LoginScreenState extends State<LoginScreen>
 
                                   // Submit Button
                                   Container(
-                                    height: 54,
+                                    constraints: const BoxConstraints(minHeight: 56),
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
                                         colors: [
@@ -414,6 +414,7 @@ class _LoginScreenState extends State<LoginScreen>
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.transparent,
                                         shadowColor: Colors.transparent,
+                                        padding: const EdgeInsets.symmetric(vertical: 14),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(
                                             16,
@@ -435,7 +436,6 @@ class _LoginScreenState extends State<LoginScreen>
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w700,
                                                 color: Colors.white,
-                                                letterSpacing: 0.5,
                                               ),
                                             ),
                                     ),
