@@ -251,5 +251,14 @@ class UiTranslations {
     "Request update": "درخواست کی نئی اطلاع",
     "View request details for the latest update.":
         "تازہ معلومات کے لیے درخواست کی تفصیلات دیکھیں۔",
+    "Total Advance": "کل پیشگی رقم",
+    "Previously Logged": "پہلے درج شدہ خرچ",
+    "Current Balance": "موجودہ بیلنس",
+    "New Expense Amount (if any)": "نئی خرچ کی رقم (اگر ہو)",
+    "Return Method for Balance": "بقیہ رقم واپس کرنے کا طریقہ",
+    "Advances & Float": "ایڈوانس اور فلوٹ",
+    "Advance awaiting confirmation": "ایڈوانس تصدیق کا منتظر ہے",
+    "Advance method mismatch": "ایڈوانس کے طریقۂ ادائیگی میں فرق",
+    "Advance received": "ایڈوانس موصول ہوا",
   };
 }

@@ -94,6 +94,8 @@ class NotificationProvider extends ChangeNotifier {
     message: n.message,
     isRead: true,
     relatedRequestId: n.relatedRequestId,
+    relatedAdvanceId: n.relatedAdvanceId,
+    relatedExpenseId: n.relatedExpenseId,
     createdAt: n.createdAt,
   );
   Future<bool> markAsRead(String id) =>

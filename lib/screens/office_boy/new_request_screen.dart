@@ -1,625 +1,319 @@
-import 'package:petty_cash/l10n/context_l10n.dart';
-
-import 'dart:convert';
-import 'dart:typed_data';
-
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../services/app_error.dart';
-
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
-
-import '../../providers/auth_provider.dart';
-import '../../providers/expense_provider.dart';
-import '../../providers/language_provider.dart';
-import '../../services/storage_service.dart';
 import '../../config/app_theme.dart';
-import '../../config/app_constants.dart';
-import '../../widgets/receipt_viewer_dialog.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/language_provider.dart';
+import '../../providers/payment_provider.dart';
+import '../../widgets/submit_payment_expense_dialog.dart';
 
-class NewRequestScreen extends StatefulWidget {
+String _label(BuildContext context, String en, String ur) =>
+    context.read<LanguageProvider>().isRtl ? ur : en;
+
+class NewRequestScreen extends StatelessWidget {
   final VoidCallback? onRequestSubmitted;
-
   const NewRequestScreen({super.key, this.onRequestSubmitted});
 
-  @override
-  State<NewRequestScreen> createState() => _NewRequestScreenState();
-}
-
-class _NewRequestScreenState extends State<NewRequestScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _itemController = TextEditingController();
-  final _amountController = TextEditingController();
-  final _reasonController = TextEditingController();
-
-  Uint8List? _selectedImageBytes;
-  String? _selectedImageName;
-  bool _isSubmitting = false;
-  String _requestId = const Uuid().v4();
-  String? _uploadedPath;
-  String _requestType = 'reimbursement';
-
-  @override
-  void dispose() {
-    _itemController.dispose();
-    _amountController.dispose();
-    _reasonController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    if (_isSubmitting) return;
-    try {
-      final file = await StorageService().pickReceiptImage(source: source);
-      if (file != null) {
-        final bytes = await file.readAsBytes();
-        if (!mounted) return;
-        if (bytes.length > StorageService.maxUploadBytes) {
-          throw StateError(context.t("Choose an image under 10 MB."));
-        }
-        StorageService.imageMime(bytes);
-        _discardUploadedReceipt();
-        setState(() {
-          _selectedImageBytes = bytes;
-          _selectedImageName = file.name;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.language.error(userMessage(e)))),
-        );
-      }
-    }
-  }
-
-  void _discardUploadedReceipt() {
-    final path = _uploadedPath;
-    _uploadedPath = null;
-    if (path != null) {
-      StorageService().removeUnusedReceipt(path).catchError((Object _) {});
-    }
-  }
-
-  void _clearImage() {
-    _discardUploadedReceipt();
-    setState(() {
-      _selectedImageBytes = null;
-      _selectedImageName = null;
-    });
-  }
-
-  Future<void> _submitRequest() async {
-    if (_isSubmitting || !_formKey.currentState!.validate()) return;
-    final user = context.read<AuthProvider>().currentUser;
-    final expense = context.read<ExpenseProvider>();
-    if (user == null) return;
-    final item = _itemController.text.trim(),
-        reason = _reasonController.text.trim();
-    final amount = double.tryParse(_amountController.text.trim());
-    if (amount == null ||
-        !amount.isFinite ||
-        amount <= 0 ||
-        amount >= 10000000000 ||
-        (amount * 100 - (amount * 100).round()).abs() > 0.00001) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.t(
-              'Enter a positive amount with at most two decimal places.',
-            ),
-          ),
-        ),
-      );
-      return;
-    }
-    setState(() => _isSubmitting = true);
-    try {
-      if (_selectedImageBytes != null && _uploadedPath == null) {
-        _uploadedPath = await StorageService().uploadReceiptImage(
-          imageBytes: _selectedImageBytes!,
-          fileName: _selectedImageName ?? 'receipt',
-        );
-      }
-      if (!mounted) return;
-      final success = await expense.submitRequest(
-        user: user,
-        itemDescription: item,
-        amount: amount,
-        reason: reason,
-        billImageUrl: _uploadedPath,
-        requestId: _requestId,
-        requestType: _requestType,
-      );
-      if (!mounted) return;
-      if (!success) {
-        throw StateError(
-          expense.errorMessage ?? 'Unable to submit. Please retry.',
-        );
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.t('Request submitted for approval.'))),
-      );
-      _requestId = const Uuid().v4();
-      _uploadedPath = null;
-      _itemController.clear();
-      _amountController.clear();
-      _reasonController.clear();
-      _clearImage();
-      widget.onRequestSubmitted?.call();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.language.error(userMessage(e)))),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
-    }
+  Future<void> _openExpense(BuildContext context, String flow) async {
+    final saved = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => SubmitPaymentExpenseDialog(initialFlowType: flow),
+    );
+    if (saved == true) onRequestSubmitted?.call();
   }
 
   @override
   Widget build(BuildContext context) {
-    final lang = Provider.of<LanguageProvider>(context);
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isDesktop = screenWidth >= 900;
+    final payments = context.watch<PaymentProvider>();
+    final actor = context.watch<AuthProvider>().currentUser;
+    final language = context.watch<LanguageProvider>();
+    final total = payments.overview
+        .where((row) => row.officeBoyId == actor?.uid)
+        .firstOrNull;
+    return ListView(
+      padding: const EdgeInsets.all(18),
+      children: [
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 780),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _label(
+                    context,
+                    'What do you need to do?',
+                    'آپ کیا کرنا چاہتے ہیں؟',
+                  ),
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  _label(
+                    context,
+                    'Choose where the money comes from. Each type is tracked separately.',
+                    'رقم کہاں سے آئی؟ ہر قسم کا حساب الگ رکھا جائے گا۔',
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (payments.error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      language.error(payments.error!),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                _ChoiceCard(
+                  icon: Icons.account_balance_wallet_outlined,
+                  title: _label(
+                    context,
+                    'I need money in advance',
+                    'مجھے پہلے ایڈوانس چاہیے',
+                  ),
+                  subtitle: _label(
+                    context,
+                    'Ask Finance for an amount. After approval, confirm the money you received.',
+                    'فنانس سے رقم مانگیں۔ منظوری کے بعد وصولی کی تصدیق کریں۔',
+                  ),
+                  action: _label(context, 'Request advance', 'ایڈوانس مانگیں'),
+                  onPressed: () async {
+                    final saved = await showDialog<bool>(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (_) => const _RequestAdvanceDialog(),
+                    );
+                    if (saved == true) onRequestSubmitted?.call();
+                  },
+                ),
+                const SizedBox(height: 12),
+                _ChoiceCard(
+                  icon: Icons.shopping_bag_outlined,
+                  title: _label(
+                    context,
+                    'I spent from an advance',
+                    'میں نے ایڈوانس سے خرچ کیا',
+                  ),
+                  subtitle: _label(
+                    context,
+                    'Select the advance and add the item. Available: ${language.money(total?.availableBalance ?? 0)}.',
+                    'ایڈوانس منتخب کریں اور سامان درج کریں۔ دستیاب: ${language.money(total?.availableBalance ?? 0)}۔',
+                  ),
+                  action: _label(
+                    context,
+                    'Add advance expense',
+                    'ایڈوانس کا خرچ درج کریں',
+                  ),
+                  onPressed: () => _openExpense(context, 'float'),
+                ),
+                const SizedBox(height: 12),
+                _ChoiceCard(
+                  icon: Icons.person_outline_rounded,
+                  title: _label(
+                    context,
+                    'I paid from my own pocket',
+                    'میں نے اپنی جیب سے ادا کیا',
+                  ),
+                  subtitle: _label(
+                    context,
+                    'Record what you bought. Finance will review and repay it separately.',
+                    'خریداری درج کریں۔ فنانس اس کا الگ جائزہ لے کر رقم واپس کرے گا۔',
+                  ),
+                  action: _label(
+                    context,
+                    'Ask for repayment',
+                    'رقم واپسی کی درخواست',
+                  ),
+                  onPressed: () => _openExpense(context, 'reimbursement'),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  _label(
+                    context,
+                    'You can check decisions, balances and receipts in Money & Expenses.',
+                    'فیصلے، بیلنس اور رسیدیں رقم اور خرچ میں دیکھیں۔',
+                  ),
+                  style: const TextStyle(color: Color(0xFF64748B)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(isDesktop ? 32 : 16),
-      child: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 800),
+class _ChoiceCard extends StatelessWidget {
+  final IconData icon;
+  final String title, subtitle, action;
+  final VoidCallback onPressed;
+  const _ChoiceCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.action,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: AppTheme.borderLight),
+      boxShadow: AppTheme.premiumShadow,
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: AppTheme.primaryBlue, size: 30),
+        const SizedBox(height: 10),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 4),
+        Text(subtitle, style: const TextStyle(color: Color(0xFF475569))),
+        const SizedBox(height: 12),
+        FilledButton(onPressed: onPressed, child: Text(action)),
+      ],
+    ),
+  );
+}
+
+class _RequestAdvanceDialog extends StatefulWidget {
+  const _RequestAdvanceDialog();
+  @override
+  State<_RequestAdvanceDialog> createState() => _RequestAdvanceDialogState();
+}
+
+class _RequestAdvanceDialogState extends State<_RequestAdvanceDialog> {
+  final _form = GlobalKey<FormState>();
+  final _amount = TextEditingController();
+  final _purpose = TextEditingController();
+  final _requestId = const Uuid().v4();
+  bool _busy = false;
+
+  @override
+  void dispose() {
+    _amount.dispose();
+    _purpose.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_busy || !_form.currentState!.validate()) return;
+    setState(() => _busy = true);
+    final saved = await context.read<PaymentProvider>().requestAdvance(
+      id: _requestId,
+      amount: double.parse(_amount.text.trim()),
+      purpose: _purpose.text.trim(),
+    );
+    if (!mounted) return;
+    if (saved) {
+      Navigator.pop(context, true);
+    } else {
+      setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(_label(context, 'Request an advance', 'ایڈوانس کی درخواست')),
+    content: SizedBox(
+      width: 430,
+      child: Form(
+        key: _form,
+        child: SingleChildScrollView(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Card
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.receipt_long_rounded,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            lang.tr('submit_expense_title'),
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            lang.tr('submit_expense_subtitle'),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+              Text(
+                _label(
+                  context,
+                  'Finance will review this request. Your balance increases after you confirm receipt.',
+                  'فنانس اس درخواست کا جائزہ لے گا۔ وصولی کی تصدیق کے بعد رقم بیلنس میں آئے گی۔',
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Form
-              Container(
-                padding: EdgeInsets.all(isDesktop ? 28 : 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppTheme.borderLight),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _amount,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Center(
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: SegmentedButton<String>(
-                            showSelectedIcon: false,
-                            style: ButtonStyle(
-                              padding: WidgetStateProperty.all(
-                                const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 14,
-                                ),
-                              ),
-                            ),
-                            segments: [
-                              ButtonSegment(
-                                value: 'reimbursement',
-                                label: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    lang.text('Reimbursement'),
-                                    maxLines: 1,
-                                    softWrap: false,
-                                  ),
-                                ),
-                              ),
-                              ButtonSegment(
-                                value: 'advance',
-                                label: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    lang.text('Cash Advance'),
-                                    maxLines: 1,
-                                    softWrap: false,
-                                  ),
-                                ),
-                              ),
-                            ],
-                            selected: {_requestType},
-                            onSelectionChanged: _isSubmitting
-                                ? null
-                                : (val) {
-                                    setState(() {
-                                      _requestType = val.first;
-                                    });
-                                  },
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      // Item Description
-                      Text(
-                        lang.tr('item_desc_label'),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryNavy,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        enabled: !_isSubmitting,
-                        controller: _itemController,
-                        decoration: InputDecoration(
-                          hintText: lang.tr('item_desc_hint'),
-                          prefixIcon: Icon(Icons.edit_note_rounded),
-                        ),
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return lang.tr('item_desc_error');
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Amount Spent
-                      Text(
-                        lang.tr('amount_label'),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryNavy,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        enabled: !_isSubmitting,
-                        controller: _amountController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: InputDecoration(
-                          prefixIcon: Padding(
-                            padding: EdgeInsets.only(
-                              left: 14,
-                              right: 6,
-                              top: 12,
-                            ),
-                            child: Text(
-                              context.language.isRtl
-                                  ? 'روپے '
-                                  : AppConstants.defaultCurrencySymbol,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryNavy,
-                              ),
-                            ),
-                          ),
-                          hintText: '0.00',
-                        ),
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return lang.tr('amount_empty_error');
-                          }
-                          final value = double.tryParse(val.trim());
-                          if (value == null || !value.isFinite || value <= 0) {
-                            return lang.tr('amount_invalid_error');
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Purpose / Reason
-                      Text(
-                        lang.tr('purpose_label'),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryNavy,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        enabled: !_isSubmitting,
-                        controller: _reasonController,
-                        maxLines: 3,
-                        decoration: InputDecoration(
-                          hintText: lang.tr('purpose_hint'),
-                          alignLabelWithHint: true,
-                        ),
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return lang.tr('purpose_error');
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Bill / Receipt Photo Upload Section
-                      Text(
-                        lang.tr('receipt_label'),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryNavy,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Image Preview or Empty State
-                      if (_selectedImageBytes != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppTheme.borderLight),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.check_circle_rounded,
-                                    color: AppTheme.statusApproved,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _selectedImageName ??
-                                          context.t('Receipt Attached'),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 13,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  TextButton(
-                                    child: Text(
-                                      context.t('View Full'),
-                                      style: TextStyle(fontSize: 13),
-                                    ),
-                                    onPressed: () {
-                                      final url =
-                                          'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
-                                      ReceiptViewerDialog.show(
-                                        context,
-                                        imageUrl: url,
-                                      );
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete_outline_rounded,
-                                      color: AppTheme.statusRejected,
-                                    ),
-                                    tooltip: context.t('Remove'),
-                                    onPressed: _isSubmitting
-                                        ? null
-                                        : _clearImage,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              GestureDetector(
-                                onTap: () {
-                                  final url =
-                                      'data:image/jpeg;base64,${base64Encode(_selectedImageBytes!)}';
-                                  ReceiptViewerDialog.show(
-                                    context,
-                                    imageUrl: url,
-                                  );
-                                },
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Container(
-                                    height: 180,
-                                    width: double.infinity,
-                                    color: Colors.black12,
-                                    child: _selectedImageBytes != null
-                                        ? Image.memory(
-                                            _selectedImageBytes!,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : const SizedBox.shrink(),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ] else ...[
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: const Color(0xFFCBD5E1),
-                              style: BorderStyle.solid,
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              const Icon(
-                                Icons.add_photo_alternate_outlined,
-                                size: 40,
-                                color: Color(0xFF94A3B8),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                context.t('Upload Bill or Receipt Photo'),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                  color: AppTheme.primaryNavy,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                context.t('PNG, JPG, or JPEG up to 10MB'),
-                                style: TextStyle(
-                                  color: Color(0xFF94A3B8),
-                                  fontSize: 12,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      icon: const Icon(
-                                        Icons.photo_library_outlined,
-                                        size: 18,
-                                      ),
-                                      label: Text(
-                                        context.t('Gallery'),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      onPressed: () =>
-                                          _pickImage(ImageSource.gallery),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      icon: const Icon(
-                                        Icons.camera_alt_outlined,
-                                        size: 18,
-                                      ),
-                                      label: Text(
-                                        context.t('Camera'),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      onPressed: () =>
-                                          _pickImage(ImageSource.camera),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 32),
-
-                      // Submit Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 62),
-                          child: ElevatedButton(
-                            onPressed: _isSubmitting ? null : _submitRequest,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (_isSubmitting)
-                                  const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                else
-                                  const Icon(Icons.send_rounded),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    _isSubmitting
-                                        ? lang.tr('submitting')
-                                        : lang.tr('submit_btn'),
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                ],
+                decoration: InputDecoration(
+                  labelText: _label(context, 'Amount (PKR)', 'رقم (روپے)'),
+                ),
+                validator: (value) {
+                  final parsed = double.tryParse(value?.trim() ?? '');
+                  if (parsed == null ||
+                      !parsed.isFinite ||
+                      parsed <= 0 ||
+                      parsed >= 10000000000 ||
+                      !RegExp(r'^\d+(?:\.\d{1,2})?$')
+                          .hasMatch(value?.trim() ?? '')) {
+                    return _label(
+                      context,
+                      'Enter a valid amount.',
+                      'درست رقم درج کریں۔',
+                    );
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 14),
+              TextFormField(
+                controller: _purpose,
+                maxLength: 2000,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: _label(
+                    context,
+                    'What is the money for?',
+                    'رقم کس کام کے لیے چاہیے؟',
                   ),
                 ),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? _label(
+                        context,
+                        'Tell Finance why you need it.',
+                        'فنانس کو وجہ بتائیں۔',
+                      )
+                    : null,
               ),
             ],
           ),
         ),
       ),
-    );
-  }
+    ),
+    actions: [
+      TextButton(
+        onPressed: _busy ? null : () => Navigator.pop(context),
+        child: Text(_label(context, 'Cancel', 'منسوخ')),
+      ),
+      FilledButton(
+        onPressed: _busy ? null : _submit,
+        child: _busy
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Text(_label(context, 'Send to Finance', 'فنانس کو بھیجیں')),
+      ),
+    ],
+  );
 }

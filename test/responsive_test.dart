@@ -16,6 +16,9 @@ import 'package:petty_cash/providers/expense_provider.dart';
 import 'package:petty_cash/providers/language_provider.dart';
 import 'package:petty_cash/providers/user_provider.dart';
 import 'package:petty_cash/providers/notification_provider.dart';
+import 'package:petty_cash/providers/payment_provider.dart';
+import 'package:petty_cash/models/payment_models.dart';
+import 'package:petty_cash/screens/payments/payment_center_screen.dart';
 import 'package:petty_cash/models/user_model.dart';
 import 'package:petty_cash/models/expense_request_model.dart';
 import 'package:petty_cash/models/notification_model.dart';
@@ -52,6 +55,13 @@ final manager = AppUser(
   name: 'Sara Ahmed',
   email: 'sara@example.test',
   role: UserRole.superAdmin,
+  createdAt: DateTime(2026),
+);
+final financeUser = AppUser(
+  uid: 'finance',
+  name: 'Finance Manager',
+  email: 'finance@example.test',
+  role: UserRole.finance,
   createdAt: DateTime(2026),
 );
 final rows = List.generate(
@@ -163,6 +173,60 @@ class N extends ChangeNotifier implements NotificationProvider {
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
+class P extends ChangeNotifier implements PaymentProvider {
+  @override
+  bool get isLoading => false;
+  @override
+  String? get error => null;
+  @override
+  bool isBusy(String id) => false;
+  @override
+  List<AdvanceRequestRecord> get advanceRequests => [];
+  @override
+  List<AdvanceBalance> get advanceBalances => [];
+  @override
+  List<Map<String, dynamic>> get ledger => [];
+  @override
+  DateTime? get reportFrom => null;
+  @override
+  DateTime? get reportTo => null;
+  @override
+  List<PaymentExpense> get expenses => [];
+  @override
+  List<AdvanceRecord> get advances => [
+    AdvanceRecord(
+      id: 'advance-test',
+      officeBoyId: staff.uid,
+      givenBy: manager.uid,
+      financeMethod: 'Card',
+      receivedMethod: 'Cash',
+      status: 'Received',
+      amount: 50000,
+      mismatchFlag: true,
+      createdAt: DateTime(2026, 9, 28),
+      confirmedAt: DateTime(2026, 9, 28),
+    ),
+  ];
+  @override
+  List<PaymentActivity> get activity => [];
+  @override
+  List<FloatSummary> get overview => [
+    FloatSummary(
+      officeBoyId: staff.uid,
+      officeBoyName: staff.name,
+      totalReceived: 50000,
+      totalSpent: 1000,
+      onHold: 500,
+      availableBalance: 48500,
+      totalReimbursed: 0,
+      advanceCount: 1,
+      expenseCount: 1,
+    ),
+  ];
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -204,7 +268,7 @@ void main() {
       await icons.load();
     });
 
-    final a = A(), e = E(), u = U(), n = N();
+    final a = A(), e = E(), u = U(), n = N(), p = P();
     final key = GlobalKey();
     final results = <Map<String, dynamic>>[];
     final screens = <String, Widget Function()>{
@@ -236,6 +300,8 @@ void main() {
       'super_dashboard': () => const SuperAdminDashboard(),
       'add_user': () => UserAccountDialog(actor: manager),
       'edit_user': () => UserAccountDialog(actor: manager, user: staff),
+      'payment_center': () => const PaymentCenterScreen(),
+      'payment_center_office': () => const PaymentCenterScreen(),
     };
     for (final locale in ['en', 'ur']) {
       final language = LanguageProvider(
@@ -259,10 +325,12 @@ void main() {
           t.view.physicalSize = size;
           t.view.devicePixelRatio = 1;
           for (final entry in screens.entries) {
-            a.user =
-                entry.key == 'new_request' ||
-                    entry.key == 'my_requests' ||
-                    entry.key == 'office_dashboard'
+            a.user = entry.key == 'payment_center'
+                ? financeUser
+                : entry.key == 'new_request' ||
+                      entry.key == 'my_requests' ||
+                      entry.key == 'office_dashboard' ||
+                      entry.key == 'payment_center_office'
                 ? staff
                 : manager;
             final errors = <String>[];
@@ -334,6 +402,7 @@ void main() {
                   ),
                   ChangeNotifierProvider<UserProvider>.value(value: u),
                   ChangeNotifierProvider<NotificationProvider>.value(value: n),
+                  ChangeNotifierProvider<PaymentProvider>.value(value: p),
                 ],
                 child: RepaintBoundary(
                   key: key,
@@ -364,6 +433,8 @@ void main() {
                   'detail',
                   'notifications',
                   'history',
+                  'payment_center',
+                  'payment_center_office',
                 ].contains(entry.key) &&
                 [360.0, 1024.0].contains(size.width)) {
               await t.runAsync(() async {
@@ -378,6 +449,16 @@ void main() {
                     .writeAsBytes(bytes!.buffer.asUint8List());
                 img.dispose();
               });
+            }
+            if (entry.key == 'payment_center' && size.width == 320) {
+              await t.tap(
+                find
+                    .text(locale == 'ur' ? 'ایڈوانس دیں' : 'Give Advance')
+                    .first,
+              );
+              await t.pumpAndSettle();
+              await t.tap(find.text(locale == 'ur' ? 'منسوخ' : 'Cancel').last);
+              await t.pumpAndSettle();
             }
             for (final s
                 in t

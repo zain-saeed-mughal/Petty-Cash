@@ -535,8 +535,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         currentUser.isSuperAdmin ||
         (currentUser.isAdmin && (user.isOfficeBoy || user.isFinance));
     final canDelete =
-        (currentUser.isSuperAdmin && user.uid != currentUser.uid) ||
-        (currentUser.isAdmin && (user.isOfficeBoy || user.isFinance));
+        currentUser.isSuperAdmin &&
+        user.isOfficeBoy &&
+        user.uid != currentUser.uid;
     final profile = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -588,7 +589,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               const SizedBox(height: 5),
               Text(
                 user.email,
-                softWrap: true,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
               ),
             ],
@@ -652,13 +654,30 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         border: Border.all(color: AppTheme.borderLight, width: 0.5),
         boxShadow: AppTheme.premiumShadow,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: profile),
-          const SizedBox(width: 8),
-          metadata,
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth < 360) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                profile,
+                const SizedBox(height: 8),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: metadata,
+                ),
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: profile),
+              const SizedBox(width: 8),
+              metadata,
+            ],
+          );
+        },
       ),
     );
   }

@@ -8,6 +8,7 @@ import 'analytics_screen.dart';
 import '../admin/all_transactions_screen.dart';
 import '../admin/user_management_screen.dart';
 import '../reports/monthly_reporting_screen.dart';
+import '../payments/payment_center_screen.dart';
 
 class SuperAdminDashboard extends StatefulWidget {
   const SuperAdminDashboard({super.key});
@@ -46,6 +47,11 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
         selectedIcon: Icons.calendar_month_rounded,
         label: lang.tr('reports_nav'),
       ),
+      NavigationItem(
+        icon: Icons.account_balance_wallet_outlined,
+        selectedIcon: Icons.account_balance_wallet_rounded,
+        label: lang.isRtl ? 'رقم کا حساب' : 'Money',
+      ),
     ];
 
     final screens = const [
@@ -53,6 +59,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
       AllTransactionsScreen(),
       UserManagementScreen(),
       MonthlyReportingScreen(),
+      PaymentCenterScreen(),
     ];
 
     final titles = [
@@ -60,6 +67,7 @@ class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
       lang.tr('all_transactions_title'),
       lang.tr('user_management_title'),
       lang.tr('monthly_reports_title'),
+      lang.isRtl ? 'رقم اور خرچ' : 'Money & Expenses',
     ];
 
     return AdaptiveScaffold(

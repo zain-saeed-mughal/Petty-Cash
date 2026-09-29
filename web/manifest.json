@@ -1,12 +1,11 @@
 {
-    "name": "petty_cash",
-    "short_name": "petty_cash",
+    "name": "Petty Cash Manager",
+    "short_name": "Petty Cash",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#3159E8",
+    "theme_color": "#3159E8",
+    "description": "Track team advances, expenses and reimbursements.",
     "prefer_related_applications": false,
     "icons": [
         {

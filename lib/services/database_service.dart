@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_model.dart';
 import '../models/expense_request_model.dart';
 import '../models/notification_model.dart';
+import '../models/payment_models.dart';
 import 'supabase_service.dart';
 
 class DatabaseService {
@@ -219,6 +220,189 @@ class DatabaseService {
         result.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         return result;
       });
+  Stream<List<AdvanceRecord>> streamAdvances() =>
+      _watch('advances', 'id').map((rows) {
+        final records = rows.map(AdvanceRecord.fromMap).toList();
+        records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return records;
+      });
+
+  Stream<List<AdvanceRequestRecord>> streamAdvanceRequests() =>
+      _watch('advance_requests', 'id').map((rows) {
+        final records = rows.map(AdvanceRequestRecord.fromMap).toList();
+        records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return records;
+      });
+
+  Stream<List<PaymentExpense>> streamPaymentExpenses() =>
+      _watch('expenses', 'id').map((rows) {
+        final records = rows.map(PaymentExpense.fromMap).toList();
+        records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return records;
+      });
+
+  Stream<List<PaymentActivity>> streamPaymentActivity() =>
+      _watch('payment_activity', 'id').map((rows) {
+        final records = rows.map(PaymentActivity.fromMap).toList();
+        records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return records;
+      });
+
+  Stream<List<Map<String, dynamic>>> streamFloatLedger() =>
+      _watch('float_ledger', 'id');
+
+  Future<List<FloatSummary>> getPaymentOverview({
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final rows = await _client.rpc(
+      'payment_overview',
+      params: {
+        'p_from': from?.toUtc().toIso8601String(),
+        'p_to': to?.toUtc().toIso8601String(),
+      },
+    );
+    return (rows as List)
+        .map(
+          (row) => FloatSummary.fromMap(Map<String, dynamic>.from(row as Map)),
+        )
+        .toList();
+  }
+
+  Future<List<AdvanceBalance>> getAdvanceBalances() async {
+    final rows = await _client.rpc('advance_balance_overview');
+    return (rows as List)
+        .map(
+          (row) =>
+              AdvanceBalance.fromMap(Map<String, dynamic>.from(row as Map)),
+        )
+        .toList();
+  }
+
+  Future<AdvanceRequestRecord> requestAdvance({
+    required String id,
+    required double amount,
+    required String purpose,
+  }) async {
+    final row = await _client.rpc(
+      'request_advance',
+      params: {'p_request_id': id, 'p_amount': amount, 'p_purpose': purpose},
+    );
+    return AdvanceRequestRecord.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<AdvanceRequestRecord> reviewAdvanceRequest(
+    String id,
+    String decision, {
+    String? method,
+    String? reason,
+  }) async {
+    final row = await _client.rpc(
+      'review_advance_request',
+      params: {
+        'p_request_id': id,
+        'p_decision': decision,
+        'p_method': method,
+        'p_reason': reason,
+      },
+    );
+    return AdvanceRequestRecord.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<AdvanceRecord> giveAdvance({
+    required String id,
+    required String officeBoyId,
+    required double amount,
+    required String method,
+    String? note,
+  }) async {
+    final row = await _client.rpc(
+      'give_advance',
+      params: {
+        'p_advance_id': id,
+        'p_office_boy_id': officeBoyId,
+        'p_amount': amount,
+        'p_method': method,
+        'p_note': note,
+      },
+    );
+    return AdvanceRecord.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<AdvanceRecord> confirmAdvance(String id, String receivedMethod) async {
+    final row = await _client.rpc(
+      'confirm_advance',
+      params: {'p_advance_id': id, 'p_received_method': receivedMethod},
+    );
+    return AdvanceRecord.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<PaymentExpense> submitPaymentExpense({
+    required String id,
+    required String flowType,
+    required String item,
+    required double amount,
+    required String reason,
+    String? billPath,
+    String? advanceId,
+  }) async {
+    final row = await _client.rpc(
+      'submit_payment_expense',
+      params: {
+        'p_expense_id': id,
+        'p_flow_type': flowType,
+        'p_item': item,
+        'p_amount': amount,
+        'p_reason': reason,
+        'p_bill_path': billPath,
+        'p_advance_id': advanceId,
+      },
+    );
+    return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<PaymentExpense> reviewPaymentExpense(
+    String id,
+    String decision, {
+    String? reason,
+  }) async {
+    final row = await _client.rpc(
+      'review_payment_expense',
+      params: {'p_expense_id': id, 'p_decision': decision, 'p_reason': reason},
+    );
+    return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<PaymentExpense> acknowledgePaymentRejection(String id) async {
+    final row = await _client.rpc(
+      'acknowledge_payment_rejection',
+      params: {'p_expense_id': id},
+    );
+    return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<PaymentExpense> clearReimbursementPayment(
+    String id,
+    String method,
+  ) async {
+    final row = await _client.rpc(
+      'clear_reimbursement_payment',
+      params: {'p_expense_id': id, 'p_method': method},
+    );
+    return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<PaymentExpense> confirmReimbursementPayment(
+    String id,
+    String method,
+  ) async {
+    final row = await _client.rpc(
+      'confirm_reimbursement_payment',
+      params: {'p_expense_id': id, 'p_received_method': method},
+    );
+    return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
   Stream<List<AppUser>> streamAllUsers() => _watch(
     'users',
     'uid',

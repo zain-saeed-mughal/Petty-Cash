@@ -7,6 +7,9 @@ class AppNotification {
   final String message;
   final bool isRead;
   final String? relatedRequestId;
+  final String? relatedAdvanceId;
+  final String? relatedExpenseId;
+  final String? relatedAdvanceRequestId;
   final DateTime createdAt;
 
   AppNotification({
@@ -16,6 +19,9 @@ class AppNotification {
     required this.message,
     this.isRead = false,
     this.relatedRequestId,
+    this.relatedAdvanceId,
+    this.relatedExpenseId,
+    this.relatedAdvanceRequestId,
     DateTime? createdAt,
   }) : id = id ?? const Uuid().v4(),
        createdAt = createdAt ?? DateTime.now();
@@ -28,6 +34,9 @@ class AppNotification {
       'message': message,
       'is_read': isRead,
       'related_request_id': relatedRequestId,
+      'related_advance_id': relatedAdvanceId,
+      'related_expense_id': relatedExpenseId,
+      'related_advance_request_id': relatedAdvanceRequestId,
       'created_at': createdAt.toUtc().toIso8601String(),
     };
   }
@@ -40,6 +49,9 @@ class AppNotification {
       message: map['message'] ?? '',
       isRead: map['is_read'] ?? false,
       relatedRequestId: map['related_request_id'],
+      relatedAdvanceId: map['related_advance_id'],
+      relatedExpenseId: map['related_expense_id'],
+      relatedAdvanceRequestId: map['related_advance_request_id'],
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'])
           : DateTime.now(),

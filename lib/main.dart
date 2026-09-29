@@ -15,6 +15,7 @@ import 'providers/expense_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/language_provider.dart';
+import 'providers/payment_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/office_boy/office_boy_dashboard.dart';
 import 'screens/finance/finance_dashboard.dart';
@@ -40,6 +41,10 @@ class AppProviders extends StatelessWidget {
       ChangeNotifierProxyProvider<AuthProvider, ExpenseProvider>(
         create: (_) => ExpenseProvider(),
         update: (_, auth, expense) => expense!..updateUser(auth.currentUser),
+      ),
+      ChangeNotifierProxyProvider<AuthProvider, PaymentProvider>(
+        create: (_) => PaymentProvider(),
+        update: (_, auth, payments) => payments!..updateUser(auth.currentUser),
       ),
       ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
         create: (_) => UserProvider(),

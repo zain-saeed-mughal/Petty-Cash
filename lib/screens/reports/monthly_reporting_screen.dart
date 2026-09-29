@@ -9,6 +9,7 @@ import '../../config/app_theme.dart';
 import '../../models/expense_request_model.dart';
 import '../../providers/expense_provider.dart';
 import '../../providers/language_provider.dart';
+import '../../providers/payment_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../widgets/status_badge.dart';
 import '../finance/request_detail_screen.dart';
@@ -41,14 +42,102 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
     return d.year == month.year && d.month == month.month;
   }
 
+  bool _matchesPaymentStatus(String status) => switch (_status) {
+    null => true,
+    RequestStatus.pending =>
+      status == 'Pending' || status == 'Awaiting Confirmation',
+    RequestStatus.approved => status == 'Approved' || status == 'Received',
+    RequestStatus.rejected => status == 'Rejected',
+    RequestStatus.paid => status == 'Paid',
+    RequestStatus.pendingSettlement || RequestStatus.settled => false,
+  };
+
   @override
   Widget build(BuildContext context) {
     final expense = context.watch<ExpenseProvider>();
+    final payments = context.watch<PaymentProvider>();
     final users = context.watch<UserProvider>().allUsers;
+    final names = {for (final user in users) user.uid: user.name};
 
     final rows = expense.allRequests
         .where((r) => _matches(r) && _inMonth(r, _month))
         .toList();
+    final paymentRows = <_MonthlyPaymentRow>[];
+    void addPaymentRow(_MonthlyPaymentRow row) {
+      if (row.date.year == _month.year &&
+          row.date.month == _month.month &&
+          (_user == null || row.officeBoyId == _user) &&
+          _matchesPaymentStatus(row.status)) {
+        paymentRows.add(row);
+      }
+    }
+
+    for (final request in payments.advanceRequests) {
+      addPaymentRow(
+        _MonthlyPaymentRow(
+          id: request.id,
+          date: request.createdAt,
+          officeBoyId: request.officeBoyId,
+          type: 'Advance request',
+          description: request.purpose,
+          amount: request.amount,
+          status: request.status,
+        ),
+      );
+    }
+    for (final advance in payments.advances) {
+      addPaymentRow(
+        _MonthlyPaymentRow(
+          id: advance.id,
+          date: advance.createdAt,
+          officeBoyId: advance.officeBoyId,
+          type: 'Advance issued',
+          description: advance.note ?? advance.financeMethod,
+          amount: advance.amount,
+          status: advance.status,
+        ),
+      );
+    }
+    for (final payment in payments.expenses) {
+      addPaymentRow(
+        _MonthlyPaymentRow(
+          id: payment.id,
+          date: payment.paidAt ?? payment.createdAt,
+          officeBoyId: payment.officeBoyId,
+          type: payment.flowType == 'float'
+              ? 'Advance expense'
+              : 'Own-pocket expense',
+          description: payment.itemDescription,
+          amount: payment.amount,
+          status: payment.status,
+        ),
+      );
+    }
+    paymentRows.sort((a, b) => b.date.compareTo(a.date));
+    final newAdvances = paymentRows
+        .where((row) => row.type == 'Advance issued')
+        .fold<double>(0, (sum, row) => sum + row.amount);
+    final newFloatSpent = paymentRows
+        .where(
+          (row) => row.type == 'Advance expense' && row.status == 'Approved',
+        )
+        .fold<double>(0, (sum, row) => sum + row.amount);
+    final newReimbursementsPaid = paymentRows
+        .where(
+          (row) => row.type == 'Own-pocket expense' && row.status == 'Paid',
+        )
+        .fold<double>(0, (sum, row) => sum + row.amount);
+    double reimbursementsPaidIn(DateTime month) => payments.expenses
+        .where(
+          (payment) =>
+              payment.status == 'Paid' &&
+              payment.paidAt != null &&
+              payment.paidAt!.year == month.year &&
+              payment.paidAt!.month == month.month &&
+              (_user == null || payment.officeBoyId == _user) &&
+              _matchesPaymentStatus(payment.status),
+        )
+        .fold<double>(0, (sum, payment) => sum + payment.amount);
 
     final previous = DateTime(_month.year, _month.month - 1);
     final paid = rows
@@ -57,6 +146,8 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
     final previousPaid = expense.allRequests
         .where((r) => r.hasDisbursement && _matches(r) && _inMonth(r, previous))
         .fold(0.0, (sum, r) => sum + r.amount);
+    final reportPaid = paid + newReimbursementsPaid;
+    final reportPreviousPaid = previousPaid + reimbursementsPaidIn(previous);
     final undated = expense.allRequests
         .where((r) => r.hasDisbursement && r.paidAt == null && _matches(r))
         .length;
@@ -256,11 +347,11 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
                                 width,
                                 Provider.of<LanguageProvider>(context)
                                     .tr('total_paid'),
-                                context.language.money(paid),
+                                context.language.money(reportPaid),
                                 Icons.payments_outlined,
                                 AppTheme.accentTeal,
-                                previousPaid > 0
-                                    ? '${(((paid - previousPaid) / previousPaid) * 100).toStringAsFixed(1)}${Provider.of<LanguageProvider>(context).tr('vs_prev_month')}'
+                                reportPreviousPaid > 0
+                                    ? '${(((reportPaid - reportPreviousPaid) / reportPreviousPaid) * 100).toStringAsFixed(1)}${Provider.of<LanguageProvider>(context).tr('vs_prev_month')}'
                                     : Provider.of<LanguageProvider>(context)
                                           .tr('no_prev_paid'),
                               ),
@@ -268,7 +359,7 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
                                 width,
                                 Provider.of<LanguageProvider>(context)
                                     .tr('requests_in_view'),
-                                rows.length.toString(),
+                                (rows.length + paymentRows.length).toString(),
                                 Icons.receipt_long_outlined,
                                 AppTheme.primaryBlue,
                                 Provider.of<LanguageProvider>(context)
@@ -278,9 +369,15 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
                                 width,
                                 Provider.of<LanguageProvider>(context)
                                     .tr('pending'),
-                                rows
-                                    .where((r) => r.isPending)
-                                    .length
+                                (rows.where((r) => r.isPending).length +
+                                        paymentRows
+                                            .where(
+                                              (row) =>
+                                                  row.status == 'Pending' ||
+                                                  row.status ==
+                                                      'Awaiting Confirmation',
+                                            )
+                                            .length)
                                     .toString(),
                                 Icons.schedule_outlined,
                                 AppTheme.statusPending,
@@ -291,9 +388,12 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
                                 width,
                                 Provider.of<LanguageProvider>(context)
                                     .tr('rejected'),
-                                rows
-                                    .where((r) => r.isRejected)
-                                    .length
+                                (rows.where((r) => r.isRejected).length +
+                                        paymentRows
+                                            .where(
+                                              (row) => row.status == 'Rejected',
+                                            )
+                                            .length)
                                     .toString(),
                                 Icons.cancel_outlined,
                                 AppTheme.statusRejected,
@@ -458,6 +558,203 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
                             ),
                           ],
                         ),
+                      const SizedBox(height: 28),
+                      Text(
+                        context.language.format(
+                          'Advance & expense activity',
+                          'ایڈوانس اور اخراجات کی سرگرمیاں',
+                          const {},
+                        ),
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 12),
+                      if (payments.error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            context.t(
+                              'Payment data could not be refreshed. Displayed values may be out of date.',
+                            ),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                          ),
+                        ),
+                      LayoutBuilder(
+                        builder: (context, c) {
+                          final columns = c.maxWidth >= 900
+                              ? 4
+                              : c.maxWidth >= 500
+                              ? 2
+                              : 1;
+                          final width =
+                              (c.maxWidth - (columns - 1) * 16) / columns;
+                          return Wrap(
+                            spacing: 16,
+                            runSpacing: 16,
+                            children: [
+                              _metric(
+                                width,
+                                context.language.format(
+                                  'Advances issued',
+                                  'جاری کیے گئے ایڈوانس',
+                                  const {},
+                                ),
+                                context.language.money(newAdvances),
+                                Icons.account_balance_wallet_outlined,
+                                AppTheme.primaryBlue,
+                                '${paymentRows.where((row) => row.type == 'Advance issued').length} ${context.language.format('records', 'ریکارڈز', const {})}',
+                              ),
+                              _metric(
+                                width,
+                                context.language.format(
+                                  'Approved advance expenses',
+                                  'منظور شدہ ایڈوانس اخراجات',
+                                  const {},
+                                ),
+                                context.language.money(newFloatSpent),
+                                Icons.shopping_bag_outlined,
+                                AppTheme.statusApproved,
+                                context.language.format(
+                                  'Selected month',
+                                  'منتخب مہینہ',
+                                  const {},
+                                ),
+                              ),
+                              _metric(
+                                width,
+                                context.language.format(
+                                  'Reimbursements paid',
+                                  'ادا شدہ ذاتی اخراجات',
+                                  const {},
+                                ),
+                                context.language.money(newReimbursementsPaid),
+                                Icons.payments_outlined,
+                                AppTheme.accentTeal,
+                                context.language.format(
+                                  'Selected month',
+                                  'منتخب مہینہ',
+                                  const {},
+                                ),
+                              ),
+                              _metric(
+                                width,
+                                context.language.format(
+                                  'New payment records',
+                                  'نئے ادائیگی ریکارڈ',
+                                  const {},
+                                ),
+                                paymentRows.length.toString(),
+                                Icons.receipt_long_outlined,
+                                AppTheme.primaryBlue,
+                                context.language.format(
+                                  'All filters applied',
+                                  'تمام فلٹرز لاگو ہیں',
+                                  const {},
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      if (paymentRows.isEmpty)
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Center(
+                              child: Text(
+                                context.language.format(
+                                  'No new payment activity matches this month and filters.',
+                                  'اس مہینے اور فلٹرز کے لیے کوئی نئی ادائیگی سرگرمی نہیں۔',
+                                  const {},
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
+                            columns: [
+                              DataColumn(
+                                label: Text(
+                                  context.language.format(
+                                    'Date',
+                                    'تاریخ',
+                                    const {},
+                                  ),
+                                ),
+                              ),
+                              DataColumn(label: Text(context.t('Office Boy'))),
+                              DataColumn(
+                                label: Text(
+                                  context.language.format(
+                                    'Type',
+                                    'قسم',
+                                    const {},
+                                  ),
+                                ),
+                              ),
+                              DataColumn(label: Text(context.t('Description'))),
+                              DataColumn(label: Text(context.t('Amount'))),
+                              DataColumn(label: Text(context.t('Status'))),
+                            ],
+                            rows: paymentRows.map((row) {
+                              final typeUrdu = switch (row.type) {
+                                'Advance request' => 'ایڈوانس کی درخواست',
+                                'Advance issued' => 'ایڈوانس جاری',
+                                'Advance expense' => 'ایڈوانس کا خرچ',
+                                _ => 'ذاتی جیب کا خرچ',
+                              };
+                              return DataRow(
+                                key: ValueKey(row.id),
+                                cells: [
+                                  DataCell(
+                                    Text(
+                                      context.language.date(
+                                        row.date,
+                                        pattern: 'dd MMM yyyy',
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      names[row.officeBoyId] ??
+                                          row.officeBoyId.substring(0, 8),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Text(
+                                      context.language.format(
+                                        row.type,
+                                        typeUrdu,
+                                        const {},
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: 220,
+                                      ),
+                                      child: Text(
+                                        row.description,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Text(context.language.money(row.amount)),
+                                  ),
+                                  DataCell(Chip(label: Text(row.status))),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -514,4 +811,24 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
       ),
     ),
   );
+}
+
+class _MonthlyPaymentRow {
+  final String id;
+  final DateTime date;
+  final String officeBoyId;
+  final String type;
+  final String description;
+  final double amount;
+  final String status;
+
+  const _MonthlyPaymentRow({
+    required this.id,
+    required this.date,
+    required this.officeBoyId,
+    required this.type,
+    required this.description,
+    required this.amount,
+    required this.status,
+  });
 }

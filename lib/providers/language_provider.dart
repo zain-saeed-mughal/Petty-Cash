@@ -141,6 +141,14 @@ class LanguageProvider extends ChangeNotifier {
   String notificationBody(AppNotification notification) {
     final value = notification.message;
     if (!isRtl) return value;
+    final advanceGiven = RegExp(r'^Finance gave you an advance of PKR (.+)\. Confirm receipt and method\.$').firstMatch(value);
+    if (advanceGiven != null) {
+      return 'فنانس نے آپ کو ${advanceGiven[1]} روپے پیشگی دیے ہیں۔ وصولی اور طریقے کی تصدیق کریں۔';
+    }
+    final advanceReceived = RegExp(r'^(.*?) confirmed an advance of PKR (.+) by (Cash|Card)\.$').firstMatch(value);
+    if (advanceReceived != null) {
+      return '${advanceReceived[1]} نے ${advanceReceived[2]} روپے کی پیشگی رقم ${advanceReceived[3] == 'Cash' ? 'نقد' : 'کارڈ'} سے وصول کرنے کی تصدیق کی۔';
+    }
     final settlement = RegExp(r'^(.*?) submitted a settlement update\.$')
         .firstMatch(value);
     if (settlement != null) {

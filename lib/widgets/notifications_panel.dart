@@ -6,6 +6,7 @@ import '../providers/notification_provider.dart';
 import '../services/push_notification_service.dart';
 import '../services/database_service.dart';
 import '../screens/finance/request_detail_screen.dart';
+import '../screens/payments/payment_center_screen.dart';
 import '../config/app_theme.dart';
 
 class NotificationsPanel extends StatelessWidget {
@@ -178,6 +179,29 @@ class NotificationsPanel extends StatelessWidget {
                                 onTap: () async {
                                   if (!n.isRead) {
                                     await provider.markAsRead(n.id);
+                                  }
+                                  if ((n.relatedAdvanceId != null ||
+                                          n.relatedExpenseId != null ||
+                                          n.relatedAdvanceRequestId != null) &&
+                                      context.mounted) {
+                                    await Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => Scaffold(
+                                          appBar: AppBar(
+                                            title: Text(
+                                              context.t('Advances & Float'),
+                                            ),
+                                          ),
+                                          body: PaymentCenterScreen(
+                                            advanceId: n.relatedAdvanceId,
+                                            expenseId: n.relatedExpenseId,
+                                            advanceRequestId:
+                                                n.relatedAdvanceRequestId,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                    return;
                                   }
                                   if (n.relatedRequestId == null ||
                                       !context.mounted) {
