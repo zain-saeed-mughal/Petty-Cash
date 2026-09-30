@@ -96,8 +96,17 @@ class PushNotificationService {
   }
 
   void _open(RemoteMessage message) {
-    final id = message.data['request_id'];
-    if (id is! String || id.isEmpty) return;
+    final advance = message.data['core_advance_id'];
+    final repayment = message.data['reimbursement_id'];
+    final request = message.data['request_id'];
+    final id = advance is String && advance.isNotEmpty
+        ? 'advance:$advance'
+        : repayment is String && repayment.isNotEmpty
+        ? 'reimbursement:$repayment'
+        : request is String && request.isNotEmpty
+        ? request
+        : null;
+    if (id == null) return;
     if (_uid == null || !openedRequests.hasListener) {
       _pendingOpen = message;
     } else if (message.data['user_id'] == _uid) {

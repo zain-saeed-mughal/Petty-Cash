@@ -11,11 +11,10 @@ import 'config/app_theme.dart';
 import 'config/app_constants.dart';
 import 'models/user_model.dart';
 import 'providers/auth_provider.dart';
-import 'providers/expense_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/language_provider.dart';
-import 'providers/payment_provider.dart';
+import 'providers/core_flow_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/office_boy/office_boy_dashboard.dart';
 import 'screens/finance/finance_dashboard.dart';
@@ -23,7 +22,7 @@ import 'screens/admin/admin_dashboard.dart';
 import 'screens/super_admin/super_admin_dashboard.dart';
 import 'services/push_notification_service.dart';
 import 'services/database_service.dart';
-import 'screens/finance/request_detail_screen.dart';
+import 'screens/core/core_dashboard_screens.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,13 +37,9 @@ class AppProviders extends StatelessWidget {
     providers: [
       ChangeNotifierProvider(create: (_) => LanguageProvider()),
       ChangeNotifierProvider(create: (_) => AuthProvider()),
-      ChangeNotifierProxyProvider<AuthProvider, ExpenseProvider>(
-        create: (_) => ExpenseProvider(),
-        update: (_, auth, expense) => expense!..updateUser(auth.currentUser),
-      ),
-      ChangeNotifierProxyProvider<AuthProvider, PaymentProvider>(
-        create: (_) => PaymentProvider(),
-        update: (_, auth, payments) => payments!..updateUser(auth.currentUser),
+      ChangeNotifierProxyProvider<AuthProvider, CoreFlowProvider>(
+        create: (_) => CoreFlowProvider(),
+        update: (_, auth, flows) => flows!..updateUser(auth.currentUser),
       ),
       ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
         create: (_) => UserProvider(),
@@ -92,17 +87,11 @@ class _PettyCashAppState extends State<PettyCashApp> {
     try {
       if (mounted) setState(() => _startupError = null);
       final langProvider = context.read<LanguageProvider>();
-      
-      // Initialize services while ensuring a minimum splash duration of 5 seconds
-      await Future.wait([
-        Future(() async {
-          await langProvider.ready;
-          await SupabaseService().initialize();
-          await auth.restoreSession();
-        }),
-        Future.delayed(const Duration(seconds: 5)),
-      ]);
-      
+
+      await langProvider.ready;
+      await SupabaseService().initialize();
+      await auth.restoreSession();
+
       if (!mounted) return;
       _pushMessages ??= PushNotificationService().messages.stream.listen((
         message,
@@ -113,10 +102,26 @@ class _PettyCashAppState extends State<PettyCashApp> {
           ScaffoldMessenger.of(ctx).showSnackBar(
             SnackBar(
               content: Text(ctx.t('New notification')),
-              action: message.data['request_id'] is String
+              action:
+                  [
+                    message.data['core_advance_id'],
+                    message.data['reimbursement_id'],
+                    message.data['request_id'],
+                  ].any((value) => value is String && value.isNotEmpty)
                   ? SnackBarAction(
                       label: context.t('Open'),
-                      onPressed: () => _openRequest(message.data['request_id']),
+                      onPressed: () {
+                        final advance = message.data['core_advance_id'];
+                        final repayment = message.data['reimbursement_id'];
+                        if (advance is String && advance.isNotEmpty) {
+                          _openRequest('advance:$advance');
+                        } else if (repayment is String &&
+                            repayment.isNotEmpty) {
+                          _openRequest('reimbursement:$repayment');
+                        } else if (message.data['request_id'] is String) {
+                          _openRequest(message.data['request_id']);
+                        }
+                      },
                     )
                   : null,
             ),
@@ -146,13 +151,44 @@ class _PettyCashAppState extends State<PettyCashApp> {
     final uid = auth.currentUser?.uid;
     if (uid == null) return;
     try {
-      final request = await DatabaseService().getRequest(id);
+      if (id.startsWith('advance:') || id.startsWith('reimbursement:')) {
+        final advance = id.startsWith('advance:')
+            ? await DatabaseService().getCoreAdvance(
+                id.substring('advance:'.length),
+              )
+            : null;
+        final repayment = id.startsWith('reimbursement:')
+            ? await DatabaseService().getCoreReimbursement(
+                id.substring('reimbursement:'.length),
+              )
+            : null;
+        if (!mounted || auth.currentUser?.uid != uid) return;
+        _navigatorKey.currentState?.push(
+          MaterialPageRoute<void>(
+            builder: (_) => Scaffold(
+              appBar: AppBar(title: Text(context.t('Details'))),
+              body: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  if (advance != null) CoreAdvanceCard(advance: advance),
+                  if (repayment != null)
+                    CoreReimbursementCard(request: repayment),
+                ],
+              ),
+            ),
+          ),
+        );
+        return;
+      }
+      // Older notifications can still exist after the payment-flow upgrade.
+      // Keep them readable in Notifications, without reopening retired actions.
       if (!mounted || auth.currentUser?.uid != uid) return;
-      _navigatorKey.currentState?.push(
-        MaterialPageRoute(
-          builder: (_) => RequestDetailScreen(request: request),
-        ),
-      );
+      final navContext = _navigatorKey.currentContext;
+      if (navContext != null) {
+        ScaffoldMessenger.of(navContext).showSnackBar(
+          SnackBar(content: Text(context.t('This request is archived.'))),
+        );
+      }
     } catch (_) {}
   }
 

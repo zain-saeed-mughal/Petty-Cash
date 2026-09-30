@@ -43,7 +43,8 @@ Deno.serve(async(req)=>{
         token:device.token,
         // Lock-screen content stays generic; app fetches protected details after sign-in.
         notification:device.language_code === "ur" ? {title:"پیٹی کیش کی نئی اطلاع",body:"اپنی اطلاع دیکھنے کے لیے پیٹی کیش کھولیں۔"} : {title:"Petty Cash update",body:"Open Petty Cash to view your notification."},
-        data:{request_id:job.request_id??"",user_id:job.user_id},
+        data:{request_id:job.request_id??"",core_advance_id:job.core_advance_id??"",
+          reimbursement_id:job.reimbursement_id??"",user_id:job.user_id},
         android:{priority:"high"},apns:{payload:{aps:{sound:"default"}}},
        }}),signal:AbortSignal.timeout(15000)});
       if(!response.ok){

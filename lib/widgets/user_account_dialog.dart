@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../models/user_model.dart';
 import '../providers/user_provider.dart';
+import '../providers/core_flow_provider.dart';
 
 class UserAccountDialog extends StatefulWidget {
   final AppUser actor;
@@ -18,6 +19,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
   late final TextEditingController _name, _email;
   final _password = TextEditingController();
   late UserRole _role;
+  String? _officeId;
   late bool _active;
   bool _busy = false, _showPassword = false;
   String? _error;
@@ -27,6 +29,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
     _name = TextEditingController(text: widget.user?.name);
     _email = TextEditingController(text: widget.user?.email);
     _role = widget.user?.role ?? UserRole.officeBoy;
+    _officeId = widget.user?.officeId ?? widget.actor.officeId;
     _active = widget.user?.isActive ?? true;
   }
 
@@ -54,6 +57,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
             email: email,
             password: password,
             role: _role,
+            officeId: _officeId,
           )
         : await provider.updateUser(
             widget.user!.copyWith(
@@ -62,6 +66,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
               password: password.isEmpty ? null : password,
               role: _role,
               isActive: _active,
+              officeId: _officeId,
             ),
           );
     if (!mounted) return;
@@ -81,6 +86,11 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final offices = context.watch<CoreFlowProvider>().offices;
+    if (offices.isNotEmpty &&
+        !offices.any((office) => office.id == _officeId)) {
+      _officeId = offices.first.id;
+    }
     final roles = widget.actor.isSuperAdmin
         ? UserRole.values
         : [UserRole.officeBoy, UserRole.finance];
@@ -161,6 +171,30 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                         : null,
                   ),
                   const SizedBox(height: 16),
+                  if (offices.isNotEmpty) ...[
+                    DropdownButtonFormField<String>(
+                      initialValue: _officeId,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: context.t('Office'),
+                      ),
+                      items: offices
+                          .map(
+                            (office) => DropdownMenuItem(
+                              value: office.id,
+                              child: Text(
+                                office.name,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: _busy || !widget.actor.isSuperAdmin
+                          ? null
+                          : (value) => setState(() => _officeId = value),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   DropdownButtonFormField<UserRole>(
                     initialValue: _role,
                     isExpanded: true,

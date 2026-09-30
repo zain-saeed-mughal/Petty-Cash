@@ -8,6 +8,7 @@ import '../models/user_model.dart';
 import '../models/expense_request_model.dart';
 import '../models/notification_model.dart';
 import '../models/payment_models.dart';
+import '../models/core_flow_models.dart';
 import 'supabase_service.dart';
 
 class DatabaseService {
@@ -403,6 +404,176 @@ class DatabaseService {
     return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
   }
 
+  Stream<List<OfficeRecord>> streamOffices() => _watch(
+    'offices',
+    'name',
+  ).map((rows) => rows.map(OfficeRecord.fromMap).toList());
+
+  Stream<List<CoreAdvance>> streamCoreAdvances() =>
+      _watch('advance_requests', 'id').map((rows) {
+        final records = rows
+            .where((row) => row['flow_version'] == 2)
+            .map(CoreAdvance.fromMap)
+            .toList();
+        records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return records;
+      });
+
+  Stream<List<CoreAdvanceItem>> streamCoreAdvanceItems() =>
+      _watch('advance_items', 'id').map((rows) {
+        final records = rows.map(CoreAdvanceItem.fromMap).toList();
+        records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return records;
+      });
+
+  Stream<List<CoreReimbursement>> streamCoreReimbursements() =>
+      _watch('reimbursement_requests', 'id').map((rows) {
+        final records = rows.map(CoreReimbursement.fromMap).toList();
+        records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return records;
+      });
+
+  Stream<List<CoreActivity>> streamCoreActivity() =>
+      _watch('core_payment_activity', 'id').map((rows) {
+        final records = rows.map(CoreActivity.fromMap).toList();
+        records.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        return records;
+      });
+
+  Future<List<CoreBalance>> getCoreBalances() async {
+    final rows = await _client.rpc('advance_balances_v2');
+    return (rows as List)
+        .map(
+          (row) => CoreBalance.fromMap(Map<String, dynamic>.from(row as Map)),
+        )
+        .toList();
+  }
+
+  Future<OfficeRecord> createOffice(String name) async {
+    final row = await _client.rpc('create_office', params: {'p_name': name});
+    return OfficeRecord.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<CoreAdvance> requestCoreAdvance({
+    required String id,
+    required String purpose,
+    required double amount,
+    required String method,
+    String? accountName,
+    String? accountDetails,
+  }) async {
+    final row = await _client.rpc(
+      'request_advance_v2',
+      params: {
+        'p_id': id,
+        'p_purpose': purpose,
+        'p_amount': amount,
+        'p_method': method,
+        'p_account_name': accountName,
+        'p_account_details': accountDetails,
+      },
+    );
+    return CoreAdvance.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<CoreAdvance> getCoreAdvance(String id) async {
+    final row = await _client
+        .from('advance_requests')
+        .select()
+        .eq('id', id)
+        .eq('flow_version', 2)
+        .single();
+    return CoreAdvance.fromMap(row);
+  }
+
+  Future<CoreReimbursement> getCoreReimbursement(String id) async {
+    final row = await _client
+        .from('reimbursement_requests')
+        .select()
+        .eq('id', id)
+        .single();
+    return CoreReimbursement.fromMap(row);
+  }
+
+  Future<CoreAdvance> clearCoreAdvance(
+    String id,
+    String method,
+    String? note,
+  ) async {
+    final row = await _client.rpc(
+      'clear_advance_request_v2',
+      params: {'p_id': id, 'p_method': method, 'p_note': note},
+    );
+    return CoreAdvance.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<CoreAdvanceItem> logCoreAdvanceItem({
+    required String id,
+    required String advanceId,
+    required String item,
+    required double amount,
+    String? billPath,
+  }) async {
+    final row = await _client.rpc(
+      'log_advance_item_v2',
+      params: {
+        'p_id': id,
+        'p_advance_id': advanceId,
+        'p_item': item,
+        'p_amount': amount,
+        'p_bill_path': billPath,
+      },
+    );
+    return CoreAdvanceItem.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<CoreReimbursement> submitCoreReimbursement({
+    required String id,
+    required String item,
+    required double amount,
+    required String method,
+    String? billPath,
+    String? accountName,
+    String? accountDetails,
+  }) async {
+    final row = await _client.rpc(
+      'submit_reimbursement_v2',
+      params: {
+        'p_id': id,
+        'p_item': item,
+        'p_amount': amount,
+        'p_method': method,
+        'p_bill_path': billPath,
+        'p_account_name': accountName,
+        'p_account_details': accountDetails,
+      },
+    );
+    return CoreReimbursement.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<CoreReimbursement> reviewCoreReimbursement(
+    String id,
+    String decision,
+    String? reason,
+  ) async {
+    final row = await _client.rpc(
+      'review_reimbursement_v2',
+      params: {'p_id': id, 'p_decision': decision, 'p_reason': reason},
+    );
+    return CoreReimbursement.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
+  Future<CoreReimbursement> markCoreReimbursementPaid(
+    String id,
+    String method,
+  ) async {
+    final row = await _client.rpc(
+      'mark_reimbursement_paid_v2',
+      params: {'p_id': id, 'p_method': method},
+    );
+    return CoreReimbursement.fromMap(Map<String, dynamic>.from(row as Map));
+  }
+
   Stream<List<AppUser>> streamAllUsers() => _watch(
     'users',
     'uid',
@@ -448,6 +619,7 @@ class DatabaseService {
     'password': user.password,
     'role': user.role.roleCode,
     'isActive': user.isActive,
+    'officeId': user.officeId,
   });
   Future<void> updateUser(AppUser user) => _manageUser({
     'action': 'update',
@@ -457,6 +629,7 @@ class DatabaseService {
     'password': user.password?.isNotEmpty == true ? user.password : null,
     'role': user.role.roleCode,
     'isActive': user.isActive,
+    'officeId': user.officeId,
   });
   Future<void> deleteUser(String uid) =>
       _manageUser({'action': 'delete', 'uid': uid});

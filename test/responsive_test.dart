@@ -17,6 +17,10 @@ import 'package:petty_cash/providers/language_provider.dart';
 import 'package:petty_cash/providers/user_provider.dart';
 import 'package:petty_cash/providers/notification_provider.dart';
 import 'package:petty_cash/providers/payment_provider.dart';
+import 'package:petty_cash/providers/core_flow_provider.dart';
+
+import 'core_flow_test_provider.dart';
+
 import 'package:petty_cash/models/payment_models.dart';
 import 'package:petty_cash/screens/payments/payment_center_screen.dart';
 import 'package:petty_cash/models/user_model.dart';
@@ -403,6 +407,9 @@ void main() {
                   ChangeNotifierProvider<UserProvider>.value(value: u),
                   ChangeNotifierProvider<NotificationProvider>.value(value: n),
                   ChangeNotifierProvider<PaymentProvider>.value(value: p),
+                  ChangeNotifierProvider<CoreFlowProvider>.value(
+                    value: CoreFlowTestProvider(),
+                  ),
                 ],
                 child: RepaintBoundary(
                   key: key,

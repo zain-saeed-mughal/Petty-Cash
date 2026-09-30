@@ -4,7 +4,6 @@ import 'package:petty_cash/l10n/context_l10n.dart';
 import 'package:flutter/material.dart';
 
 import '../config/app_theme.dart';
-import 'data_status_view.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -87,7 +86,7 @@ class AdaptiveScaffold extends StatelessWidget {
               }).toList(),
             ),
             const VerticalDivider(thickness: 1, width: 1),
-            Expanded(child: DataStatusView(child: body)),
+            Expanded(child: body),
           ],
         ),
         floatingActionButton: floatingActionButton,
@@ -97,7 +96,7 @@ class AdaptiveScaffold extends StatelessWidget {
     // Mobile View
     return Scaffold(
       appBar: const AccountAppBar(),
-      body: DataStatusView(child: body),
+      body: body,
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: onNavigationIndexChanged,

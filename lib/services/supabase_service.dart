@@ -11,7 +11,7 @@ class SupabaseService {
   String get projectUrl => _supabaseUrl;
   bool get isSupabaseAvailable => _isSupabaseAvailable;
 
-  // Placeholder credentials. Update these with real values when deploying.
+  // The publishable key is public; a deployment may override these values.
   static const String _supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
     defaultValue: 'https://ysrwvlminsuvwswgpuhh.supabase.co',
@@ -25,9 +25,7 @@ class SupabaseService {
     if (_isSupabaseAvailable) return;
     try {
       if (_supabaseUrl == 'YOUR_SUPABASE_URL' || _supabaseUrl.isEmpty) {
-        debugPrint(
-          'Supabase credentials not configured. Falling back to Demo/Offline Mode.',
-        );
+        debugPrint('Supabase credentials are not configured.');
         _isSupabaseAvailable = false;
         return;
       }
@@ -39,9 +37,7 @@ class SupabaseService {
       _isSupabaseAvailable = true;
       debugPrint('Supabase initialized successfully.');
     } catch (e) {
-      debugPrint(
-        'Supabase initialization failed ($e). Falling back to Demo/Offline Mode.',
-      );
+      debugPrint('Supabase initialization failed ($e).');
       _isSupabaseAvailable = false;
       rethrow;
     }

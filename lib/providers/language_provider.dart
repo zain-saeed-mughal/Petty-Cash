@@ -125,6 +125,17 @@ class LanguageProvider extends ChangeNotifier {
 
   String notificationTitle(AppNotification notification) {
     if (!isRtl) return notification.title;
+    const coreTitles = {
+      'Advance requested': 'ایڈوانس کی درخواست',
+      'Advance sent': 'ایڈوانس کی رقم دے دی گئی',
+      'Repayment requested': 'رقم واپسی کی درخواست',
+      'Repayment approved': 'رقم واپسی منظور',
+      'Repayment rejected': 'رقم واپسی مسترد',
+      'Repayment paid': 'رقم واپس ادا کر دی گئی',
+    };
+    if (coreTitles.containsKey(notification.title)) {
+      return coreTitles[notification.title]!;
+    }
     final translated = text(notification.title);
     if (translated != notification.title) return translated;
     final match = RegExp(
@@ -141,11 +152,37 @@ class LanguageProvider extends ChangeNotifier {
   String notificationBody(AppNotification notification) {
     final value = notification.message;
     if (!isRtl) return value;
-    final advanceGiven = RegExp(r'^Finance gave you an advance of PKR (.+)\. Confirm receipt and method\.$').firstMatch(value);
+    final coreAdvance = RegExp(r'^(.*?) requested PKR (.+)\.$')
+        .firstMatch(value);
+    if (coreAdvance != null) {
+      return '${coreAdvance[1]} نے ${coreAdvance[2]} روپے ایڈوانس مانگے ہیں۔';
+    }
+    final coreRepayment = RegExp(r'^(.*?) requested PKR (.+) repayment\.$')
+        .firstMatch(value);
+    if (coreRepayment != null) {
+      return '${coreRepayment[1]} نے ${coreRepayment[2]} روپے کی واپسی مانگی ہے۔';
+    }
+    if (value == 'Finance marked your advance as sent.') {
+      return 'فنانس نے آپ کی ایڈوانس رقم دے دی ہے۔';
+    }
+    if (value == 'Finance approved your repayment request.') {
+      return 'فنانس نے آپ کی رقم واپسی منظور کر لی ہے۔';
+    }
+    if (value == 'Finance marked your repayment as paid.') {
+      return 'فنانس نے آپ کی رقم واپس ادا کر دی ہے۔';
+    }
+    if (value.startsWith('Finance rejected your request: ')) {
+      return 'فنانس نے آپ کی درخواست مسترد کی۔ وجہ: ${value.replaceFirst('Finance rejected your request: ', '')}';
+    }
+    final advanceGiven = RegExp(
+      r'^Finance gave you an advance of PKR (.+)\. Confirm receipt and method\.$',
+    ).firstMatch(value);
     if (advanceGiven != null) {
       return 'فنانس نے آپ کو ${advanceGiven[1]} روپے پیشگی دیے ہیں۔ وصولی اور طریقے کی تصدیق کریں۔';
     }
-    final advanceReceived = RegExp(r'^(.*?) confirmed an advance of PKR (.+) by (Cash|Card)\.$').firstMatch(value);
+    final advanceReceived = RegExp(
+      r'^(.*?) confirmed an advance of PKR (.+) by (Cash|Card)\.$',
+    ).firstMatch(value);
     if (advanceReceived != null) {
       return '${advanceReceived[1]} نے ${advanceReceived[2]} روپے کی پیشگی رقم ${advanceReceived[3] == 'Cash' ? 'نقد' : 'کارڈ'} سے وصول کرنے کی تصدیق کی۔';
     }

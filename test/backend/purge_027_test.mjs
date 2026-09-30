@@ -23,7 +23,7 @@ const original = fs.readFileSync('supabase/migrations/202609240001_secure_app.sq
   .replace('CREATE EXTENSION IF NOT EXISTS pgcrypto;', '');
 await db.exec(original);
 for (const file of fs.readdirSync('supabase/migrations').filter(
-  (name) => name.endsWith('.sql') && !name.includes('001_'),
+  (name) => name.endsWith('.sql') && !name.includes('001_') && name < '202609300029',
 ).sort()) {
   await db.exec(fs.readFileSync(`supabase/migrations/${file}`, 'utf8')
     .replaceAll('CREATE EXTENSION IF NOT EXISTS pgcrypto;', ''));

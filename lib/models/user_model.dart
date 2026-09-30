@@ -56,6 +56,7 @@ class AppUser {
   final bool isActive;
   final String? password;
   final String? fcmToken;
+  final String? officeId;
 
   AppUser({
     required this.uid,
@@ -66,6 +67,7 @@ class AppUser {
     this.isActive = true,
     this.password,
     this.fcmToken,
+    this.officeId,
   });
 
   bool get isSuperAdmin => role == UserRole.superAdmin;
@@ -89,6 +91,7 @@ class AppUser {
       'createdAt': createdAt.toUtc().toIso8601String(),
       'isActive': isActive,
       if (fcmToken != null) 'fcmToken': fcmToken,
+      if (officeId != null) 'office_id': officeId,
     };
   }
 
@@ -112,6 +115,7 @@ class AppUser {
       isActive: map['isActive'] == null ? true : (map['isActive'] as bool),
       password: null,
       fcmToken: map['fcmToken']?.toString(),
+      officeId: map['office_id']?.toString(),
     );
   }
 
@@ -124,6 +128,7 @@ class AppUser {
     bool? isActive,
     String? password,
     String? fcmToken,
+    String? officeId,
   }) {
     return AppUser(
       uid: uid ?? this.uid,
@@ -134,6 +139,7 @@ class AppUser {
       isActive: isActive ?? this.isActive,
       password: password ?? this.password,
       fcmToken: fcmToken ?? this.fcmToken,
+      officeId: officeId ?? this.officeId,
     );
   }
 }

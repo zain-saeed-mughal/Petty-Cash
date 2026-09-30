@@ -55,7 +55,7 @@ export const createHandler =
         return reply({ error: "Session expired" }, 401);
       }
       const { data: actor, error: actorError } = await db.from("users").select(
-        "uid,role,isActive",
+        "uid,role,isActive,office_id",
       ).eq("uid", identity.user.id).single();
       if (
         actorError || !actor?.isActive ||
@@ -69,7 +69,7 @@ export const createHandler =
       let target: Record<string, unknown> | null = null;
       if (action !== "create") {
         const { data, error } = await db.from("users").select(
-          "uid,role,isActive",
+          "uid,role,isActive,office_id",
         ).eq("uid", uid).single();
         if (error || !data) return reply({ error: "User not found" }, 404);
         target = data;
@@ -120,6 +120,20 @@ export const createHandler =
         email = String(body.email ?? "").trim().toLowerCase();
       const role = String(body.role ?? ""),
         password = body.password == null ? null : String(body.password);
+      const officeId = body.officeId == null ? null : String(body.officeId);
+      const assignedOfficeId = officeId ??
+        (action === "create" ? String(actor.office_id) : String(target?.office_id));
+      if (actor.role === "admin" && assignedOfficeId !== actor.office_id) {
+        return reply({ error: "Admins can only manage accounts in their office" }, 403);
+      }
+      if (officeId !== null) {
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(officeId)) {
+          return reply({ error: "Select a valid office" }, 400);
+        }
+        const { data: office, error: officeError } = await db.from("offices")
+          .select("id").eq("id", officeId).single();
+        if (officeError || !office) return reply({ error: "Office not found" }, 400);
+      }
       if (
         !name || name.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
       ) return reply({ error: "Enter a valid name and email" }, 400);
@@ -145,6 +159,7 @@ export const createHandler =
         app_metadata: {
           petty_cash_role: role,
           petty_cash_active: body.isActive !== false,
+          petty_cash_office_id: assignedOfficeId,
         },
         ...(password ? { password } : {}),
       };

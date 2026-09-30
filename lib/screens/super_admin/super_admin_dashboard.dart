@@ -1,81 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/expense_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../widgets/adaptive_scaffold.dart';
-import 'analytics_screen.dart';
-import '../admin/all_transactions_screen.dart';
+import '../core/core_dashboard_screens.dart';
 import '../admin/user_management_screen.dart';
-import '../reports/monthly_reporting_screen.dart';
-import '../payments/payment_center_screen.dart';
 
 class SuperAdminDashboard extends StatefulWidget {
   const SuperAdminDashboard({super.key});
-
   @override
   State<SuperAdminDashboard> createState() => _SuperAdminDashboardState();
 }
 
 class _SuperAdminDashboardState extends State<SuperAdminDashboard> {
-  int _currentIndex = 0;
-
+  int _index = 0;
   @override
   Widget build(BuildContext context) {
-    final expense = Provider.of<ExpenseProvider>(context);
-    final lang = Provider.of<LanguageProvider>(context);
-
-    final destinations = [
-      NavigationItem(
-        icon: Icons.dashboard_outlined,
-        selectedIcon: Icons.dashboard_rounded,
-        label: lang.tr('analytics_nav'),
+    final ur = context.watch<LanguageProvider>().isRtl;
+    final screens = [
+      AdminCoreOverview(
+        superAdmin: true,
+        onRecords: () => setState(() => _index = 1),
       ),
-      NavigationItem(
-        icon: Icons.receipt_long_outlined,
-        selectedIcon: Icons.receipt_long_rounded,
-        label: lang.tr('transactions_nav'),
-        badgeCount: expense.pendingCount > 0 ? expense.pendingCount : null,
-      ),
-      NavigationItem(
-        icon: Icons.admin_panel_settings_outlined,
-        selectedIcon: Icons.admin_panel_settings_rounded,
-        label: lang.tr('users_nav'),
-      ),
-      NavigationItem(
-        icon: Icons.calendar_month_outlined,
-        selectedIcon: Icons.calendar_month_rounded,
-        label: lang.tr('reports_nav'),
-      ),
-      NavigationItem(
-        icon: Icons.account_balance_wallet_outlined,
-        selectedIcon: Icons.account_balance_wallet_rounded,
-        label: lang.isRtl ? 'رقم کا حساب' : 'Money',
-      ),
+      const CoreMonthlyRecords(),
+      const UserManagementScreen(),
+      const CoreOfficesScreen(),
     ];
-
-    final screens = const [
-      AnalyticsScreen(),
-      AllTransactionsScreen(),
-      UserManagementScreen(),
-      MonthlyReportingScreen(),
-      PaymentCenterScreen(),
-    ];
-
-    final titles = [
-      lang.tr('reports_analytics_title'),
-      lang.tr('all_transactions_title'),
-      lang.tr('user_management_title'),
-      lang.tr('monthly_reports_title'),
-      lang.isRtl ? 'رقم اور خرچ' : 'Money & Expenses',
-    ];
-
     return AdaptiveScaffold(
-      title: titles[_currentIndex],
-      currentIndex: _currentIndex,
-      onNavigationIndexChanged: (idx) => setState(() => _currentIndex = idx),
-      destinations: destinations,
-      body: screens[_currentIndex],
+      title: '',
+      currentIndex: _index,
+      onNavigationIndexChanged: (index) => setState(() => _index = index),
+      destinations: [
+        NavigationItem(
+          icon: Icons.home_outlined,
+          selectedIcon: Icons.home,
+          label: ur ? 'خلاصہ' : 'Overview',
+        ),
+        NavigationItem(
+          icon: Icons.calendar_month_outlined,
+          selectedIcon: Icons.calendar_month,
+          label: ur ? 'ریکارڈ' : 'Records',
+        ),
+        NavigationItem(
+          icon: Icons.people_outline,
+          selectedIcon: Icons.people,
+          label: ur ? 'صارفین' : 'Users',
+        ),
+        NavigationItem(
+          icon: Icons.business_outlined,
+          selectedIcon: Icons.business,
+          label: ur ? 'دفاتر' : 'Offices',
+        ),
+      ],
+      body: screens[_index],
     );
   }
 }

@@ -8,6 +8,11 @@ import 'package:petty_cash/providers/expense_provider.dart';
 import 'package:petty_cash/providers/language_provider.dart';
 import 'package:petty_cash/providers/payment_provider.dart';
 import 'package:petty_cash/providers/user_provider.dart';
+import 'package:petty_cash/providers/core_flow_provider.dart';
+import 'package:petty_cash/providers/notification_provider.dart';
+
+import 'core_flow_test_provider.dart';
+
 import 'package:petty_cash/screens/payments/payment_center_screen.dart';
 import 'package:petty_cash/screens/office_boy/new_request_screen.dart';
 import 'package:petty_cash/screens/office_boy/office_boy_dashboard.dart';
@@ -39,6 +44,14 @@ class _OfficeAuth extends ChangeNotifier implements AuthProvider {
     role: UserRole.officeBoy,
     createdAt: DateTime.utc(2026),
   );
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _TestNotifications extends ChangeNotifier
+    implements NotificationProvider {
+  @override
+  int get unreadCount => 0;
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -484,9 +497,7 @@ void main() {
     );
   });
 
-  testWidgets('Empty legacy history does not add an Earlier tab', (
-    tester,
-  ) async {
+  testWidgets('Office Boy home has two clear money choices', (tester) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -504,17 +515,20 @@ void main() {
             value: _PaymentActions(),
           ),
           ChangeNotifierProvider<UserProvider>.value(value: _PaymentUsers()),
+          ChangeNotifierProvider<CoreFlowProvider>.value(
+            value: CoreFlowTestProvider(),
+          ),
+          ChangeNotifierProvider<NotificationProvider>.value(
+            value: _TestNotifications(),
+          ),
           ChangeNotifierProvider<LanguageProvider>.value(value: language),
         ],
         child: const MaterialApp(home: OfficeBoyDashboard()),
       ),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.history_rounded));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Money & Records'), findsWidgets);
-    expect(find.text('Earlier requests'), findsNothing);
+    expect(find.text('Request Advance'), findsOneWidget);
+    expect(find.text('I Bought Something Myself'), findsOneWidget);
   });
 }
 

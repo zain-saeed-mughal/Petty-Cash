@@ -4,9 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../providers/notification_provider.dart';
 import '../services/push_notification_service.dart';
-import '../services/database_service.dart';
-import '../screens/finance/request_detail_screen.dart';
-import '../screens/payments/payment_center_screen.dart';
+import '../screens/core/core_dashboard_screens.dart';
+import '../providers/core_flow_provider.dart';
 import '../config/app_theme.dart';
 
 class NotificationsPanel extends StatelessWidget {
@@ -180,44 +179,23 @@ class NotificationsPanel extends StatelessWidget {
                                   if (!n.isRead) {
                                     await provider.markAsRead(n.id);
                                   }
-                                  if ((n.relatedAdvanceId != null ||
-                                          n.relatedExpenseId != null ||
-                                          n.relatedAdvanceRequestId != null) &&
-                                      context.mounted) {
-                                    await Navigator.of(context).push(
-                                      MaterialPageRoute<void>(
-                                        builder: (_) => Scaffold(
-                                          appBar: AppBar(
-                                            title: Text(
-                                              context.t('Advances & Float'),
-                                            ),
-                                          ),
-                                          body: PaymentCenterScreen(
-                                            advanceId: n.relatedAdvanceId,
-                                            expenseId: n.relatedExpenseId,
-                                            advanceRequestId:
-                                                n.relatedAdvanceRequestId,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                    return;
-                                  }
-                                  if (n.relatedRequestId == null ||
-                                      !context.mounted) {
-                                    return;
-                                  }
-                                  try {
-                                    final request = await DatabaseService()
-                                        .getRequest(n.relatedRequestId!);
-                                    if (context.mounted) {
-                                      await RequestDetailScreen.show(
-                                        context,
-                                        request,
-                                      );
-                                    }
-                                  } catch (_) {
-                                    if (context.mounted) {
+                                  if (n.relatedCoreAdvanceId != null ||
+                                      n.relatedReimbursementId != null) {
+                                    if (!context.mounted) return;
+                                    final flows = context
+                                        .read<CoreFlowProvider>();
+                                    final advance = flows.advances
+                                        .where(
+                                          (a) => a.id == n.relatedCoreAdvanceId,
+                                        )
+                                        .firstOrNull;
+                                    final repayment = flows.reimbursements
+                                        .where(
+                                          (r) =>
+                                              r.id == n.relatedReimbursementId,
+                                        )
+                                        .firstOrNull;
+                                    if (advance == null && repayment == null) {
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(
@@ -229,7 +207,56 @@ class NotificationsPanel extends StatelessWidget {
                                           ),
                                         ),
                                       );
+                                      return;
                                     }
+                                    await Navigator.of(context).push(
+                                      MaterialPageRoute<void>(
+                                        builder: (_) => Scaffold(
+                                          appBar: AppBar(
+                                            title: Text(context.t('Details')),
+                                          ),
+                                          body: ListView(
+                                            padding: const EdgeInsets.all(16),
+                                            children: [
+                                              if (advance != null)
+                                                CoreAdvanceCard(
+                                                  advance: advance,
+                                                ),
+                                              if (repayment != null)
+                                                CoreReimbursementCard(
+                                                  request: repayment,
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                    return;
+                                  }
+                                  if (!context.mounted) return;
+                                  if (n.relatedAdvanceId != null ||
+                                      n.relatedExpenseId != null ||
+                                      n.relatedAdvanceRequestId != null ||
+                                      n.relatedRequestId != null) {
+                                    await showDialog<void>(
+                                      context: context,
+                                      builder: (dialogContext) => AlertDialog(
+                                        title: Text(
+                                          context.t('Previous notification'),
+                                        ),
+                                        content: Text(
+                                          '${context.language.notificationBody(n)}\n\n'
+                                          '${context.t('This request is archived.')}',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(dialogContext),
+                                            child: Text(context.t('Close')),
+                                          ),
+                                        ],
+                                      ),
+                                    );
                                   }
                                 },
                               ),

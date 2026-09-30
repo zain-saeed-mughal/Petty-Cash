@@ -27,7 +27,9 @@ class UserProvider extends ChangeNotifier {
   int _generation = 0;
   UserProvider();
   void updateUserSession(AppUser? user) {
-    final identity = user == null ? null : '${user.uid}:${user.role.roleCode}';
+    final identity = user == null
+        ? null
+        : '${user.uid}:${user.role.roleCode}:${user.officeId}';
     if (identity == _identity) return;
     _identity = identity;
     _generation++;
@@ -118,6 +120,7 @@ class UserProvider extends ChangeNotifier {
     required String email,
     required String password,
     required UserRole role,
+    String? officeId,
   }) async {
     try {
       final newUser = AppUser(
@@ -128,6 +131,7 @@ class UserProvider extends ChangeNotifier {
         password: password,
         createdAt: DateTime.now(),
         isActive: true,
+        officeId: officeId,
       );
 
       await _databaseService.createUser(newUser);

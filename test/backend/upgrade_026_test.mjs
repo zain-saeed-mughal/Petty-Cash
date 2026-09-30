@@ -7,7 +7,7 @@ await db.exec("CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_
 const original=fs.readFileSync('supabase/migrations/202609240001_secure_app.sql','utf8')
   .replace('CREATE EXTENSION IF NOT EXISTS pgcrypto;','');
 await db.exec(original);
-for(const file of fs.readdirSync('supabase/migrations').filter(f=>f.endsWith('.sql') && !f.includes('001_') && !f.includes('026_')).sort()){
+for(const file of fs.readdirSync('supabase/migrations').filter(f=>f.endsWith('.sql') && !f.includes('001_') && !f.includes('026_') && f < '202609300029').sort()){
   await db.exec(fs.readFileSync('supabase/migrations/'+file,'utf8')
     .replaceAll('CREATE EXTENSION IF NOT EXISTS pgcrypto;',''));
 }

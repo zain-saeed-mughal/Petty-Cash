@@ -1,6 +1,10 @@
 // Additional shared UI and server-message translations. API identifiers remain unchanged.
 class UiTranslations {
   static const ur = <String, String>{
+    "Details": "تفصیل",
+    "Office": "دفتر",
+    "Previous notification": "پرانا اطلاع نامہ",
+    "This request is archived.": "یہ درخواست پرانے ریکارڈ میں محفوظ ہے۔",
     "Update Settlement": "حساب میں تبدیلی کریں",
     "Updated Settlement": "حساب میں تبدیلی کی",
     "Advance Settlement": "پیشگی رقم کا حساب",
