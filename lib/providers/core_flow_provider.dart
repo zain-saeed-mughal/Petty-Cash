@@ -183,29 +183,32 @@ class CoreFlowProvider extends ChangeNotifier {
       billPath: billPath,
     );
     items = [row, ...items.where((entry) => entry.id != row.id)];
-    if (balanceForAdvance(advanceId)?.remaining == amount) {
-      advances = advances
-          .map(
-            (entry) => entry.id == advanceId
-                ? CoreAdvance(
-                    id: entry.id,
-                    officeBoyId: entry.officeBoyId,
-                    officeId: entry.officeId,
-                    purpose: entry.purpose,
-                    method: entry.method,
-                    status: 'fully_utilized',
-                    amount: entry.amount,
-                    createdAt: entry.createdAt,
-                    accountName: entry.accountName,
-                    accountDetails: entry.accountDetails,
-                    clearedMethod: entry.clearedMethod,
-                    financeNote: entry.financeNote,
-                    clearedAt: entry.clearedAt,
-                  )
-                : entry,
-          )
-          .toList();
-    }
+  });
+
+  Future<bool> reviewAdvanceItem(
+    String id,
+    String decision,
+    String? reason,
+  ) => _run(id, () async {
+    final row = await _db.reviewCoreAdvanceItem(id, decision, reason);
+    items = [row, ...items.where((entry) => entry.id != row.id)];
+  });
+
+  Future<bool> directAllotAdvance({
+    String? id,
+    required String officeBoyId,
+    required double amount,
+    required String purpose,
+    required String method,
+  }) => _run('direct-allot', () async {
+    final row = await _db.directAllotAdvanceV2(
+      id: id ?? const Uuid().v4(),
+      officeBoyId: officeBoyId,
+      amount: amount,
+      purpose: purpose,
+      method: method,
+    );
+    advances = [row, ...advances.where((entry) => entry.id != row.id)];
   });
 
   Future<bool> requestReimbursement({

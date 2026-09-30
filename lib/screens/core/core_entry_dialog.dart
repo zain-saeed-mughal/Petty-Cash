@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/core_flow_models.dart';
 import '../../providers/core_flow_provider.dart';
 import '../../providers/language_provider.dart';
+import '../../providers/user_provider.dart';
 import '../../services/storage_service.dart';
 
 String coreText(BuildContext context, String en, String ur) =>
@@ -33,6 +34,7 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
   Uint8List? _imageBytes;
   bool _busy = false;
   String? _error;
+  String? _officeBoyId;
 
   @override
   void dispose() {
@@ -134,6 +136,13 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
           accountName: accountName,
           accountDetails: accountDetails,
         ),
+        'direct_advance' => await flows.directAllotAdvance(
+          id: _id,
+          officeBoyId: _officeBoyId!,
+          purpose: description,
+          amount: amount,
+          method: _method,
+        ),
         'item' => await flows.addItem(
           id: _id,
           advanceId: widget.advance!.id,
@@ -175,10 +184,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isAdvance = widget.mode == 'advance';
+    final isDirectAdvance = widget.mode == 'direct_advance';
+    final isAdvance = widget.mode == 'advance' || isDirectAdvance;
     final isItem = widget.mode == 'item';
-    final requiresAccount = isAdvance && _method == 'card';
-    final showAccount = !isItem && _method == 'card';
+    final requiresAccount = isAdvance && _method == 'card' && !isDirectAdvance;
+    final showAccount = !isItem && _method == 'card' && !isDirectAdvance;
     return AlertDialog(
       title: Text(
         isAdvance
@@ -204,6 +214,21 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                   Text(
                     '${widget.advance!.purpose} · ${context.read<LanguageProvider>().money(context.watch<CoreFlowProvider>().balanceForAdvance(widget.advance!.id)?.remaining ?? 0)}',
                     style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                if (isDirectAdvance)
+                  DropdownButtonFormField<String>(
+                    initialValue: _officeBoyId,
+                    decoration: InputDecoration(
+                      labelText: coreText(context, 'Select Office Boy', 'آفس بوائے منتخب کریں'),
+                    ),
+                    items: context
+                        .read<UserProvider>()
+                        .allUsers
+                        .where((u) => u.role.name == 'officeBoy')
+                        .map((u) => DropdownMenuItem(value: u.uid, child: Text(u.name)))
+                        .toList(),
+                    onChanged: (val) => setState(() => _officeBoyId = val),
+                    validator: (value) => value == null ? coreText(context, 'Please select an office boy', 'براہِ کرم آفس بوائے منتخب کریں') : null,
                   ),
                 const SizedBox(height: 10),
                 TextFormField(

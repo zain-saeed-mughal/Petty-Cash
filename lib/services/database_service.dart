@@ -535,6 +535,38 @@ class DatabaseService {
     return CoreAdvanceItem.fromMap(_asMap(row));
   }
 
+  Future<CoreAdvanceItem> reviewCoreAdvanceItem(
+    String id,
+    String decision,
+    String? reason,
+  ) async {
+    final row = await _client.rpc(
+      'review_advance_item_v2',
+      params: {'p_item_id': id, 'p_decision': decision, 'p_reason': reason},
+    );
+    return CoreAdvanceItem.fromMap(_asMap(row));
+  }
+
+  Future<CoreAdvance> directAllotAdvanceV2({
+    required String id,
+    required String officeBoyId,
+    required double amount,
+    required String purpose,
+    required String method,
+  }) async {
+    final row = await _client.rpc(
+      'direct_allot_advance_v2',
+      params: {
+        'p_id': id,
+        'p_office_boy_id': officeBoyId,
+        'p_amount': amount,
+        'p_purpose': purpose,
+        'p_method': method,
+      },
+    );
+    return CoreAdvance.fromMap(_asMap(row));
+  }
+
   Future<CoreReimbursement> submitCoreReimbursement({
     required String id,
     required String item,

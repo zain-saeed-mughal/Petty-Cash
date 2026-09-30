@@ -580,20 +580,69 @@ class CoreAdvanceCard extends StatelessWidget {
                       dense: true,
                       title: Text(item.description),
                       subtitle: Text(_date(item.createdAt)),
-                      trailing: item.billPath == null
-                          ? Text(_money(context, item.amount))
-                          : IconButton(
-                              tooltip: _label(
-                                context,
-                                'View bill',
-                                'بل دیکھیں',
-                              ),
-                              icon: const Icon(Icons.receipt_long),
-                              onPressed: () => ReceiptViewerDialog.show(
-                                context,
-                                imageUrl: item.billPath!,
-                              ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (item.status != 'approved')
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: _StatusChip(item.status),
                             ),
+                          item.billPath == null
+                              ? Text(_money(context, item.amount))
+                              : IconButton(
+                                  tooltip: _label(
+                                    context,
+                                    'View bill',
+                                    'بل دیکھیں',
+                                  ),
+                                  icon: const Icon(Icons.receipt_long),
+                                  onPressed: () => ReceiptViewerDialog.show(
+                                    context,
+                                    imageUrl: item.billPath!,
+                                  ),
+                                ),
+                          if (role == UserRole.finance && item.status == 'pending') ...[
+                            IconButton(
+                              icon: const Icon(Icons.check_circle, color: Colors.green),
+                              onPressed: flow.isBusy(item.id) ? null : () {
+                                flow.reviewAdvanceItem(item.id, 'approve', null);
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.cancel, color: Colors.red),
+                              onPressed: flow.isBusy(item.id) ? null : () async {
+                                final reasonController = TextEditingController();
+                                final reason = await showDialog<String>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text(_label(context, 'Reject Reason', 'مسترد کرنے کی وجہ')),
+                                    content: TextField(
+                                      controller: reasonController,
+                                      decoration: InputDecoration(
+                                        hintText: _label(context, 'Enter reason', 'وجہ درج کریں'),
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text(_label(context, 'Cancel', 'منسوخ کریں')),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context, reasonController.text),
+                                        child: Text(_label(context, 'Submit', 'جمع کریں')),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                                if (reason != null && reason.trim().isNotEmpty) {
+                                  flow.reviewAdvanceItem(item.id, 'reject', reason);
+                                }
+                              },
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   )
                   .toList(),
@@ -1195,17 +1244,33 @@ class FinanceBalances extends StatelessWidget {
       builder: (context) {
         final flow = context.watch<CoreFlowProvider>();
         final ids = flow.balances.map((b) => b.officeBoyId).toSet().toList();
-        return _RecordList<String>(
-          records: ids,
-          empty: _label(
-            context,
-            'No advance balances yet',
-            'ابھی کوئی ایڈوانس بیلنس نہیں',
-          ),
-          card: (id) {
-            final records = flow.balances
-                .where((b) => b.officeBoyId == id)
-                .toList();
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => _openEntry(context, 'direct_advance'),
+                  icon: const Icon(Icons.add_circle_outline),
+                  label: Text(
+                    _label(context, 'Give Advance', 'ایڈوانس دیں'),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: _RecordList<String>(
+                records: ids,
+                empty: _label(
+                  context,
+                  'No advance balances yet',
+                  'ابھی کوئی ایڈوانس بیلنس نہیں',
+                ),
+                card: (id) {
+                  final records = flow.balances
+                      .where((b) => b.officeBoyId == id)
+                      .toList();
             final total = records.fold<double>(0, (s, b) => s + b.total);
             final spent = records.fold<double>(0, (s, b) => s + b.spent);
             return _Panel(
@@ -1255,13 +1320,16 @@ class FinanceBalances extends StatelessWidget {
               ),
             );
           },
-        );
+        ),
+      ),
+    ],
+  );
       },
     ),
   );
 }
 
-class AdminCoreOverview extends StatelessWidget {
+class AdminCoreOverview extends StatefulWidget {
   final bool superAdmin;
   final VoidCallback onRecords;
   const AdminCoreOverview({
@@ -1269,21 +1337,33 @@ class AdminCoreOverview extends StatelessWidget {
     required this.superAdmin,
     required this.onRecords,
   });
+
+  @override
+  State<AdminCoreOverview> createState() => _AdminCoreOverviewState();
+}
+
+class _AdminCoreOverviewState extends State<AdminCoreOverview> {
+  DateTimeRange _dateRange = DateTimeRange(
+    start: DateTime(DateTime.now().year, DateTime.now().month, 1),
+    end: DateTime(DateTime.now().year, DateTime.now().month + 1, 0),
+  );
+
+  bool _inRange(DateTime? date) {
+    if (date == null) return false;
+    final d = DateTime(date.year, date.month, date.day);
+    final start = DateTime(_dateRange.start.year, _dateRange.start.month, _dateRange.start.day);
+    final end = DateTime(_dateRange.end.year, _dateRange.end.month, _dateRange.end.day);
+    return !d.isBefore(start) && !d.isAfter(end);
+  }
+
   @override
   Widget build(BuildContext context) => CoreDataGate(
     child: Builder(
       builder: (context) {
         final flow = context.watch<CoreFlowProvider>();
         final users = context.watch<UserProvider>().allUsers;
-        final month = DateTime.now();
-        final advances = flow.advances.where(
-          (a) =>
-              a.clearedAt?.year == month.year &&
-              a.clearedAt?.month == month.month,
-        );
-        final paid = flow.reimbursements.where(
-          (r) => r.paidAt?.year == month.year && r.paidAt?.month == month.month,
-        );
+        final advances = flow.advances.where((a) => _inRange(a.clearedAt));
+        final paid = flow.reimbursements.where((r) => _inRange(r.paidAt));
         final advanceTotal = advances.fold<double>(0, (s, a) => s + a.amount);
         final reimbursed = paid.fold<double>(0, (s, r) => s + r.amount);
         return ColoredBox(
@@ -1291,7 +1371,7 @@ class AdminCoreOverview extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              if (superAdmin) ...[
+              if (widget.superAdmin) ...[
                 _Panel(
                   tint: const Color(0xFFEAF0FF),
                   child: Row(
@@ -1337,13 +1417,41 @@ class AdminCoreOverview extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
               ],
-              Text(
-                _label(context, 'This Month', 'اس ماہ'),
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: _navy,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _label(context, 'Overview', 'خلاصہ'),
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: _navy,
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final range = await showDateRangePicker(
+                        context: context,
+                        initialDateRange: _dateRange,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (range != null) {
+                        setState(() => _dateRange = range);
+                      }
+                    },
+                    icon: const Icon(Icons.calendar_month),
+                    label: Text(
+                      _dateRange.start.day == 1 &&
+                              _dateRange.start.month == _dateRange.end.month &&
+                              _dateRange.start.year == _dateRange.end.year &&
+                              _dateRange.end.day == DateTime(_dateRange.start.year, _dateRange.start.month + 1, 0).day
+                          ? DateFormat('MMMM yyyy').format(_dateRange.start)
+                          : '${DateFormat('d MMM yy').format(_dateRange.start)} - ${DateFormat('d MMM yy').format(_dateRange.end)}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 14),
               _MetricGrid([
@@ -1382,7 +1490,7 @@ class AdminCoreOverview extends StatelessWidget {
                   'Filter by office, person and payment type',
                   'دفتر، شخص اور ادائیگی کے حساب سے دیکھیں',
                 ),
-                onTap: onRecords,
+                onTap: widget.onRecords,
               ),
             ],
           ),

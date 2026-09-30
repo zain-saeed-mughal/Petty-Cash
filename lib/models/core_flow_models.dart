@@ -51,10 +51,11 @@ class CoreAdvance {
 }
 
 class CoreAdvanceItem {
-  final String id, advanceId, officeBoyId, officeId, description;
-  final String? billPath;
+  final String id, advanceId, officeBoyId, officeId, description, status;
+  final String? billPath, reviewedBy, rejectionReason;
   final double amount;
   final DateTime createdAt;
+  final DateTime? reviewedAt;
   const CoreAdvanceItem({
     required this.id,
     required this.advanceId,
@@ -63,7 +64,11 @@ class CoreAdvanceItem {
     required this.description,
     required this.amount,
     required this.createdAt,
+    required this.status,
     this.billPath,
+    this.reviewedBy,
+    this.reviewedAt,
+    this.rejectionReason,
   });
   factory CoreAdvanceItem.fromMap(Map<String, dynamic> row) => CoreAdvanceItem(
     id: row['id'].toString(),
@@ -73,7 +78,11 @@ class CoreAdvanceItem {
     description: row['item_description'].toString(),
     amount: coreAmount(row['amount_spent']),
     createdAt: coreDate(row['created_at']),
+    status: row['status']?.toString() ?? 'approved',
     billPath: row['bill_path']?.toString(),
+    reviewedBy: row['reviewed_by']?.toString(),
+    reviewedAt: row['reviewed_at'] == null ? null : coreDate(row['reviewed_at']),
+    rejectionReason: row['rejection_reason']?.toString(),
   );
 }
 
