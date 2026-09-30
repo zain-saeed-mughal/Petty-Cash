@@ -129,10 +129,7 @@ class AccountAppBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Text(context.t('Cancel')),
                   ),
                   FilledButton(
-                    onPressed: () {
-                      Navigator.pop(dialog);
-                      auth.signOut();
-                    },
+                    onPressed: () => auth.signOut(),
                     child: Text(context.t('Sign Out')),
                   ),
                 ],

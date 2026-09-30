@@ -19,6 +19,14 @@ class DatabaseService {
       SupabaseService().client ??
       (throw StateError('The service is unavailable. Please retry.'));
 
+  Map<String, dynamic> _asMap(dynamic row) {
+    if (row is List) {
+      if (row.isEmpty) throw StateError('Expected a record but got an empty list.');
+      return Map<String, dynamic>.from(row.first as Map);
+    }
+    return Map<String, dynamic>.from(row as Map);
+  }
+
   Future<ExpenseRequest> getRequest(String id) async {
     final row = await _client.from('requests').select().eq('id', id).single();
     return ExpenseRequest.fromMap(row);
@@ -265,7 +273,7 @@ class DatabaseService {
     );
     return (rows as List)
         .map(
-          (row) => FloatSummary.fromMap(Map<String, dynamic>.from(row as Map)),
+          (row) => FloatSummary.fromMap(_asMap(row)),
         )
         .toList();
   }
@@ -275,7 +283,7 @@ class DatabaseService {
     return (rows as List)
         .map(
           (row) =>
-              AdvanceBalance.fromMap(Map<String, dynamic>.from(row as Map)),
+              AdvanceBalance.fromMap(_asMap(row)),
         )
         .toList();
   }
@@ -289,7 +297,7 @@ class DatabaseService {
       'request_advance',
       params: {'p_request_id': id, 'p_amount': amount, 'p_purpose': purpose},
     );
-    return AdvanceRequestRecord.fromMap(Map<String, dynamic>.from(row as Map));
+    return AdvanceRequestRecord.fromMap(_asMap(row));
   }
 
   Future<AdvanceRequestRecord> reviewAdvanceRequest(
@@ -307,7 +315,7 @@ class DatabaseService {
         'p_reason': reason,
       },
     );
-    return AdvanceRequestRecord.fromMap(Map<String, dynamic>.from(row as Map));
+    return AdvanceRequestRecord.fromMap(_asMap(row));
   }
 
   Future<AdvanceRecord> giveAdvance({
@@ -327,7 +335,7 @@ class DatabaseService {
         'p_note': note,
       },
     );
-    return AdvanceRecord.fromMap(Map<String, dynamic>.from(row as Map));
+    return AdvanceRecord.fromMap(_asMap(row));
   }
 
   Future<AdvanceRecord> confirmAdvance(String id, String receivedMethod) async {
@@ -335,7 +343,7 @@ class DatabaseService {
       'confirm_advance',
       params: {'p_advance_id': id, 'p_received_method': receivedMethod},
     );
-    return AdvanceRecord.fromMap(Map<String, dynamic>.from(row as Map));
+    return AdvanceRecord.fromMap(_asMap(row));
   }
 
   Future<PaymentExpense> submitPaymentExpense({
@@ -359,7 +367,7 @@ class DatabaseService {
         'p_advance_id': advanceId,
       },
     );
-    return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
+    return PaymentExpense.fromMap(_asMap(row));
   }
 
   Future<PaymentExpense> reviewPaymentExpense(
@@ -371,7 +379,7 @@ class DatabaseService {
       'review_payment_expense',
       params: {'p_expense_id': id, 'p_decision': decision, 'p_reason': reason},
     );
-    return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
+    return PaymentExpense.fromMap(_asMap(row));
   }
 
   Future<PaymentExpense> acknowledgePaymentRejection(String id) async {
@@ -379,7 +387,7 @@ class DatabaseService {
       'acknowledge_payment_rejection',
       params: {'p_expense_id': id},
     );
-    return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
+    return PaymentExpense.fromMap(_asMap(row));
   }
 
   Future<PaymentExpense> clearReimbursementPayment(
@@ -390,7 +398,7 @@ class DatabaseService {
       'clear_reimbursement_payment',
       params: {'p_expense_id': id, 'p_method': method},
     );
-    return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
+    return PaymentExpense.fromMap(_asMap(row));
   }
 
   Future<PaymentExpense> confirmReimbursementPayment(
@@ -401,7 +409,7 @@ class DatabaseService {
       'confirm_reimbursement_payment',
       params: {'p_expense_id': id, 'p_received_method': method},
     );
-    return PaymentExpense.fromMap(Map<String, dynamic>.from(row as Map));
+    return PaymentExpense.fromMap(_asMap(row));
   }
 
   Stream<List<OfficeRecord>> streamOffices() => _watch(
@@ -444,14 +452,14 @@ class DatabaseService {
     final rows = await _client.rpc('advance_balances_v2');
     return (rows as List)
         .map(
-          (row) => CoreBalance.fromMap(Map<String, dynamic>.from(row as Map)),
+          (row) => CoreBalance.fromMap(_asMap(row)),
         )
         .toList();
   }
 
   Future<OfficeRecord> createOffice(String name) async {
     final row = await _client.rpc('create_office', params: {'p_name': name});
-    return OfficeRecord.fromMap(Map<String, dynamic>.from(row as Map));
+    return OfficeRecord.fromMap(_asMap(row));
   }
 
   Future<CoreAdvance> requestCoreAdvance({
@@ -473,7 +481,7 @@ class DatabaseService {
         'p_account_details': accountDetails,
       },
     );
-    return CoreAdvance.fromMap(Map<String, dynamic>.from(row as Map));
+    return CoreAdvance.fromMap(_asMap(row));
   }
 
   Future<CoreAdvance> getCoreAdvance(String id) async {
@@ -504,7 +512,7 @@ class DatabaseService {
       'clear_advance_request_v2',
       params: {'p_id': id, 'p_method': method, 'p_note': note},
     );
-    return CoreAdvance.fromMap(Map<String, dynamic>.from(row as Map));
+    return CoreAdvance.fromMap(_asMap(row));
   }
 
   Future<CoreAdvanceItem> logCoreAdvanceItem({
@@ -524,7 +532,7 @@ class DatabaseService {
         'p_bill_path': billPath,
       },
     );
-    return CoreAdvanceItem.fromMap(Map<String, dynamic>.from(row as Map));
+    return CoreAdvanceItem.fromMap(_asMap(row));
   }
 
   Future<CoreReimbursement> submitCoreReimbursement({
@@ -548,7 +556,7 @@ class DatabaseService {
         'p_account_details': accountDetails,
       },
     );
-    return CoreReimbursement.fromMap(Map<String, dynamic>.from(row as Map));
+    return CoreReimbursement.fromMap(_asMap(row));
   }
 
   Future<CoreReimbursement> reviewCoreReimbursement(
@@ -560,7 +568,7 @@ class DatabaseService {
       'review_reimbursement_v2',
       params: {'p_id': id, 'p_decision': decision, 'p_reason': reason},
     );
-    return CoreReimbursement.fromMap(Map<String, dynamic>.from(row as Map));
+    return CoreReimbursement.fromMap(_asMap(row));
   }
 
   Future<CoreReimbursement> markCoreReimbursementPaid(
@@ -571,7 +579,7 @@ class DatabaseService {
       'mark_reimbursement_paid_v2',
       params: {'p_id': id, 'p_method': method},
     );
-    return CoreReimbursement.fromMap(Map<String, dynamic>.from(row as Map));
+    return CoreReimbursement.fromMap(_asMap(row));
   }
 
   Stream<List<AppUser>> streamAllUsers() => _watch(

@@ -692,67 +692,10 @@ class _CopyAccount extends StatelessWidget {
 
 Future<void> _clearAdvance(BuildContext context, CoreAdvance advance) async {
   final flow = context.read<CoreFlowProvider>();
-  final note = TextEditingController();
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(
-        advance.method == 'cash'
-            ? _label(context, 'Confirm Cash Given', 'نقد رقم دینے کی تصدیق')
-            : _label(context, 'Confirm Transfer Sent', 'رقم بھیجنے کی تصدیق'),
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${_person(context, advance.officeBoyId)} · ${_money(context, advance.amount)}',
-            ),
-            if (advance.method == 'card')
-              _CopyAccount(
-                name: advance.accountName,
-                details: advance.accountDetails,
-              ),
-            const SizedBox(height: 12),
-            Text(
-              _label(
-                context,
-                'Confirm only after you have actually paid this amount.',
-                'یہ بٹن صرف رقم ادا کرنے کے بعد دبائیں۔',
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: note,
-              maxLength: 2000,
-              maxLines: 2,
-              decoration: InputDecoration(
-                labelText: _label(context, 'Note (optional)', 'نوٹ (اختیاری)'),
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext, false),
-          child: Text(_label(context, 'Cancel', 'منسوخ کریں')),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(dialogContext, true),
-          child: Text(_label(context, 'Confirm Paid', 'ادائیگی کی تصدیق')),
-        ),
-      ],
-    ),
-  );
-  final value = note.text.trim();
-  note.dispose();
-  if (confirmed != true || !context.mounted) return;
   final ok = await flow.clearAdvance(
     advance.id,
     advance.method,
-    value.isEmpty ? null : value,
+    null,
   );
   if (context.mounted && !ok) _showError(context, flow.error);
 }
@@ -994,51 +937,8 @@ Future<void> _reject(BuildContext context, CoreReimbursement request) async {
 }
 
 Future<void> _markPaid(BuildContext context, CoreReimbursement request) async {
-  final method = await showDialog<String>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(_label(context, 'How did you pay?', 'ادائیگی کیسے کی؟')),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${_person(context, request.officeBoyId)} · ${_money(context, request.amount)}',
-          ),
-          if (request.wantedMethod == 'card')
-            _CopyAccount(
-              name: request.accountName,
-              details: request.accountDetails,
-            ),
-          const SizedBox(height: 10),
-          Text(
-            _label(
-              context,
-              'Select only after actually paying.',
-              'یہ بٹن صرف رقم ادا کرنے کے بعد دبائیں۔',
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext),
-          child: Text(_label(context, 'Cancel', 'منسوخ کریں')),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext, 'cash'),
-          child: Text(_label(context, 'Cash Paid', 'نقد ادا کیا')),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.pop(dialogContext, 'card'),
-          child: Text(_label(context, 'Card Paid', 'کارڈ سے ادا کیا')),
-        ),
-      ],
-    ),
-  );
-  if (method == null || !context.mounted) return;
   final flow = context.read<CoreFlowProvider>();
-  final ok = await flow.markReimbursementPaid(request.id, method);
+  final ok = await flow.markReimbursementPaid(request.id, request.wantedMethod);
   if (context.mounted && !ok) _showError(context, flow.error);
 }
 
@@ -1499,11 +1399,20 @@ class CoreMonthlyRecords extends StatefulWidget {
 }
 
 class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
-  DateTime _month = DateTime(DateTime.now().year, DateTime.now().month);
+  DateTimeRange _dateRange = DateTimeRange(
+    start: DateTime(DateTime.now().year, DateTime.now().month, 1),
+    end: DateTime(DateTime.now().year, DateTime.now().month + 1, 0),
+  );
   String? _officeId, _personId;
   String _type = 'all';
-  bool _inMonth(DateTime? date) =>
-      date != null && date.year == _month.year && date.month == _month.month;
+
+  bool _inRange(DateTime? date) {
+    if (date == null) return false;
+    final d = DateTime(date.year, date.month, date.day);
+    final start = DateTime(_dateRange.start.year, _dateRange.start.month, _dateRange.start.day);
+    final end = DateTime(_dateRange.end.year, _dateRange.end.month, _dateRange.end.day);
+    return !d.isBefore(start) && !d.isAfter(end);
+  }
   @override
   Widget build(BuildContext context) => CoreDataGate(
     child: Builder(
@@ -1535,47 +1444,47 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
         final advances = allAdvances
             .where(
               (a) =>
-                  _inMonth(a.createdAt) ||
-                  _inMonth(a.clearedAt) ||
+                  _inRange(a.createdAt) ||
+                  _inRange(a.clearedAt) ||
                   flow.items.any(
                     (item) =>
-                        item.advanceId == a.id && _inMonth(item.createdAt),
+                        item.advanceId == a.id && _inRange(item.createdAt),
                   ),
             )
             .toList();
         final repayments = allRepayments
             .where(
               (r) =>
-                  _inMonth(r.createdAt) ||
-                  _inMonth(r.reviewedAt) ||
-                  _inMonth(r.paidAt),
+                  _inRange(r.createdAt) ||
+                  _inRange(r.reviewedAt) ||
+                  _inRange(r.paidAt),
             )
             .toList();
         final shownAdvances = _type != 'reimbursement';
         final shownRepayments = _type != 'advance';
         final totalAdvance = allAdvances
-            .where((a) => _inMonth(a.clearedAt))
+            .where((a) => _inRange(a.clearedAt))
             .fold<double>(0, (s, a) => s + a.amount);
         final eligibleAdvanceIds = allAdvances.map((a) => a.id).toSet();
         final utilized = flow.items
             .where(
               (item) =>
                   eligibleAdvanceIds.contains(item.advanceId) &&
-                  _inMonth(item.createdAt),
+                  _inRange(item.createdAt),
             )
             .fold<double>(0, (s, item) => s + item.amount);
         final reimbursed = allRepayments
-            .where((r) => _inMonth(r.paidAt))
+            .where((r) => _inRange(r.paidAt))
             .fold<double>(0, (s, r) => s + r.amount);
         final pending =
             (shownAdvances ? allAdvances : <CoreAdvance>[])
-                .where((a) => a.status == 'pending' && _inMonth(a.createdAt))
+                .where((a) => a.status == 'pending' && _inRange(a.createdAt))
                 .fold<double>(0, (s, a) => s + a.amount) +
             (shownRepayments ? allRepayments : <CoreReimbursement>[])
                 .where(
                   (r) =>
                       (r.status == 'pending' || r.status == 'approved') &&
-                      _inMonth(r.createdAt),
+                      _inRange(r.createdAt),
                 )
                 .fold<double>(0, (s, r) => s + r.amount);
         final rows = <Object>[
@@ -1610,20 +1519,26 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                       children: [
                         OutlinedButton.icon(
                           onPressed: () async {
-                            final date = await showDatePicker(
+                            final range = await showDateRangePicker(
                               context: context,
-                              initialDate: _month,
+                              initialDateRange: _dateRange,
                               firstDate: DateTime(2020),
                               lastDate: DateTime(2100),
                             );
-                            if (date != null) {
-                              setState(
-                                () => _month = DateTime(date.year, date.month),
-                              );
+                            if (range != null) {
+                              setState(() => _dateRange = range);
                             }
                           },
                           icon: const Icon(Icons.calendar_month),
-                          label: Text(DateFormat('MMMM yyyy').format(_month)),
+                          label: Text(
+                            _dateRange.start.day == 1 &&
+                                    _dateRange.start.month == _dateRange.end.month &&
+                                    _dateRange.start.year == _dateRange.end.year &&
+                                    _dateRange.end.day == DateTime(_dateRange.start.year, _dateRange.start.month + 1, 0).day
+                                ? DateFormat('MMMM yyyy').format(_dateRange.start)
+                                : '${DateFormat('d MMM yy').format(_dateRange.start)} - ${DateFormat('d MMM yy').format(_dateRange.end)}',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ),
                         SizedBox(
                           width: 180,
@@ -1729,6 +1644,12 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                   ),
                   const SizedBox(height: 14),
                   _MetricGrid([
+                    _Metric(
+                      _label(context, 'Total given out', 'کل دی گئی رقم'),
+                      _money(context, (shownAdvances ? totalAdvance : 0) + (shownRepayments ? reimbursed : 0)),
+                      Icons.account_balance_wallet,
+                      const Color(0xFFC23F42),
+                    ),
                     _Metric(
                       _label(context, 'Advances given', 'دیے گئے ایڈوانس'),
                       _money(context, shownAdvances ? totalAdvance : 0),
