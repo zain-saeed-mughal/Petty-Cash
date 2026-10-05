@@ -40,6 +40,81 @@ class _Users extends ChangeNotifier implements UserProvider {
 }
 
 void main() {
+  testWidgets('Monthly records counts only approved advance expenses', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final flow = CoreFlowTestProvider()
+      ..offices = const [OfficeRecord('main', 'Main Office')]
+      ..advances = [
+        CoreAdvance(
+          id: 'advance',
+          officeBoyId: 'staff',
+          officeId: 'main',
+          purpose: 'Office supplies',
+          method: 'cash',
+          status: 'cleared',
+          amount: 5000,
+          createdAt: now,
+          clearedAt: now,
+        ),
+      ]
+      ..items = [
+        CoreAdvanceItem(
+          id: 'approved',
+          advanceId: 'advance',
+          officeBoyId: 'staff',
+          officeId: 'main',
+          description: 'Approved purchase',
+          amount: 200,
+          createdAt: now,
+          status: 'approved',
+        ),
+        CoreAdvanceItem(
+          id: 'pending',
+          advanceId: 'advance',
+          officeBoyId: 'staff',
+          officeId: 'main',
+          description: 'Waiting for approval',
+          amount: 300,
+          createdAt: now,
+          status: 'pending',
+        ),
+        CoreAdvanceItem(
+          id: 'rejected',
+          advanceId: 'advance',
+          officeBoyId: 'staff',
+          officeId: 'main',
+          description: 'Rejected purchase',
+          amount: 400,
+          createdAt: now,
+          status: 'rejected',
+        ),
+      ];
+    final language = LanguageProvider(initialLanguage: 'en', loadSaved: false);
+    await language.ready;
+    tester.view.physicalSize = const Size(320, 150);
+    tester.view.devicePixelRatio = 1;
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AuthProvider>.value(value: _Auth()),
+          ChangeNotifierProvider<UserProvider>.value(value: _Users()),
+          ChangeNotifierProvider<CoreFlowProvider>.value(value: flow),
+          ChangeNotifierProvider<LanguageProvider>.value(value: language),
+        ],
+        child: const MaterialApp(home: Scaffold(body: CoreMonthlyRecords())),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rs. 200.00'), findsOneWidget);
+    expect(find.text('Rs. 900.00'), findsNothing);
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
+  });
+
   testWidgets('Monthly records filters fit phone and tablet widths', (
     tester,
   ) async {

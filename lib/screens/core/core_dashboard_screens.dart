@@ -1703,6 +1703,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
             .where(
               (item) =>
                   eligibleAdvanceIds.contains(item.advanceId) &&
+                  item.status == 'approved' &&
                   _inRange(item.createdAt),
             )
             .fold<double>(0, (s, item) => s + item.amount);
