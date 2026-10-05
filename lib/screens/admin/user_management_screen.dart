@@ -157,11 +157,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     AppUser userToEdit,
     AppUser currentUser,
   ) async {
-    await showDialog<Map<String, String>>(
+    final result = await showDialog<Map<String, String>>(
       context: context,
       barrierDismissible: false,
       builder: (_) => UserAccountDialog(actor: currentUser, user: userToEdit),
     );
+    if (result != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.t('Account updated successfully'))),
+      );
+    }
   }
 
   Future<void> _confirmDeleteUser(BuildContext context, AppUser user) async {

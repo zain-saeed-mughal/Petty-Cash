@@ -40,10 +40,12 @@ String _office(BuildContext context, String id) {
 String _status(BuildContext context, String status) => switch (status) {
   'pending' => _label(context, 'Waiting', 'انتظار میں'),
   'cleared' => _label(context, 'Money Sent', 'رقم دے دی گئی'),
-  'fully_utilized' => _label(context, 'Fully Used', 'مکمل خرچ ہو گیا'),
+  'fully_utilized' => _label(context, 'Fully Cleared', 'مکمل کلیئر ہو گیا'),
   'approved' => _label(context, 'Approved', 'منظور'),
   'rejected' => _label(context, 'Rejected', 'مسترد'),
   'paid' => _label(context, 'Paid', 'ادا کر دیا'),
+  'awaiting_office_boy_approval' => _label(context, 'Needs Approval', 'منظوری درکار ہے'),
+  'declined' => _label(context, 'Declined', 'انکار کر دیا'),
   _ => status,
 };
 
@@ -76,8 +78,8 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (status) {
-      'pending' => const Color(0xFFAA6E00),
-      'rejected' => const Color(0xFFC23F42),
+      'pending' || 'awaiting_office_boy_approval' => const Color(0xFFAA6E00),
+      'rejected' || 'declined' => const Color(0xFFC23F42),
       'cleared' || 'approved' => _blue,
       _ => const Color(0xFF05865F),
     };
@@ -579,7 +581,20 @@ class CoreAdvanceCard extends StatelessWidget {
                       contentPadding: EdgeInsets.zero,
                       dense: true,
                       title: Text(item.description),
-                      subtitle: Text(_date(item.createdAt)),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_date(item.createdAt)),
+                          if (item.status == 'rejected' && item.rejectionReason != null && item.rejectionReason!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4.0),
+                              child: Text(
+                                '${_label(context, 'Reason:', 'وجہ:')} ${item.rejectionReason}',
+                                style: const TextStyle(color: Colors.red, fontSize: 12),
+                              ),
+                            ),
+                        ],
+                      ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -659,6 +674,37 @@ class CoreAdvanceCard extends StatelessWidget {
                   _label(context, 'Add Purchase', 'خریداری درج کریں'),
                 ),
               ),
+            ),
+          ],
+          if (role == UserRole.officeBoy && advance.status == 'awaiting_office_boy_approval') ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: flow.isBusy(advance.id)
+                        ? null
+                        : () => flow.respondToDirectAdvance(advance.id, 'decline'),
+                    icon: const Icon(Icons.close, color: Colors.red),
+                    label: Text(
+                      _label(context, 'Decline', 'مسترد کریں'),
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: flow.isBusy(advance.id)
+                        ? null
+                        : () => flow.respondToDirectAdvance(advance.id, 'approve'),
+                    icon: const Icon(Icons.check),
+                    label: Text(
+                      _label(context, 'Approve', 'منظور کریں'),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
           if (role == UserRole.finance && advance.status == 'pending') ...[
@@ -1086,13 +1132,21 @@ class _RecordList<T> extends StatelessWidget {
         );
 }
 
-class FinanceHome extends StatelessWidget {
+class FinanceHome extends StatefulWidget {
   final VoidCallback onAdvances, onReimbursements;
   const FinanceHome({
     super.key,
     required this.onAdvances,
     required this.onReimbursements,
   });
+
+  @override
+  State<FinanceHome> createState() => _FinanceHomeState();
+}
+
+class _FinanceHomeState extends State<FinanceHome> {
+  DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+
   @override
   Widget build(BuildContext context) => CoreDataGate(
     child: Builder(
@@ -1108,6 +1162,16 @@ class FinanceHome extends StatelessWidget {
           0,
           (s, b) => s + b.remaining,
         );
+        
+        final monthAdvances = flow.advances.where((a) => 
+            a.status != 'declined' && 
+            a.status != 'pending' &&
+            a.status != 'rejected' &&
+            a.clearedAt != null && 
+            a.clearedAt!.year == _selectedMonth.year && 
+            a.clearedAt!.month == _selectedMonth.month
+        ).fold<double>(0, (s, a) => s + a.amount);
+
         return ColoredBox(
           color: _surface,
           child: ListView(
@@ -1129,6 +1193,67 @@ class FinanceHome extends StatelessWidget {
                   'تمام دفاتر کی درخواستیں',
                 ),
                 style: const TextStyle(color: Color(0xFF64748B)),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                color: _blue,
+                elevation: 4,
+                shadowColor: _blue.withValues(alpha: 0.4),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _label(context, 'Advances Disbursed', 'دیے گئے ایڈوانس'),
+                            style: const TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              final date = await showDatePicker(
+                                context: context,
+                                initialDate: _selectedMonth,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime.now().add(const Duration(days: 365)),
+                              );
+                              if (date != null) {
+                                setState(() => _selectedMonth = DateTime(date.year, date.month));
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white24,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '${_selectedMonth.month}/${_selectedMonth.year}',
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(Icons.calendar_month, color: Colors.white, size: 16),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _money(context, monthAdvances),
+                        style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               _MetricGrid([
@@ -1171,7 +1296,7 @@ class FinanceHome extends StatelessWidget {
                   '$pendingAdvances waiting for payment',
                   '$pendingAdvances ادائیگی کے انتظار میں',
                 ),
-                onTap: onAdvances,
+                onTap: widget.onAdvances,
               ),
               const SizedBox(height: 10),
               _ActionTile(
@@ -1187,7 +1312,7 @@ class FinanceHome extends StatelessWidget {
                   '$pendingRepayments to review or pay',
                   '$pendingRepayments دیکھنی یا ادا کرنی ہیں',
                 ),
-                onTap: onReimbursements,
+                onTap: widget.onReimbursements,
               ),
             ],
           ),

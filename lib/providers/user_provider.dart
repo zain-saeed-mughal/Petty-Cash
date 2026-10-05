@@ -154,6 +154,10 @@ class UserProvider extends ChangeNotifier {
       await _databaseService.updateUser(user);
       if (!_disposed) {
         _errorMessage = null;
+        final index = _allUsers.indexWhere((u) => u.uid == user.uid);
+        if (index != -1) {
+          _allUsers[index] = user;
+        }
         refresh();
       }
       return true;

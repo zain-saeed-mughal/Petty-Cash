@@ -187,7 +187,6 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
     final isDirectAdvance = widget.mode == 'direct_advance';
     final isAdvance = widget.mode == 'advance' || isDirectAdvance;
     final isItem = widget.mode == 'item';
-    final requiresAccount = isAdvance && _method == 'card' && !isDirectAdvance;
     final showAccount = !isItem && _method == 'card' && !isDirectAdvance;
     return AlertDialog(
       title: Text(
@@ -331,22 +330,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                     decoration: InputDecoration(
                       labelText: coreText(
                         context,
-                        requiresAccount
-                            ? 'Account name *'
-                            : 'Account name (optional)',
-                        requiresAccount
-                            ? 'اکاؤنٹ کا نام *'
-                            : 'اکاؤنٹ کا نام (اختیاری)',
+                        'Account name (optional)',
+                        'اکاؤنٹ کا نام (اختیاری)',
                       ),
                     ),
-                    validator: (value) =>
-                        requiresAccount && (value?.trim().isEmpty ?? true)
-                        ? coreText(
-                            context,
-                            'Enter the account name.',
-                            'اکاؤنٹ کا نام لکھیں۔',
-                          )
-                        : null,
+                    validator: (value) => null,
                   ),
                   TextFormField(
                     controller: _accountDetails,
@@ -355,22 +343,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                     decoration: InputDecoration(
                       labelText: coreText(
                         context,
-                        requiresAccount
-                            ? 'Account details *'
-                            : 'Account details (optional)',
-                        requiresAccount
-                            ? 'اکاؤنٹ کی تفصیل *'
-                            : 'اکاؤنٹ کی تفصیل (اختیاری)',
+                        'Account details (optional)',
+                        'اکاؤنٹ کی تفصیل (اختیاری)',
                       ),
                     ),
-                    validator: (value) =>
-                        requiresAccount && (value?.trim().isEmpty ?? true)
-                        ? coreText(
-                            context,
-                            'Enter the account details.',
-                            'اکاؤنٹ کی تفصیل لکھیں۔',
-                          )
-                        : null,
+                    validator: (value) => null,
                   ),
                 ],
                 if (!isAdvance) ...[

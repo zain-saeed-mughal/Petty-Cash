@@ -211,6 +211,30 @@ class CoreFlowProvider extends ChangeNotifier {
     advances = [row, ...advances.where((entry) => entry.id != row.id)];
   });
 
+  Future<bool> respondToDirectAdvance(String id, String decision) =>
+      _run(id, () async {
+        await _db.respondToDirectAdvanceV2(id, decision);
+        final index = advances.indexWhere((a) => a.id == id);
+        if (index != -1) {
+          final old = advances[index];
+          advances = List.from(advances)..[index] = CoreAdvance(
+            id: old.id,
+            officeBoyId: old.officeBoyId,
+            officeId: old.officeId,
+            purpose: old.purpose,
+            method: old.method,
+            status: decision == 'approve' ? 'cleared' : 'declined',
+            accountName: old.accountName,
+            accountDetails: old.accountDetails,
+            clearedMethod: old.clearedMethod,
+            financeNote: old.financeNote,
+            amount: old.amount,
+            createdAt: old.createdAt,
+            clearedAt: old.clearedAt,
+          );
+        }
+      });
+
   Future<bool> requestReimbursement({
     String? id,
     required String item,

@@ -702,4 +702,18 @@ class DatabaseService {
       throw StateError('Notification was not removed. Refresh and try again.');
     }
   }
+
+  Future<void> respondToDirectAdvanceV2(String id, String decision) async {
+    try {
+      await _client.rpc(
+        'respond_to_direct_advance_v2',
+        params: {
+          'p_id': id,
+          'p_decision': decision,
+        },
+      );
+    } on PostgrestException catch (e) {
+      throw StateError(e.message);
+    }
+  }
 }

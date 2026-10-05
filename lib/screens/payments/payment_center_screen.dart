@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import '../../config/app_theme.dart';
 import '../../models/payment_models.dart';
 import '../../models/user_model.dart';
+import '../../widgets/app_status_badge.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/payment_provider.dart';
@@ -129,39 +130,6 @@ String _activityDetail(BuildContext context, Map<String, dynamic> detail) {
   return parts.join(' · ');
 }
 
-class PaymentStatusBadge extends StatelessWidget {
-  final String status;
-  const PaymentStatusBadge(this.status, {super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = switch (status) {
-      'Received' ||
-      'Approved' ||
-      'Paid' ||
-      'Rejection Acknowledged' => AppTheme.statusApproved,
-      'Rejected' => AppTheme.statusRejected,
-      'Payment Cleared' => AppTheme.statusPaid,
-      _ => AppTheme.statusPending,
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: .12),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        paymentStatusLabel(context, status),
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
-}
-
 class PaymentMethodChip extends StatelessWidget {
   final String method;
   const PaymentMethodChip(this.method, {super.key});
@@ -212,7 +180,7 @@ Widget _recordStatus(BuildContext context, String status, bool mismatch) =>
       runSpacing: 4,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        PaymentStatusBadge(status),
+        AppStatusBadge(status: status),
         if (mismatch)
           Tooltip(
             message: paymentText(
@@ -681,7 +649,7 @@ class PaymentCenterScreen extends StatelessWidget {
                             flex: 3,
                             cell: (_, row) => Align(
                               alignment: AlignmentDirectional.centerStart,
-                              child: PaymentStatusBadge(row.status),
+                              child: AppStatusBadge(status: row.status),
                             ),
                           ),
                         ],
@@ -1294,7 +1262,7 @@ class _AdvanceRequestCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleMedium
                     ?.copyWith(fontWeight: FontWeight.w800),
               ),
-              PaymentStatusBadge(request.status),
+              AppStatusBadge(status: request.status),
             ],
           ),
           const SizedBox(height: 8),
@@ -1866,7 +1834,7 @@ class _AdvanceCard extends StatelessWidget {
                   ),
                 ],
               ),
-              PaymentStatusBadge(advance.status),
+              AppStatusBadge(status: advance.status),
             ],
           ),
           const SizedBox(height: 10),
@@ -2133,7 +2101,7 @@ class _ExpenseCard extends StatelessWidget {
                   ),
                 ],
               ),
-              PaymentStatusBadge(expense.status),
+              AppStatusBadge(status: expense.status),
             ],
           ),
           const SizedBox(height: 10),
