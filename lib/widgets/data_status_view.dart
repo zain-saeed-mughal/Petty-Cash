@@ -29,7 +29,7 @@ class DataStatusView extends StatelessWidget {
               const Icon(Icons.cloud_off_outlined, size: 48),
               const SizedBox(height: 16),
               Text(
-                context.t('Unable to load your workspace'),
+                context.t("Couldn't load your info"),
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 8),
@@ -62,7 +62,7 @@ class DataStatusView extends StatelessWidget {
                 children: [
                   Text(
                     context.t(
-                      'Unable to refresh. Displayed data may be out of date.',
+                      "Couldn't refresh. Some details may be old.",
                     ),
                   ),
                   TextButton(onPressed: retry, child: Text(context.t('Retry'))),

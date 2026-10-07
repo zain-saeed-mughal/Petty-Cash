@@ -33,6 +33,7 @@ import 'package:petty_cash/screens/super_admin/analytics_screen.dart';
 import 'package:petty_cash/screens/finance/request_detail_screen.dart';
 import 'package:petty_cash/screens/finance/payment_history_screen.dart';
 import 'package:petty_cash/screens/finance/pending_requests_screen.dart';
+import 'package:petty_cash/screens/finance/finance_overview_screen.dart';
 import 'package:petty_cash/screens/admin/all_transactions_screen.dart';
 import 'package:petty_cash/screens/admin/user_management_screen.dart';
 import 'package:petty_cash/screens/office_boy/my_requests_screen.dart';
@@ -334,6 +335,11 @@ void main() {
       ),
       'admin_dashboard': () => const AdminDashboard(),
       'finance_dashboard': () => const FinanceDashboard(),
+      'finance_overview': () => FinanceOverviewScreen(
+        onViewPendingTap: () {},
+        onViewHistoryTap: () {},
+        onViewPaymentsTap: () {},
+      ),
       'office_dashboard': () => const OfficeBoyDashboard(),
       'super_dashboard': () => const SuperAdminDashboard(),
       'add_user': () => UserAccountDialog(actor: manager),

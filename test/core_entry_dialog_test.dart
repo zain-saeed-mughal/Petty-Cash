@@ -2,10 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:petty_cash/providers/core_flow_provider.dart';
 import 'package:petty_cash/providers/language_provider.dart';
+import 'package:petty_cash/providers/user_provider.dart';
+import 'package:petty_cash/models/user_model.dart';
 import 'package:petty_cash/screens/core/core_entry_dialog.dart';
 import 'package:provider/provider.dart';
 
 import 'core_flow_test_provider.dart';
+
+class _Users extends ChangeNotifier implements UserProvider {
+  @override
+  List<AppUser> get allUsers => const [];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 Future<void> openForm(
   WidgetTester tester,
@@ -19,6 +29,7 @@ Future<void> openForm(
       providers: [
         ChangeNotifierProvider<CoreFlowProvider>.value(value: flow),
         ChangeNotifierProvider<LanguageProvider>.value(value: language),
+        ChangeNotifierProvider<UserProvider>(create: (_) => _Users()),
       ],
       child: MaterialApp(
         home: Scaffold(

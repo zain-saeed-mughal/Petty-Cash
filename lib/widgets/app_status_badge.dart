@@ -25,15 +25,15 @@ class AppStatusBadge extends StatelessWidget {
         textColor = AppTheme.statusPending;
         bgColor = AppTheme.statusPendingBg;
         icon = Icons.hourglass_top_rounded;
-        labelEn = 'Pending';
-        labelUr = 'زیر التوا';
+        labelEn = 'Waiting';
+        labelUr = 'انتظار میں';
         break;
       case 'awaiting_office_boy_approval':
         textColor = AppTheme.statusPending;
         bgColor = AppTheme.statusPendingBg;
         icon = Icons.touch_app_rounded;
-        labelEn = 'Needs Approval';
-        labelUr = 'منظوری درکار ہے';
+        labelEn = 'Confirm receipt';
+        labelUr = 'وصولی بتائیں';
         break;
       case 'cleared':
       case 'payment cleared':
@@ -45,8 +45,8 @@ class AppStatusBadge extends StatelessWidget {
         labelEn = 'Approved';
         labelUr = 'منظور شدہ';
         if (normalized == 'cleared') {
-          labelEn = 'Cleared';
-          labelUr = 'مل گئی';
+          labelEn = 'Sent';
+          labelUr = 'بھیج دی';
         }
         break;
       case 'paid':
@@ -60,30 +60,30 @@ class AppStatusBadge extends StatelessWidget {
         textColor = AppTheme.primaryNavy;
         bgColor = AppTheme.borderLight;
         icon = Icons.done_all_rounded;
-        labelEn = 'Fully Used';
-        labelUr = 'استعمال شدہ';
+        labelEn = 'All done';
+        labelUr = 'مکمل';
         break;
       case 'rejected':
       case 'declined':
         textColor = AppTheme.statusRejected;
         bgColor = AppTheme.statusRejectedBg;
         icon = Icons.cancel_outlined;
-        labelEn = normalized == 'declined' ? 'Declined' : 'Rejected';
-        labelUr = 'مسترد';
+        labelEn = normalized == 'declined' ? 'Not accepted' : 'Sent back';
+        labelUr = normalized == 'declined' ? 'منظور نہیں' : 'واپس';
         break;
       case 'rejection acknowledged':
         textColor = AppTheme.statusApproved;
         bgColor = AppTheme.statusApprovedBg;
         icon = Icons.fact_check_outlined;
-        labelEn = 'Acknowledged';
-        labelUr = 'تسلیم شدہ';
+        labelEn = 'Seen';
+        labelUr = 'دیکھ لیا';
         break;
       default:
         textColor = AppTheme.statusPending;
         bgColor = AppTheme.statusPendingBg;
         icon = Icons.info_outline;
-        labelEn = status;
-        labelUr = status;
+        labelEn = 'In progress';
+        labelUr = 'جاری ہے';
         break;
     }
 
@@ -91,26 +91,33 @@ class AppStatusBadge extends StatelessWidget {
     final displayLabel = isUrdu ? labelUr : labelEn;
 
     if (isCompact) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 12, color: textColor),
-            const SizedBox(width: 4),
-            Text(
-              displayLabel,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
+      return Tooltip(
+        message: displayLabel,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 12, color: textColor),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  displayLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: textColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -133,7 +140,7 @@ class AppStatusBadge extends StatelessWidget {
               color: textColor,
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
+              letterSpacing: 0,
             ),
           ),
         ],

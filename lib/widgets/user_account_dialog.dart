@@ -117,6 +117,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                     maxLength: 120,
                     decoration: InputDecoration(
                       labelText: context.t('Full name'),
+                      helperText: context.t('Example: Sara Khan'),
                     ),
                     validator: (v) => v == null || v.trim().isEmpty
                         ? context.t('Enter a name')
@@ -131,6 +132,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                     autofillHints: const [AutofillHints.email],
                     decoration: InputDecoration(
                       labelText: context.t('Email address'),
+                      helperText: context.t('Example: sara@example.com'),
                     ),
                     validator: (v) =>
                         v == null ||
@@ -177,6 +179,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: context.t('Office'),
+                        helperText: context.t('Choose this person\'s office'),
                       ),
                       items: offices
                           .map(
@@ -198,7 +201,10 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                   DropdownButtonFormField<UserRole>(
                     initialValue: _role,
                     isExpanded: true,
-                    decoration: InputDecoration(labelText: context.t('Role')),
+                    decoration: InputDecoration(
+                      labelText: context.t('Role'),
+                      helperText: context.t('Choose what this person can do'),
+                    ),
                     items: roles
                         .map(
                           (r) => DropdownMenuItem(

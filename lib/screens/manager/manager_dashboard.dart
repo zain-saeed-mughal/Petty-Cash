@@ -6,12 +6,11 @@ import '../../providers/core_flow_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../models/core_flow_models.dart';
-import '../../config/app_theme.dart';
-
 import '../core/core_dashboard_screens.dart';
 
 
 import '../../widgets/account_app_bar.dart';
+import '../../widgets/app_status_badge.dart';
 
 class ManagerDashboard extends StatelessWidget {
   const ManagerDashboard({super.key});
@@ -193,7 +192,9 @@ class _ManagerHomeState extends State<ManagerHome> {
                     Icon(Icons.inbox_outlined, size: 40, color: Colors.grey.shade400),
                     const SizedBox(height: 8),
                     Text(
-                      ur ? 'اس مدت میں کوئی سرگرمی نہیں' : 'No activity in this period',
+                        ur
+                          ? 'اس مدت میں کوئی کام نہیں ہوا۔ کوئی اور تاریخ چنیں۔'
+                          : 'No activity in this period. Try another date.',
                       style: TextStyle(color: Colors.grey.shade500, fontSize: 15),
                     ),
                   ],
@@ -236,22 +237,6 @@ class _ManagerItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lang = context.watch<LanguageProvider>();
-    Color statusColor;
-    String statusText;
-    switch (item.status) {
-      case 'approved':
-        statusColor = AppTheme.statusApproved;
-        statusText = lang.isRtl ? 'منظور' : 'Approved';
-        break;
-      case 'rejected':
-        statusColor = Colors.red.shade400;
-        statusText = lang.isRtl ? 'مسترد' : 'Rejected';
-        break;
-      default:
-        statusColor = Colors.orange.shade400;
-        statusText = lang.isRtl ? 'زیر غور' : 'Pending';
-    }
-
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -291,41 +276,69 @@ class _ManagerItemTile extends StatelessWidget {
                   final users = ctx.watch<UserProvider>().allUsers;
                   final obUser = users.where((u) => u.uid == item.officeBoyId).firstOrNull;
                   final obName = obUser?.name ?? item.officeBoyId.substring(0, 8);
-                  return Text(
-                    '${lang.isRtl ? 'آفس بوائے' : 'By'}: $obName',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                      color: Color(0xFF3159E8),
-                    ),
+                  return Row(
+                    children: [
+                      const Icon(
+                        Icons.person_outline_rounded,
+                        size: 14,
+                        color: Color(0xFF3159E8),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          '${lang.isRtl ? 'آفس بوائے' : 'By'}: $obName',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            color: Color(0xFF3159E8),
+                          ),
+                        ),
+                      ),
+                    ],
                   );
                 }),
-                Text(
-                  lang.money(item.amount),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: Color(0xFF64748B),
-                  ),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.schedule_rounded,
+                      size: 13,
+                      color: Color(0xFF94A3B8),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      lang.date(item.createdAt),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.payments_outlined,
+                      size: 14,
+                      color: Color(0xFF3159E8),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      lang.money(item.amount),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        color: Color(0xFF14223D),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              statusText,
-              style: TextStyle(
-                color: statusColor,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
-            ),
-          ),
+          AppStatusBadge(status: item.status, isCompact: true),
         ],
       ),
     );

@@ -10,6 +10,7 @@ import '../../providers/core_flow_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../services/database_service.dart';
+import '../../widgets/app_status_badge.dart';
 import '../../widgets/receipt_viewer_dialog.dart';
 import 'core_entry_dialog.dart';
 
@@ -36,18 +37,6 @@ String _office(BuildContext context, String id) {
   }
   return '';
 }
-
-String _status(BuildContext context, String status) => switch (status) {
-  'pending' => _label(context, 'Waiting', 'انتظار میں'),
-  'cleared' => _label(context, 'Money Sent', 'رقم دے دی گئی'),
-  'fully_utilized' => _label(context, 'Fully Cleared', 'مکمل کلیئر ہو گیا'),
-  'approved' => _label(context, 'Approved', 'منظور'),
-  'rejected' => _label(context, 'Rejected', 'مسترد'),
-  'paid' => _label(context, 'Paid', 'ادا کر دیا'),
-  'awaiting_office_boy_approval' => _label(context, 'Needs Approval', 'منظوری درکار ہے'),
-  'declined' => _label(context, 'Declined', 'انکار کر دیا'),
-  _ => status,
-};
 
 class _Panel extends StatelessWidget {
   final Widget child;
@@ -76,31 +65,8 @@ class _StatusChip extends StatelessWidget {
   final String status;
   const _StatusChip(this.status);
   @override
-  Widget build(BuildContext context) {
-    final color = switch (status) {
-      'pending' || 'awaiting_office_boy_approval' => const Color(0xFFAA6E00),
-      'rejected' || 'declined' => const Color(0xFFC23F42),
-      'cleared' || 'approved' => _blue,
-      _ => const Color(0xFF05865F),
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: .1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        _status(context, status),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      AppStatusBadge(status: status, isCompact: true);
 }
 
 class _Metric extends StatelessWidget {
@@ -168,7 +134,8 @@ class _MetricGrid extends StatelessWidget {
 class _Empty extends StatelessWidget {
   final String title;
   final IconData icon;
-  const _Empty(this.title, this.icon);
+  final String? subtitle;
+  const _Empty(this.title, this.icon, {this.subtitle});
   @override
   Widget build(BuildContext context) => _Panel(
     child: Center(
@@ -186,6 +153,17 @@ class _Empty extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                subtitle!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFF8794A6),
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -379,6 +357,11 @@ class OfficeBoyHome extends StatelessWidget {
                 _Empty(
                   _label(context, 'No advances yet', 'ابھی کوئی ایڈوانس نہیں'),
                   Icons.wallet_outlined,
+                  subtitle: _label(
+                    context,
+                    'Request an advance to see it here.',
+                    'یہاں دیکھنے کے لیے ایڈوانس کی درخواست کریں۔',
+                  ),
                 )
               else
                 ...mine
@@ -504,9 +487,30 @@ class CoreAdvanceCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 9),
-          Text(
-            '${_money(context, advance.amount)} · ${_date(advance.createdAt)}',
-            style: const TextStyle(fontWeight: FontWeight.w700),
+          Wrap(
+            spacing: 12,
+            runSpacing: 4,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.payments_outlined, size: 15, color: _blue),
+                  const SizedBox(width: 4),
+                  Text(
+                    _money(context, advance.amount),
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.schedule_rounded, size: 14, color: Color(0xFF64748B)),
+                  const SizedBox(width: 4),
+                  Text(_date(advance.createdAt)),
+                ],
+              ),
+            ],
           ),
           if (showOwner)
             Text(
@@ -857,9 +861,30 @@ class CoreReimbursementCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            '${_money(context, request.amount)} · ${_date(request.createdAt)}',
-            style: const TextStyle(fontWeight: FontWeight.w700),
+          Wrap(
+            spacing: 12,
+            runSpacing: 4,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.payments_outlined, size: 15, color: _teal),
+                  const SizedBox(width: 4),
+                  Text(
+                    _money(context, request.amount),
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.schedule_rounded, size: 14, color: Color(0xFF64748B)),
+                  const SizedBox(width: 4),
+                  Text(_date(request.createdAt)),
+                ],
+              ),
+            ],
           ),
           if (showOwner)
             Text(
@@ -1135,7 +1160,15 @@ class _RecordList<T> extends StatelessWidget {
           child: Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: _Empty(empty, Icons.inbox_outlined),
+              child: _Empty(
+                empty,
+                Icons.inbox_outlined,
+                subtitle: _label(
+                  context,
+                  'New records will show here.',
+                  'نیا ریکارڈ یہاں نظر آئے گا۔',
+                ),
+              ),
             ),
           ),
         )
@@ -1227,8 +1260,10 @@ class _FinanceHomeState extends State<FinanceHome> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           Text(
                             _label(context, 'Advances Disbursed', 'دیے گئے ایڈوانس'),
@@ -1562,8 +1597,10 @@ class _AdminCoreOverviewState extends State<AdminCoreOverview> {
                 ),
                 const SizedBox(height: 16),
               ],
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text(
                     _label(context, 'Overview', 'خلاصہ'),
@@ -2049,6 +2086,11 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                         'ان فلٹرز کے لیے کوئی ریکارڈ نہیں',
                       ),
                       Icons.search_off,
+                      subtitle: _label(
+                        context,
+                        'Change your filters to see more.',
+                        'مزید دیکھنے کے لیے فلٹر بدلیں۔',
+                      ),
                     ),
                 ],
               );

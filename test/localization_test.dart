@@ -13,6 +13,7 @@ import 'package:petty_cash/models/expense_request_model.dart';
 import 'package:petty_cash/providers/auth_provider.dart';
 import 'package:petty_cash/providers/language_provider.dart';
 import 'package:petty_cash/screens/auth/login_screen.dart';
+import 'package:petty_cash/widgets/app_status_badge.dart';
 
 class SignedOutAuth extends ChangeNotifier implements AuthProvider {
   @override
@@ -68,6 +69,59 @@ void main() {
     for (final entry in UiTranslations.ur.entries) {
       expect(language.text(entry.key), entry.value);
     }
+    language.dispose();
+  });
+  test('Technical errors become plain next-step messages', () {
+    final english = LanguageProvider(initialLanguage: 'en', loadSaved: false);
+    expect(
+      english.error('PostgrestException: connection timed out'),
+      'Couldn\'t connect. Check your internet and try again.',
+    );
+    expect(
+      english.error('PostgrestException: row-level security policy'),
+      'You can\'t do this. Ask your administrator for help.',
+    );
+    expect(
+      english.error('Enter a valid amount.'),
+      'Enter a valid amount.',
+    );
+    english.dispose();
+
+    final urdu = LanguageProvider(initialLanguage: 'ur', loadSaved: false);
+    expect(
+      urdu.error('PostgrestException: duplicate key value'),
+      'یہ چیز پہلے سے موجود ہے۔ فہرست چیک کر کے دوبارہ کوشش کریں۔',
+    );
+    urdu.dispose();
+  });
+  testWidgets('Shared status badges use everyday labels', (tester) async {
+    final language = LanguageProvider(initialLanguage: 'en', loadSaved: false);
+    await language.ready;
+    await tester.pumpWidget(
+      ChangeNotifierProvider<LanguageProvider>.value(
+        value: language,
+        child: const MaterialApp(
+          home: Scaffold(
+            body: Wrap(
+              children: [
+                AppStatusBadge(status: 'pending'),
+                AppStatusBadge(status: 'cleared'),
+                AppStatusBadge(status: 'fully_utilized'),
+                AppStatusBadge(status: 'rejected'),
+                AppStatusBadge(status: 'rejection acknowledged'),
+                AppStatusBadge(status: 'unknown_internal_code'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Waiting'), findsOneWidget);
+    expect(find.text('Sent'), findsOneWidget);
+    expect(find.text('All done'), findsOneWidget);
+    expect(find.text('Sent back'), findsOneWidget);
+    expect(find.text('Seen'), findsOneWidget);
+    expect(find.text('unknown_internal_code'), findsNothing);
     language.dispose();
   });
   test('Saved language restores, latest selection wins, invalid values are rejected', () async {

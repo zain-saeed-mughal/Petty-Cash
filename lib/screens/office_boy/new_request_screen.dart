@@ -256,6 +256,11 @@ class _RequestAdvanceDialogState extends State<_RequestAdvanceDialog> {
                 ],
                 decoration: InputDecoration(
                   labelText: _label(context, 'Amount (PKR)', 'رقم (روپے)'),
+                  helperText: _label(
+                    context,
+                    'Example: 500',
+                    'مثال: ۵۰۰',
+                  ),
                 ),
                 validator: (value) {
                   final parsed = double.tryParse(value?.trim() ?? '');
@@ -284,6 +289,11 @@ class _RequestAdvanceDialogState extends State<_RequestAdvanceDialog> {
                     context,
                     'What is the money for?',
                     'رقم کس کام کے لیے چاہیے؟',
+                  ),
+                  helperText: _label(
+                    context,
+                    'Example: paper and printer ink',
+                    'مثال: کاغذ اور پرنٹر کی سیاہی',
                   ),
                 ),
                 validator: (value) => value == null || value.trim().isEmpty

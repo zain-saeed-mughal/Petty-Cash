@@ -94,7 +94,7 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
                 const SizedBox(height: 12),
                 Text(
                   context.t(
-                    'A mandatory explanation is required. The requester will see this reason on their dashboard.',
+                    'Tell the person why you sent this back.',
                   ),
                   style: TextStyle(fontSize: 13, color: Color(0xFF334155)),
                 ),
@@ -128,7 +128,7 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
                   decoration: InputDecoration(
                     labelText: context.t('Rejection Reason *'),
                     hintText: context.t(
-                      'e.g. Please provide a stamped tax receipt or get prior supervisor approval...',
+                      'e.g. Please add a clear receipt photo',
                     ),
                     alignLabelWithHint: true,
                   ),
@@ -164,7 +164,7 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
               Navigator.of(context).pop(_reasonController.text.trim());
             }
           },
-          child: Text(context.t('Confirm Rejection')),
+          child: Text(context.t('Send back')),
         ),
       ],
     );

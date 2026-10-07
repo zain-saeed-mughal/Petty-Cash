@@ -22,29 +22,25 @@ String paymentStatusLabel(BuildContext context, String status) =>
     switch (status) {
       'Awaiting Confirmation' => paymentText(
         context,
-        'Waiting for Office Boy',
-        'آفس بوائے کی تصدیق باقی',
+        'Confirm receipt',
+        'وصولی بتائیں',
       ),
       'Received' => paymentText(context, status, 'موصول'),
-      'Pending' => paymentText(
-        context,
-        'Waiting for Finance',
-        'فنانس کا فیصلہ باقی',
-      ),
+      'Pending' => paymentText(context, 'Waiting', 'انتظار میں'),
       'Approved' => paymentText(context, status, 'منظور شدہ'),
-      'Rejected' => paymentText(context, status, 'مسترد'),
+      'Rejected' => paymentText(context, 'Sent back', 'واپس'),
       'Rejection Acknowledged' => paymentText(
         context,
-        'Rejection confirmed',
-        'مستردی کی تصدیق',
+        'Seen',
+        'دیکھ لیا',
       ),
       'Payment Cleared' => paymentText(
         context,
-        'Payment sent',
-        'رقم دی گئی، تصدیق باقی',
+        'Sent',
+        'بھیج دی',
       ),
       'Paid' => paymentText(context, status, 'ادا شدہ'),
-      _ => status,
+      _ => paymentText(context, 'In progress', 'جاری ہے'),
     };
 
 String _activityLabel(BuildContext context, String action) => switch (action) {
@@ -70,13 +66,13 @@ String _activityLabel(BuildContext context, String action) => switch (action) {
   ),
   'Expense Rejected' => paymentText(
     context,
-    'Finance rejected the expense',
-    'فنانس نے خرچہ مسترد کیا',
+    'Finance sent the expense back',
+    'فنانس نے خرچہ واپس بھیجا',
   ),
   'Rejection Acknowledged' => paymentText(
     context,
-    'Rejection acknowledged',
-    'مستردی تسلیم کی گئی',
+    'Request seen',
+    'درخواست دیکھ لی گئی',
   ),
   'Payment Cleared' => paymentText(
     context,
@@ -220,13 +216,13 @@ Widget _recordTable<T>(
     'Search this list',
     'اس فہرست میں تلاش کریں',
   ),
-  statusHint: paymentText(context, 'Status', 'حالت'),
-  allStatusesLabel: paymentText(context, 'All statuses', 'تمام حالتیں'),
+  statusHint: paymentText(context, 'Progress', 'پیش رفت'),
+  allStatusesLabel: paymentText(context, 'Any progress', 'تمام پیش رفت'),
   recordsLabel: paymentText(context, 'records', 'ریکارڈ'),
   noMatchesLabel: paymentText(
     context,
-    'No matching records. Try another search or status.',
-    'کوئی ریکارڈ نہیں ملا۔ تلاش یا حالت بدل کر دیکھیں۔',
+    'No matches. Change your search or filters.',
+    'کچھ نہیں ملا۔ تلاش یا فلٹر بدل کر دیکھیں۔',
   ),
   detailsLabel: paymentText(context, 'View details', 'تفصیل دیکھیں'),
   showMoreLabel: paymentText(context, 'Show more', 'مزید دیکھیں'),
@@ -598,12 +594,12 @@ class PaymentCenterScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     if (advanceRequests.isEmpty)
                       PaymentPanel(
-                        child: Text(
-                          paymentText(
-                            context,
-                            'No advance requests yet.',
-                            'ابھی کوئی ایڈوانس درخواست نہیں۔',
-                          ),
+                        child: Column(
+                          children: [
+                            Text(paymentText(context, 'No advance requests yet.', 'ابھی کوئی ایڈوانس درخواست نہیں۔')),
+                            const SizedBox(height: 4),
+                            Text(paymentText(context, 'New requests will show here.', 'نئی درخواستیں یہاں نظر آئیں گی۔')),
+                          ],
                         ),
                       )
                     else
@@ -673,16 +669,15 @@ class PaymentCenterScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     if (advances.isEmpty)
                       PaymentPanel(
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(22),
-                            child: Text(
-                              paymentText(
-                                context,
-                                'No advances yet.',
-                                'ابھی کوئی ایڈوانس نہیں۔',
-                              ),
-                            ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(22),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(paymentText(context, 'No advances yet.', 'ابھی کوئی ایڈوانس نہیں۔')),
+                              const SizedBox(height: 4),
+                              Text(paymentText(context, 'Advances will show here after money is sent.', 'رقم بھیجنے کے بعد ایڈوانس یہاں نظر آئیں گے۔')),
+                            ],
                           ),
                         ),
                       )
@@ -781,16 +776,15 @@ class PaymentCenterScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     if (expenseHistory.isEmpty)
                       PaymentPanel(
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(22),
-                            child: Text(
-                              paymentText(
-                                context,
-                                'No expenses yet.',
-                                'ابھی کوئی خرچہ نہیں۔',
-                              ),
-                            ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(22),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(paymentText(context, 'No expenses yet.', 'ابھی کوئی خرچہ نہیں۔')),
+                              const SizedBox(height: 4),
+                              Text(paymentText(context, 'Submitted expenses will show here.', 'جمع کیے گئے اخراجات یہاں نظر آئیں گے۔')),
+                            ],
                           ),
                         ),
                       )
@@ -974,6 +968,11 @@ class _GiveAdvanceDialogState extends State<_GiveAdvanceDialog> {
                 initialValue: _officeBoyId,
                 decoration: InputDecoration(
                   labelText: paymentText(context, 'Office Boy', 'آفس بوائے'),
+                  helperText: paymentText(
+                    context,
+                    'Choose who will receive the money',
+                    'رقم وصول کرنے والے شخص کو چنیں',
+                  ),
                 ),
                 items: widget.users
                     .map(
@@ -1000,6 +999,11 @@ class _GiveAdvanceDialogState extends State<_GiveAdvanceDialog> {
                 ],
                 decoration: InputDecoration(
                   labelText: paymentText(context, 'Amount (PKR)', 'رقم (روپے)'),
+                  helperText: paymentText(
+                    context,
+                    'Example: 500',
+                    'مثال: ۵۰۰',
+                  ),
                 ),
                 validator: (value) {
                   final parsed = double.tryParse(value?.trim() ?? '');
@@ -1026,6 +1030,11 @@ class _GiveAdvanceDialogState extends State<_GiveAdvanceDialog> {
                     context,
                     'Given by',
                     'ادائیگی کا طریقہ',
+                  ),
+                  helperText: paymentText(
+                    context,
+                    'Choose cash or card',
+                    'نقد یا کارڈ چنیں',
                   ),
                 ),
                 items: ['Cash', 'Card']
@@ -1058,6 +1067,11 @@ class _GiveAdvanceDialogState extends State<_GiveAdvanceDialog> {
                     context,
                     'Note (optional)',
                     'نوٹ (اختیاری)',
+                  ),
+                  helperText: paymentText(
+                    context,
+                    'Example: office supplies',
+                    'مثال: دفتر کا سامان',
                   ),
                 ),
               ),
@@ -1210,6 +1224,11 @@ class _AdvanceRequestCard extends StatelessWidget {
             maxLines: 3,
             decoration: InputDecoration(
               labelText: paymentText(context, 'Reason', 'وجہ'),
+              helperText: paymentText(
+                context,
+                'Example: missing receipt',
+                'مثال: رسید موجود نہیں',
+              ),
             ),
             validator: (value) => value == null || value.trim().isEmpty
                 ? paymentText(context, 'Enter a reason.', 'وجہ درج کریں۔')
@@ -1579,13 +1598,27 @@ class _BalanceOverview extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Center(
-                  child: Text(
-                    paymentText(
-                      context,
-                      'No balance records yet.',
-                      'ابھی کوئی بیلنس ریکارڈ نہیں۔',
-                    ),
-                    style: const TextStyle(color: Color(0xFF64748B)),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        paymentText(
+                          context,
+                          'No balance records yet.',
+                          'ابھی کوئی بیلنس ریکارڈ نہیں۔',
+                        ),
+                        style: const TextStyle(color: Color(0xFF64748B)),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        paymentText(
+                          context,
+                          'Balances appear after an advance is sent.',
+                          'ایڈوانس بھیجنے کے بعد بیلنس یہاں نظر آئے گا۔',
+                        ),
+                        style: const TextStyle(color: Color(0xFF94A3B8)),
+                      ),
+                    ],
                   ),
                 ),
               )
@@ -2005,6 +2038,11 @@ class _AdvanceCard extends StatelessWidget {
                     'Received by',
                     'وصولی کا طریقہ',
                   ),
+                  helperText: paymentText(
+                    context,
+                    'Choose cash or card',
+                    'نقد یا کارڈ چنیں',
+                  ),
                 ),
                 items: ['Cash', 'Card']
                     .map(
@@ -2407,6 +2445,11 @@ class _ExpenseCard extends StatelessWidget {
           onChanged: (value) => enteredReason = value,
           decoration: InputDecoration(
             labelText: paymentText(context, 'Reason (required)', 'وجہ (ضروری)'),
+            helperText: paymentText(
+              context,
+              'Example: the receipt is unclear',
+              'مثال: رسید صاف نظر نہیں آ رہی',
+            ),
           ),
         ),
         actions: [

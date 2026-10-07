@@ -398,14 +398,24 @@ class OfficeBoyOverviewScreen extends StatelessWidget {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
-                                          Text(
-                                            context.language.date(
-                                              req.createdAt,
-                                            ),
-                                            style: const TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 12,
-                                            ),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.schedule_rounded,
+                                                size: 13,
+                                                color: Color(0xFF94A3B8),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                context.language.date(
+                                                  req.createdAt,
+                                                ),
+                                                style: const TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
@@ -414,11 +424,22 @@ class OfficeBoyOverviewScreen extends StatelessWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.end,
                                       children: [
-                                        Text(
-                                          context.language.money(req.amount),
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w800,
-                                          ),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.payments_outlined,
+                                              size: 15,
+                                              color: AppTheme.primaryBlue,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              context.language.money(req.amount),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                         const SizedBox(height: 4),
                                         StatusBadge(

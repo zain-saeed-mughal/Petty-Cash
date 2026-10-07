@@ -87,7 +87,7 @@ class _SettleAdvanceDialogState extends State<SettleAdvanceDialog> {
     return PopScope(
       canPop: !_busy,
       child: AlertDialog(
-        title: Text(context.t('Update Settlement')),
+        title: Text(context.t('Update my spending')),
         content: SizedBox(
           width: 400,
           child: SingleChildScrollView(
@@ -133,7 +133,8 @@ class _SettleAdvanceDialogState extends State<SettleAdvanceDialog> {
                       decimal: true,
                     ),
                     decoration: InputDecoration(
-                      labelText: context.t('New Expense Amount (if any)'),
+                      labelText: context.t('How much did you spend?'),
+                      helperText: context.t('Example: 500'),
                       prefixIcon: const Icon(Icons.add_shopping_cart_rounded),
                     ),
                     onChanged: _calculateRemaining,
@@ -155,7 +156,7 @@ class _SettleAdvanceDialogState extends State<SettleAdvanceDialog> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '${context.t('Remaining Balance to Return')}: ${context.language.money(_remaining)}',
+                    '${context.t('Money left to return')}: ${context.language.money(_remaining)}',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: _remaining > 0 ? Colors.red : Colors.green,
@@ -166,7 +167,8 @@ class _SettleAdvanceDialogState extends State<SettleAdvanceDialog> {
                     DropdownButtonFormField<String>(
                       initialValue: _method,
                       decoration: InputDecoration(
-                        labelText: context.t('Return Method for Balance'),
+                        labelText: context.t('How should you return the balance?'),
+                        helperText: context.t('Choose cash or card'),
                       ),
                       items: ['Cash', 'Card']
                           .map(
@@ -188,8 +190,8 @@ class _SettleAdvanceDialogState extends State<SettleAdvanceDialog> {
                     maxLines: 3,
                     maxLength: 2000,
                     decoration: InputDecoration(
-                      labelText: context.t('Settlement Note'),
-                      hintText: context.t('Any details about the expenses...'),
+                      labelText: context.t('Note for Finance (optional)'),
+                      hintText: context.t('e.g. Returned the rest in cash'),
                     ),
                   ),
                   if (_error != null) ...[
@@ -215,8 +217,8 @@ class _SettleAdvanceDialogState extends State<SettleAdvanceDialog> {
             onPressed: _busy ? null : _submit,
             child: Text(
               _busy
-                  ? context.t('Submitting...')
-                  : context.t('Submit Settlement'),
+                  ? context.t('Sending...')
+                  : context.t('Send update'),
             ),
           ),
         ],

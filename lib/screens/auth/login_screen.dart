@@ -295,6 +295,9 @@ class _LoginScreenState extends State<LoginScreen>
                                     decoration: _buildInputDecoration(
                                       langProvider.tr('email_address'),
                                       Icons.email_outlined,
+                                      helperText: langProvider.isRtl
+                                          ? 'مثال: name@example.com'
+                                          : 'e.g. name@example.com',
                                     ),
                                     validator: (val) {
                                       if (val == null || val.trim().isEmpty) {
@@ -317,6 +320,9 @@ class _LoginScreenState extends State<LoginScreen>
                                     decoration: _buildInputDecoration(
                                       langProvider.tr('password'),
                                       Icons.lock_outline_rounded,
+                                      helperText: langProvider.isRtl
+                                          ? 'اپنا پاس ورڈ درج کریں'
+                                          : 'Enter your password',
                                       suffixIcon: IconButton(
                                         icon: Icon(
                                           _obscurePassword
@@ -557,9 +563,12 @@ class _LoginScreenState extends State<LoginScreen>
     String label,
     IconData icon, {
     Widget? suffixIcon,
+    String? helperText,
   }) {
     return InputDecoration(
       labelText: label,
+      helperText: helperText,
+      helperStyle: TextStyle(color: Colors.white.withValues(alpha: 0.65)),
       labelStyle: TextStyle(
         color: Colors.white.withValues(alpha: 0.6),
         fontWeight: FontWeight.w400,

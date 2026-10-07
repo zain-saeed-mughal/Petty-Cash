@@ -7,6 +7,7 @@ import '../../providers/language_provider.dart';
 import '../../providers/payment_provider.dart';
 import '../../config/app_theme.dart';
 import '../../widgets/stat_card.dart';
+import '../../widgets/status_badge.dart';
 
 class FinanceOverviewScreen extends StatelessWidget {
   final VoidCallback onViewPendingTap;
@@ -139,7 +140,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                                   Text(
                                     lang.isRtl
                                         ? 'تمام اخراجات اور پیشگی رقوم کا مکمل جائزہ۔'
-                                        : 'Complete overview of all petty cash expenses and advances.',
+                                        : 'See requests, advances, and repayments in one place.',
                                     style: const TextStyle(
                                       fontSize: 14,
                                       color: Colors.white70,
@@ -157,7 +158,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                       Text(
                         lang.isRtl
                             ? 'ایڈوانس اور ذاتی خرچ کا حساب'
-                            : 'Advances & own-pocket expenses',
+                            : 'Advances and personal spending',
                         style: Theme.of(context).textTheme.titleLarge
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
@@ -171,7 +172,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                             child: StatCard(
                               title: lang.isRtl
                                   ? 'فیصلے کے منتظر'
-                                  : 'Needs Finance Review',
+                                  : 'Waiting for Finance',
                               value: newQueue.toString(),
                               icon: Icons.pending_actions_outlined,
                               color: AppTheme.statusPending,
@@ -183,7 +184,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                             child: StatCard(
                               title: lang.isRtl
                                   ? 'ملازمین کے پاس دستیاب'
-                                  : 'Available with Staff',
+                                  : 'Money with staff',
                               value: lang.money(availableFloat),
                               icon: Icons.account_balance_wallet_outlined,
                               color: AppTheme.primaryBlue,
@@ -195,7 +196,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                             child: StatCard(
                               title: lang.isRtl
                                   ? 'جائزے تک روکی گئی'
-                                  : 'Advance On Hold',
+                                  : 'Money held for review',
                               value: lang.money(heldFloat),
                               icon: Icons.lock_clock_outlined,
                               color: Colors.deepPurple,
@@ -207,7 +208,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                             child: StatCard(
                               title: lang.isRtl
                                   ? 'ایڈوانس سے خرچ'
-                                  : 'Spent from Advances',
+                                  : 'Spent from advances',
                               value: lang.money(spentFloat),
                               icon: Icons.shopping_bag_outlined,
                               color: AppTheme.statusApproved,
@@ -219,7 +220,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                       if (expense.allRequests.isNotEmpty) ...[
                         const SizedBox(height: 28),
                         Text(
-                          lang.isRtl ? 'پرانا ریکارڈ' : 'Earlier requests',
+                          lang.isRtl ? 'پرانا ریکارڈ' : 'Previous requests',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
@@ -234,7 +235,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                               child: StatCard(
                                 title: lang.isRtl
                                     ? 'پرانی درخواستیں، فیصلہ باقی'
-                                    : 'Earlier requests to review',
+                                    : 'Requests to review',
                                 value: pendingCount.toString(),
                                 subtitle: context.language.money(pendingAmount),
                                 icon: Icons.pending_actions_rounded,
@@ -247,7 +248,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                               child: StatCard(
                                 title: lang.isRtl
                                     ? 'پرانی ادا شدہ درخواستیں'
-                                    : 'Earlier paid requests',
+                                    : 'Paid requests',
                                 value: context.language.money(totalPaidAmount),
                                 icon: Icons.check_circle_outline_rounded,
                                 color: AppTheme.statusApproved,
@@ -260,7 +261,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                                 child: StatCard(
                                   title: lang.isRtl
                                       ? 'پرانے ایڈوانس، حساب باقی'
-                                      : 'Earlier advances still open',
+                                      : 'Advances still open',
                                   value: context.language.money(
                                     totalOutstandingAdvance,
                                   ),
@@ -281,7 +282,7 @@ class FinanceOverviewScreen extends StatelessWidget {
                               child: Text(
                                 lang.isRtl
                                     ? 'پرانی درخواستیں جن پر فیصلہ باقی ہے'
-                                    : 'Earlier requests awaiting a decision',
+                                    : 'Requests waiting for review',
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
@@ -394,22 +395,62 @@ class FinanceOverviewScreen extends StatelessWidget {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
+                                          const SizedBox(height: 3),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.schedule_rounded,
+                                                size: 13,
+                                                color: Color(0xFF94A3B8),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                context.language.date(req.createdAt),
+                                                style: const TextStyle(
+                                                  color: Color(0xFF94A3B8),
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ],
                                       ),
                                     ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          context.language.money(req.amount),
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w800,
-                                            color: AppTheme.primaryNavy,
-                                          ),
+                                    Flexible(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                        Wrap(
+                                          alignment: WrapAlignment.end,
+                                          spacing: 4,
+                                          runSpacing: 2,
+                                          crossAxisAlignment:
+                                              WrapCrossAlignment.center,
+                                          children: [
+                                            const Icon(
+                                              Icons.payments_outlined,
+                                              size: 15,
+                                              color: AppTheme.primaryBlue,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              context.language.money(req.amount),
+                                              maxLines: 2,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.w800,
+                                                color: AppTheme.primaryNavy,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        const SizedBox(height: 4),
-                                        Container(
+                                          const SizedBox(height: 4),
+                                          StatusBadge(
+                                            status: req.status,
+                                            isCompact: true,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Container(
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 6,
                                             vertical: 2,
@@ -446,8 +487,9 @@ class FinanceOverviewScreen extends StatelessWidget {
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),

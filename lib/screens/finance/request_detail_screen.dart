@@ -273,12 +273,23 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           StatusBadge(status: req.status),
-                          Text(
-                            context.language.date(req.createdAt),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF64748B),
-                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.schedule_rounded,
+                                size: 14,
+                                color: Color(0xFF64748B),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                context.language.date(req.createdAt),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -292,14 +303,26 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        context.language.money(req.amount),
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.primaryBlue,
-                          letterSpacing: -0.5,
-                        ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.payments_outlined,
+                            size: 24,
+                            color: AppTheme.primaryBlue,
+                          ),
+                          Text(
+                            context.language.money(req.amount),
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.primaryBlue,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -348,12 +348,23 @@ class _PendingRequestsScreenState extends State<PendingRequestsScreen> {
                                   color: AppTheme.primaryNavy,
                                 ),
                               ),
-                              Text(
-                                '• ${context.language.date(req.createdAt)}',
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Color(0xFF94A3B8),
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.schedule_rounded,
+                                    size: 13,
+                                    color: Color(0xFF94A3B8),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    context.language.date(req.createdAt),
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF94A3B8),
+                                    ),
+                                  ),
+                                ],
                               ),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -395,13 +406,24 @@ class _PendingRequestsScreenState extends State<PendingRequestsScreen> {
                       ? CrossAxisAlignment.start
                       : CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      context.language.money(req.amount),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: AppTheme.primaryNavy,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.payments_outlined,
+                          size: 17,
+                          color: AppTheme.primaryBlue,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          context.language.money(req.amount),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.primaryNavy,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     StatusBadge(status: req.status, isCompact: true),

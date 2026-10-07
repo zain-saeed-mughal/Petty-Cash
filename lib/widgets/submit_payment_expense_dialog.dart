@@ -271,6 +271,11 @@ class _SubmitPaymentExpenseDialogState
                   maxLength: 500,
                   decoration: InputDecoration(
                     labelText: paymentText(context, 'Item Name', 'آئٹم کا نام'),
+                    helperText: paymentText(
+                      context,
+                      'Example: printer paper',
+                      'مثال: پرنٹر کا کاغذ',
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -297,6 +302,11 @@ class _SubmitPaymentExpenseDialogState
                       context,
                       'Amount (PKR)',
                       'رقم (روپے)',
+                    ),
+                    helperText: paymentText(
+                      context,
+                      'Example: 500',
+                      'مثال: ۵۰۰',
                     ),
                   ),
                   validator: (value) {
@@ -335,6 +345,11 @@ class _SubmitPaymentExpenseDialogState
                       context,
                       'Reason / Description',
                       'وجہ / تفصیل',
+                    ),
+                    helperText: paymentText(
+                      context,
+                      'Example: printer paper ran out',
+                      'مثال: پرنٹر کا کاغذ ختم ہو گیا تھا',
                     ),
                   ),
                   validator: (value) {

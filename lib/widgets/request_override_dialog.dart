@@ -59,7 +59,7 @@ class _RequestOverrideDialogState extends State<RequestOverrideDialog> {
   Widget build(BuildContext context) => PopScope(
     canPop: !_busy,
     child: AlertDialog(
-      title: Text(context.t('Super Admin Override')),
+      title: Text(context.t('Change request progress')),
       content: SizedBox(
         width: 440,
         child: SingleChildScrollView(

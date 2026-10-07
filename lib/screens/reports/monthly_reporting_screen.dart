@@ -290,7 +290,7 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
                                             DropdownMenuItem<RequestStatus>(
                                               value: null,
                                               child: Text(
-                                                context.t('All statuses'),
+                                                context.t('Any progress'),
                                               ),
                                             ),
                                             ...RequestStatus.values.map(
@@ -444,7 +444,7 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
                               DataColumn(label: Text(context.t('Requester'))),
                               DataColumn(label: Text(context.t('Description'))),
                               DataColumn(label: Text(context.t('Amount'))),
-                              DataColumn(label: Text(context.t('Status'))),
+                              DataColumn(label: Text(context.t('Progress'))),
                             ],
                             rows: visible.map((r) {
                               return DataRow(
@@ -699,7 +699,7 @@ class _MonthlyReportingScreenState extends State<MonthlyReportingScreen> {
                               ),
                               DataColumn(label: Text(context.t('Description'))),
                               DataColumn(label: Text(context.t('Amount'))),
-                              DataColumn(label: Text(context.t('Status'))),
+                              DataColumn(label: Text(context.t('Progress'))),
                             ],
                             rows: paymentRows.map((row) {
                               final typeUrdu = switch (row.type) {

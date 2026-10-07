@@ -225,6 +225,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                     initialValue: _officeBoyId,
                     decoration: InputDecoration(
                       labelText: coreText(context, 'Select Office Boy', 'آفس بوائے منتخب کریں'),
+                      helperText: coreText(
+                        context,
+                        'Choose who will receive the money',
+                        'رقم وصول کرنے والے شخص کو چنیں',
+                      ),
                     ),
                     items: context
                         .read<UserProvider>()
@@ -252,6 +257,17 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                             'What did you buy?',
                             'آپ نے کیا خریدا؟',
                           ),
+                    helperText: isAdvance
+                        ? coreText(
+                            context,
+                            'Example: office supplies',
+                            'مثال: دفتر کا سامان',
+                          )
+                        : coreText(
+                            context,
+                            'Example: paper and printer ink',
+                            'مثال: کاغذ اور پرنٹر کی سیاہی',
+                          ),
                   ),
                   validator: (value) => (value?.trim().isEmpty ?? true)
                       ? coreText(
@@ -275,6 +291,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                       context,
                       'Amount in rupees',
                       'رقم روپے میں',
+                    ),
+                    helperText: coreText(
+                      context,
+                      'Example: 500',
+                      'مثال: ۵۰۰',
                     ),
                     prefixText: 'Rs. ',
                   ),
@@ -339,6 +360,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                         'Account name (optional)',
                         'اکاؤنٹ کا نام (اختیاری)',
                       ),
+                      helperText: coreText(
+                        context,
+                        'Name on the account',
+                        'اکاؤنٹ پر درج نام',
+                      ),
                     ),
                     validator: (value) => null,
                   ),
@@ -352,6 +378,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                         'Account details (optional)',
                         'اکاؤنٹ کی تفصیل (اختیاری)',
                       ),
+                      helperText: coreText(
+                        context,
+                        'Example: account or IBAN number',
+                        'مثال: اکاؤنٹ یا آئی بین نمبر',
+                      ),
                     ),
                     validator: (value) => null,
                   ),
@@ -363,6 +394,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                     initialValue: _taggedManagerId,
                     decoration: InputDecoration(
                       labelText: coreText(context, 'Tag to Manager (Optional)', 'مینیجر کو ٹیگ کریں (اختیاری)'),
+                      helperText: coreText(
+                        context,
+                        'Choose who should review this',
+                        'جائزہ لینے والے کو چنیں',
+                      ),
                     ),
                     items: [
                       DropdownMenuItem(

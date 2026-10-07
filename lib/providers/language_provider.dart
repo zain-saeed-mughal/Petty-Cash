@@ -98,21 +98,43 @@ class LanguageProvider extends ChangeNotifier {
 
   String error(String value) {
     final clean = value.replaceFirst(
-      RegExp(r'^(Exception|Bad state|FormatException):\s*'),
+      RegExp(r'^(Exception|Bad state|StateError|FormatException):\s*'),
       '',
     );
-    if (!isRtl) return clean;
     if (_urdu.containsKey(clean)) return _urdu[clean]!;
-    if (RegExp(r'[\u0600-\u06ff]').hasMatch(clean)) return clean;
+    final lower = clean.toLowerCase();
     if (RegExp(
-      r'network|connection|socket|fetch|timeout',
-      caseSensitive: false,
-    ).hasMatch(clean)) {
-      return 'رابطہ قائم نہیں ہو سکا۔ انٹرنیٹ چیک کر کے دوبارہ کوشش کریں۔';
+      r'network|connection|socket|fetch|timeout|clientexception',
+    ).hasMatch(lower)) {
+      return isRtl
+          ? 'رابطہ نہیں ہو سکا۔ انٹرنیٹ چیک کر کے دوبارہ کوشش کریں۔'
+          : 'Couldn\'t connect. Check your internet and try again.';
     }
-    if (RegExp(r'already|duplicate', caseSensitive: false).hasMatch(clean)) {
-      return 'یہ اندراج پہلے سے موجود ہے۔';
+    if (RegExp(r'duplicate|already exists|unique constraint').hasMatch(lower)) {
+      return isRtl
+          ? 'یہ چیز پہلے سے موجود ہے۔ فہرست چیک کر کے دوبارہ کوشش کریں۔'
+          : 'This already exists. Check the list and try again.';
     }
+    if (RegExp(r'jwt|session expired|token expired|\b401\b').hasMatch(lower)) {
+      return isRtl
+          ? 'آپ کا سیشن ختم ہو گیا۔ دوبارہ لاگ ان کریں۔'
+          : 'Your session ended. Sign in again.';
+    }
+    if (RegExp(r'permission|not authorized|forbidden|row-level security|\b403\b')
+        .hasMatch(lower)) {
+      return isRtl
+          ? 'آپ کو یہ کام کرنے کی اجازت نہیں۔ ایڈمن سے رابطہ کریں۔'
+          : 'You can\'t do this. Ask your administrator for help.';
+    }
+    if (RegExp(
+      r'postgrest|postgres|supabase|sqlstate|stack trace|internal server error|\b50[0-4]\b',
+    ).hasMatch(lower)) {
+      return isRtl
+          ? 'کچھ مسئلہ ہو گیا۔ دوبارہ کوشش کریں۔'
+          : 'Something went wrong. Please try again.';
+    }
+    if (!isRtl) return clean;
+    if (RegExp(r'[\u0600-\u06ff]').hasMatch(clean)) return clean;
     return 'کارروائی مکمل نہیں ہو سکی۔ دوبارہ کوشش کریں۔';
   }
 

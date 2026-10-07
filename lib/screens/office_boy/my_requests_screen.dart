@@ -88,7 +88,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  context.t('My Expense History'),
+                                  context.t('My requests'),
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w800,
@@ -335,7 +335,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       ),
                       const SizedBox(height: 24),
                       Text(
-                        context.t('No Expense Requests Found'),
+                        context.t('No requests match'),
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -459,12 +459,23 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                             letterSpacing: 0.5,
                           ),
                         ),
-                        Text(
-                          context.language.date(req.createdAt),
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Color(0xFF94A3B8),
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.schedule_rounded,
+                              size: 13,
+                              color: Color(0xFF94A3B8),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              context.language.date(req.createdAt),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -484,13 +495,24 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       ? CrossAxisAlignment.start
                       : CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      context.language.money(req.amount),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primaryNavy,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.payments_outlined,
+                          size: 17,
+                          color: AppTheme.primaryBlue,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          context.language.money(req.amount),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.primaryNavy,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 6),
                     StatusBadge(status: req.status),

@@ -3,6 +3,7 @@ import 'package:petty_cash/models/core_flow_models.dart';
 import 'package:petty_cash/providers/core_flow_provider.dart';
 
 class CoreFlowTestProvider extends ChangeNotifier implements CoreFlowProvider {
+  String? _error;
   String? lastPurpose,
       lastItem,
       lastMethod,
@@ -24,7 +25,7 @@ class CoreFlowTestProvider extends ChangeNotifier implements CoreFlowProvider {
   @override
   bool get isLoading => false;
   @override
-  String? get error => null;
+  String? get error => _error;
   @override
   double balanceFor(String uid) => 0;
   @override
@@ -42,6 +43,12 @@ class CoreFlowTestProvider extends ChangeNotifier implements CoreFlowProvider {
     String? accountName,
     String? accountDetails,
   }) async {
+    if (method == 'card' &&
+        (accountName == null || accountName.trim().isEmpty)) {
+      _error = 'Enter the account name.';
+      return false;
+    }
+    _error = null;
     lastPurpose = purpose;
     lastAmount = amount;
     lastMethod = method;
