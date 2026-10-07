@@ -8,6 +8,7 @@ import '../../models/core_flow_models.dart';
 import '../../providers/core_flow_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/user_provider.dart';
+
 import '../../services/storage_service.dart';
 
 String coreText(BuildContext context, String en, String ur) =>
@@ -35,6 +36,7 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
   bool _busy = false;
   String? _error;
   String? _officeBoyId;
+  String? _taggedManagerId;
 
   @override
   void dispose() {
@@ -149,6 +151,7 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
           item: description,
           amount: amount,
           billPath: _uploadedPath,
+          taggedManagerId: _taggedManagerId,
         ),
         _ => await flows.requestReimbursement(
           id: _id,
@@ -158,6 +161,7 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
           billPath: _uploadedPath,
           accountName: accountName,
           accountDetails: accountDetails,
+          taggedManagerId: _taggedManagerId,
         ),
       };
       if (!mounted) return;
@@ -187,7 +191,9 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
     final isDirectAdvance = widget.mode == 'direct_advance';
     final isAdvance = widget.mode == 'advance' || isDirectAdvance;
     final isItem = widget.mode == 'item';
+    final isReimbursement = widget.mode == 'reimbursement';
     final showAccount = !isItem && _method == 'card' && !isDirectAdvance;
+    final managers = context.watch<UserProvider>().allUsers.where((u) => u.isManager).toList();
     return AlertDialog(
       title: Text(
         isAdvance
@@ -348,6 +354,27 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                       ),
                     ),
                     validator: (value) => null,
+                  ),
+                ],
+                if (isItem || isReimbursement) ...[
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    initialValue: _taggedManagerId,
+                    decoration: InputDecoration(
+                      labelText: coreText(context, 'Tag to Manager (Optional)', 'مینیجر کو ٹیگ کریں (اختیاری)'),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(coreText(context, 'None', 'کوئی نہیں')),
+                      ),
+                      ...managers.map((m) => DropdownMenuItem(
+                        value: m.uid,
+                        child: Text(m.name, overflow: TextOverflow.ellipsis),
+                      )),
+                    ],
+                    onChanged: _busy ? null : (v) => setState(() => _taggedManagerId = v),
                   ),
                 ],
                 if (!isAdvance) ...[

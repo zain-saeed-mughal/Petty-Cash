@@ -59,6 +59,7 @@ class CoreFlowTestProvider extends ChangeNotifier implements CoreFlowProvider {
     String? billPath,
     String? accountName,
     String? accountDetails,
+    String? taggedManagerId,
   }) async {
     lastItem = item;
     lastAmount = amount;

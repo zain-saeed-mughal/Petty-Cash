@@ -585,6 +585,17 @@ class CoreAdvanceCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(_date(item.createdAt)),
+                          if (item.taggedManagerId != null) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              '${_label(context, 'Manager', 'منیجر')}: ${_person(context, item.taggedManagerId!)}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFF3159E8),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                           if (item.status == 'rejected' && item.rejectionReason != null && item.rejectionReason!.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 4.0),
@@ -854,6 +865,15 @@ class CoreReimbursementCard extends StatelessWidget {
             Text(
               '${_person(context, request.officeBoyId)} · ${_office(context, request.officeId)}',
               style: const TextStyle(color: Color(0xFF64748B)),
+            ),
+          if (request.taggedManagerId != null)
+            Text(
+              '${_label(context, 'Manager', 'منیجر')}: ${_person(context, request.taggedManagerId!)}',
+              style: const TextStyle(
+                color: Color(0xFF3159E8),
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
             ),
           Text(
             '${_label(context, 'Wants', 'چاہیے')}: ${request.wantedMethod == 'card' ? _label(context, 'Card', 'کارڈ') : _label(context, 'Cash', 'نقد')}',
@@ -1636,7 +1656,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
     start: DateTime(DateTime.now().year, DateTime.now().month, 1),
     end: DateTime(DateTime.now().year, DateTime.now().month + 1, 0),
   );
-  String? _officeId, _personId;
+  String? _officeId, _personId, _managerId;
   String _type = 'all';
 
   bool _inRange(DateTime? date) {
@@ -1660,18 +1680,22 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                   (_officeId == null || u.officeId == _officeId),
             )
             .toList();
+        final managers = context.watch<UserProvider>().allUsers.where((u) => u.isManager).toList();
+        
         final allAdvances = flow.advances
             .where(
               (a) =>
                   (_officeId == null || a.officeId == _officeId) &&
-                  (_personId == null || a.officeBoyId == _personId),
+                  (_personId == null || a.officeBoyId == _personId) &&
+                  (_managerId == null || flow.items.any((i) => i.advanceId == a.id && i.taggedManagerId == _managerId)),
             )
             .toList();
         final allRepayments = flow.reimbursements
             .where(
               (r) =>
                   (_officeId == null || r.officeId == _officeId) &&
-                  (_personId == null || r.officeBoyId == _personId),
+                  (_personId == null || r.officeBoyId == _personId) &&
+                  (_managerId == null || r.taggedManagerId == _managerId),
             )
             .toList();
         final advances = allAdvances
@@ -1835,6 +1859,27 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                               ),
                             ],
                             onChanged: (v) => setState(() => _personId = v),
+                          ),
+                        ),
+                        SizedBox(
+                          width: 180,
+                          child: DropdownButtonFormField<String?>(
+                            initialValue: _managerId,
+                            isExpanded: true,
+                            decoration: InputDecoration(
+                              labelText: _label(context, 'Manager', 'مینیجر'),
+                            ),
+                            items: [
+                              DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text(_label(context, 'All Managers', 'تمام مینیجرز')),
+                              ),
+                              ...managers.map((m) => DropdownMenuItem<String?>(
+                                value: m.uid,
+                                child: Text(m.name, overflow: TextOverflow.ellipsis),
+                              )),
+                            ],
+                            onChanged: (v) => setState(() => _managerId = v),
                           ),
                         ),
                         SizedBox(

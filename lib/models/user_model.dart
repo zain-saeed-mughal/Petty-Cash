@@ -1,6 +1,7 @@
 enum UserRole {
   superAdmin,
   admin,
+  manager,
   finance,
   officeBoy;
 
@@ -10,6 +11,8 @@ enum UserRole {
         return 'Super Admin';
       case UserRole.admin:
         return 'Admin';
+      case UserRole.manager:
+        return 'Manager';
       case UserRole.finance:
         return 'Finance Manager';
       case UserRole.officeBoy:
@@ -23,6 +26,8 @@ enum UserRole {
         return 'super_admin';
       case UserRole.admin:
         return 'admin';
+      case UserRole.manager:
+        return 'manager';
       case UserRole.finance:
         return 'finance';
       case UserRole.officeBoy:
@@ -37,6 +42,8 @@ enum UserRole {
         return UserRole.superAdmin;
       case 'admin':
         return UserRole.admin;
+      case 'manager':
+        return UserRole.manager;
       case 'finance':
         return UserRole.finance;
       case 'office_boy':
@@ -72,6 +79,7 @@ class AppUser {
 
   bool get isSuperAdmin => role == UserRole.superAdmin;
   bool get isAdmin => role == UserRole.admin;
+  bool get isManager => role == UserRole.manager;
   bool get isFinance => role == UserRole.finance;
   bool get isOfficeBoy => role == UserRole.officeBoy;
 

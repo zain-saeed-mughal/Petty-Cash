@@ -83,6 +83,7 @@ CREATE TABLE IF NOT EXISTS public.advance_requests (
   cleared_at timestamptz,
   finance_note text,
   flow_version smallint NOT NULL DEFAULT 2,
+  allotted_by_manager_id uuid REFERENCES public.users(uid) ON DELETE RESTRICT,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS advance_requests_v2_office_status_idx ON public.advance_requests(office_id,status,created_at DESC) WHERE flow_version = 2;
@@ -115,6 +116,7 @@ CREATE TABLE IF NOT EXISTS public.advance_items (
   rejection_reason text CHECK (length(trim(rejection_reason)) BETWEEN 1 AND 2000),
   reviewed_by uuid REFERENCES public.users(uid) ON DELETE RESTRICT,
   reviewed_at timestamptz,
+  tagged_manager_id uuid REFERENCES public.users(uid) ON DELETE RESTRICT,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS advance_items_request_date_idx ON public.advance_items(advance_request_id,created_at DESC);
@@ -123,7 +125,8 @@ ALTER TABLE public.advance_items
   ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   ADD COLUMN IF NOT EXISTS rejection_reason text CHECK (length(trim(rejection_reason)) BETWEEN 1 AND 2000),
   ADD COLUMN IF NOT EXISTS reviewed_by uuid REFERENCES public.users(uid) ON DELETE RESTRICT,
-  ADD COLUMN IF NOT EXISTS reviewed_at timestamptz;
+  ADD COLUMN IF NOT EXISTS reviewed_at timestamptz,
+  ADD COLUMN IF NOT EXISTS tagged_manager_id uuid REFERENCES public.users(uid) ON DELETE RESTRICT;
 
 -- Fix old missing status items automatically
 UPDATE public.advance_items SET status = 'approved' WHERE status = 'pending' AND reviewed_by IS NULL AND created_at < now() - interval '1 hour';
@@ -162,6 +165,7 @@ CREATE TABLE IF NOT EXISTS public.reimbursement_requests (
   reviewed_at timestamptz,
   paid_method text CHECK (paid_method IN ('cash','card')),
   paid_at timestamptz,
+  tagged_manager_id uuid REFERENCES public.users(uid) ON DELETE RESTRICT,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -260,7 +264,7 @@ CREATE OR REPLACE FUNCTION public.direct_allot_advance_v2(
 DECLARE actor public.users; boy public.users; result public.advance_requests;
 BEGIN
   SELECT * INTO actor FROM public.users WHERE uid=auth.uid() AND "isActive";
-  IF actor.role IS DISTINCT FROM 'finance' THEN RAISE EXCEPTION 'Only Finance can allot advances' USING ERRCODE='42501'; END IF;
+  IF actor.role NOT IN ('finance', 'manager') THEN RAISE EXCEPTION 'Only Finance or Manager can allot advances' USING ERRCODE='42501'; END IF;
   
   SELECT * INTO boy FROM public.users WHERE uid=p_office_boy_id AND "isActive" AND role='office_boy';
   IF NOT FOUND THEN RAISE EXCEPTION 'Active office boy not found'; END IF;
@@ -274,15 +278,21 @@ BEGIN
   IF FOUND THEN RETURN result; END IF;
   
   INSERT INTO public.advance_requests(id,office_boy_id,office_id,amount,amount_requested,purpose,status,
-    payment_method_requested,flow_version,cleared_by,cleared_method,cleared_at)
-  VALUES(p_id,boy.uid,boy.office_id,p_amount,p_amount,trim(p_purpose),'awaiting_office_boy_approval',p_method,2,actor.uid,p_method,now())
+    payment_method_requested,flow_version,cleared_by,cleared_method,cleared_at,allotted_by_manager_id)
+  VALUES(p_id,boy.uid,boy.office_id,p_amount,p_amount,trim(p_purpose),'awaiting_office_boy_approval',p_method,2,actor.uid,p_method,now(),CASE WHEN actor.role = 'manager' THEN actor.uid ELSE NULL END)
   RETURNING * INTO result;
   
   INSERT INTO public.core_payment_activity(advance_request_id,office_boy_id,office_id,actor_id,action,detail)
   VALUES(result.id,result.office_boy_id,result.office_id,actor.uid,'direct_allot_pending',jsonb_build_object('method',p_method));
   
   INSERT INTO public.notifications(user_id,title,message,related_core_advance_id)
-  VALUES(boy.uid,'Advance needs approval','Finance sent you an advance of PKR '||p_amount||'. Tap to approve.',result.id);
+  VALUES(boy.uid,'Advance needs approval',CASE WHEN actor.role = 'manager' THEN actor.name ELSE 'Finance' END || ' sent you an advance of PKR '||p_amount||'. Tap to approve.',result.id);
+  
+  IF actor.role = 'manager' THEN
+    INSERT INTO public.notifications(user_id,title,message,related_core_advance_id)
+    SELECT uid,'Manager allotted advance',actor.name||' allotted PKR '||p_amount||' advance to '||boy.name,result.id
+    FROM public.users WHERE "isActive" AND role IN ('admin', 'super_admin');
+  END IF;
   
   RETURN result;
 END $$;
@@ -398,7 +408,8 @@ END $$;
 
 -- 5E. Log Advance Item (Creates as PENDING, no immediate deduction)
 CREATE OR REPLACE FUNCTION public.log_advance_item_v2(
-  p_id uuid, p_advance_id uuid, p_item text, p_amount numeric, p_bill_path text DEFAULT NULL
+  p_id uuid, p_advance_id uuid, p_item text, p_amount numeric, p_bill_path text DEFAULT NULL,
+  p_tagged_manager_id uuid DEFAULT NULL
 ) RETURNS public.advance_items LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE actor public.users; advance public.advance_requests; result public.advance_items; balance numeric;
 BEGIN
@@ -426,8 +437,8 @@ BEGIN
   balance := public.core_advance_balance(p_advance_id);
   IF p_amount > balance THEN RAISE EXCEPTION 'This exceeds your remaining advance balance'; END IF;
 
-  INSERT INTO public.advance_items(id, advance_request_id, office_boy_id, office_id, item_description, amount_spent, bill_path, status)
-  VALUES(p_id, p_advance_id, actor.uid, actor.office_id, trim(p_item), p_amount, p_bill_path, 'pending') RETURNING * INTO result;
+  INSERT INTO public.advance_items(id, advance_request_id, office_boy_id, office_id, item_description, amount_spent, bill_path, status, tagged_manager_id)
+  VALUES(p_id, p_advance_id, actor.uid, actor.office_id, trim(p_item), p_amount, p_bill_path, 'pending', p_tagged_manager_id) RETURNING * INTO result;
 
   INSERT INTO public.core_payment_activity(advance_request_id, office_boy_id, office_id, actor_id, action, detail)
   VALUES(p_advance_id, actor.uid, actor.office_id, actor.uid, 'item_added',
@@ -479,13 +490,20 @@ BEGIN
     CASE WHEN p_decision='approve' THEN 'Finance approved your advance item.'
       ELSE 'Finance rejected your advance item: '||result.rejection_reason END, result.advance_request_id);
 
+  IF p_decision = 'approve' AND result.tagged_manager_id IS NOT NULL THEN
+    INSERT INTO public.notifications(user_id,title,message,related_core_advance_id)
+    SELECT uid,'Manager purchase approved','Finance approved a manager purchase for PKR '||result.amount_spent||'.',result.advance_request_id
+    FROM public.users WHERE "isActive" AND role IN ('admin', 'super_admin');
+  END IF;
+
   RETURN result;
 END $$;
 
 -- 5G. Submit Reimbursement (Bank info optional)
 CREATE OR REPLACE FUNCTION public.submit_reimbursement_v2(
   p_id uuid,p_item text,p_amount numeric,p_method text,p_bill_path text DEFAULT NULL,
-  p_account_name text DEFAULT NULL,p_account_details text DEFAULT NULL
+  p_account_name text DEFAULT NULL,p_account_details text DEFAULT NULL,
+  p_tagged_manager_id uuid DEFAULT NULL
 ) RETURNS public.reimbursement_requests LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE actor public.users; result public.reimbursement_requests;
 BEGIN
@@ -510,9 +528,9 @@ BEGIN
     RETURN result;
   END IF;
   INSERT INTO public.reimbursement_requests(id,office_boy_id,office_id,item_description,amount_spent,bill_path,
-    payment_method_wanted,receiver_account_name,receiver_account_details)
+    payment_method_wanted,receiver_account_name,receiver_account_details, tagged_manager_id)
   VALUES(p_id,actor.uid,actor.office_id,trim(p_item),p_amount,p_bill_path,p_method,
-    nullif(trim(p_account_name),''),nullif(trim(p_account_details),'')) RETURNING * INTO result;
+    nullif(trim(p_account_name),''),nullif(trim(p_account_details),''), p_tagged_manager_id) RETURNING * INTO result;
   INSERT INTO public.core_payment_activity(reimbursement_id,office_boy_id,office_id,actor_id,action)
   VALUES(result.id,actor.uid,actor.office_id,actor.uid,'requested');
   INSERT INTO public.notifications(user_id,title,message,related_reimbursement_id)
@@ -542,6 +560,13 @@ BEGIN
   VALUES(result.office_boy_id,CASE WHEN p_decision='approve' THEN 'Repayment approved' ELSE 'Repayment rejected' END,
     CASE WHEN p_decision='approve' THEN 'Finance approved your repayment request.'
       ELSE 'Finance rejected your request: '||result.rejection_reason END,result.id);
+      
+  IF p_decision = 'approve' AND result.tagged_manager_id IS NOT NULL THEN
+    INSERT INTO public.notifications(user_id,title,message,related_reimbursement_id)
+    SELECT uid,'Manager purchase approved','Finance approved a manager repayment for PKR '||result.amount_spent||'.',result.id
+    FROM public.users WHERE "isActive" AND role IN ('admin', 'super_admin');
+  END IF;
+  
   RETURN result;
 END $$;
 
@@ -611,7 +636,7 @@ GRANT ALL ON public.users, public.offices, public.notifications, public.device_t
 
 DROP POLICY IF EXISTS users_read ON public.users;
 CREATE POLICY users_read ON public.users FOR SELECT TO authenticated
-USING (uid = auth.uid() OR public.current_user_role() IN ('super_admin', 'admin', 'finance'));
+USING (uid = auth.uid() OR public.current_user_role() IN ('super_admin', 'admin', 'finance', 'manager') OR role = 'manager');
 
 DROP POLICY IF EXISTS offices_read ON public.offices;
 CREATE POLICY offices_read ON public.offices FOR SELECT TO authenticated
@@ -624,48 +649,56 @@ USING (user_id = auth.uid() AND public.current_user_role() IS NOT NULL);
 DROP POLICY IF EXISTS advance_requests_read ON public.advance_requests;
 CREATE POLICY advance_requests_read ON public.advance_requests FOR SELECT TO authenticated USING (
   public.current_user_role() IN ('finance','admin','super_admin') OR
-  (office_boy_id = auth.uid() AND office_id = public.current_office_id())
+  (office_boy_id = auth.uid() AND office_id = public.current_office_id()) OR
+  (public.current_user_role() = 'manager' AND allotted_by_manager_id = auth.uid())
 );
 
 DROP POLICY IF EXISTS advance_items_read ON public.advance_items;
 CREATE POLICY advance_items_read ON public.advance_items FOR SELECT TO authenticated USING (
   public.current_user_role() IN ('finance','admin','super_admin') OR
-  (office_boy_id = auth.uid() AND office_id = public.current_office_id())
+  (office_boy_id = auth.uid() AND office_id = public.current_office_id()) OR
+  (public.current_user_role() = 'manager' AND (tagged_manager_id = auth.uid() OR EXISTS(SELECT 1 FROM public.advance_requests ar WHERE ar.id = advance_items.advance_request_id AND ar.allotted_by_manager_id = auth.uid())))
 );
 
 DROP POLICY IF EXISTS advance_ledger_read ON public.advance_ledger;
 CREATE POLICY advance_ledger_read ON public.advance_ledger FOR SELECT TO authenticated USING (
   public.current_user_role() IN ('finance','admin','super_admin') OR
-  (office_boy_id = auth.uid() AND office_id = public.current_office_id())
+  (office_boy_id = auth.uid() AND office_id = public.current_office_id()) OR
+  (public.current_user_role() = 'manager' AND EXISTS(SELECT 1 FROM public.advance_requests ar WHERE ar.id = advance_ledger.advance_request_id AND ar.allotted_by_manager_id = auth.uid()))
 );
 
 DROP POLICY IF EXISTS reimbursements_read ON public.reimbursement_requests;
 CREATE POLICY reimbursements_read ON public.reimbursement_requests FOR SELECT TO authenticated USING (
   public.current_user_role() IN ('finance','admin','super_admin') OR
-  (office_boy_id = auth.uid() AND office_id = public.current_office_id())
+  (office_boy_id = auth.uid() AND office_id = public.current_office_id()) OR
+  (public.current_user_role() = 'manager' AND tagged_manager_id = auth.uid())
 );
 
 DROP POLICY IF EXISTS core_activity_read ON public.core_payment_activity;
 CREATE POLICY core_activity_read ON public.core_payment_activity FOR SELECT TO authenticated USING (
   public.current_user_role() IN ('finance','admin','super_admin') OR
-  (office_boy_id = auth.uid() AND office_id = public.current_office_id())
+  (office_boy_id = auth.uid() AND office_id = public.current_office_id()) OR
+  (public.current_user_role() = 'manager' AND (
+    EXISTS(SELECT 1 FROM public.advance_requests ar WHERE ar.id = core_payment_activity.advance_request_id AND ar.allotted_by_manager_id = auth.uid()) OR
+    EXISTS(SELECT 1 FROM public.reimbursement_requests rr WHERE rr.id = core_payment_activity.reimbursement_id AND rr.tagged_manager_id = auth.uid())
+  ))
 );
 
 REVOKE ALL ON FUNCTION public.current_user_role(), public.current_office_id(), public.payment_amount_valid(numeric),
   public.core_advance_balance(uuid), public.request_advance_v2(uuid,text,numeric,text,text,text),
   public.direct_allot_advance_v2(uuid,uuid,numeric,text,text), public.respond_to_direct_advance_v2(uuid,text),
-  public.clear_advance_request_v2(uuid,text,text), public.log_advance_item_v2(uuid,uuid,text,numeric,text),
+  public.clear_advance_request_v2(uuid,text,text), public.log_advance_item_v2(uuid,uuid,text,numeric,text,uuid),
   public.review_advance_item_v2(uuid,text,text), public.advance_balances_v2(),
-  public.submit_reimbursement_v2(uuid,text,numeric,text,text,text,text),
+  public.submit_reimbursement_v2(uuid,text,numeric,text,text,text,text,uuid),
   public.review_reimbursement_v2(uuid,text,text), public.mark_reimbursement_paid_v2(uuid,text)
   FROM PUBLIC, anon, authenticated;
 
 GRANT EXECUTE ON FUNCTION public.current_user_role(), public.current_office_id(), 
   public.request_advance_v2(uuid,text,numeric,text,text,text),
   public.direct_allot_advance_v2(uuid,uuid,numeric,text,text), public.respond_to_direct_advance_v2(uuid,text),
-  public.clear_advance_request_v2(uuid,text,text), public.log_advance_item_v2(uuid,uuid,text,numeric,text),
+  public.clear_advance_request_v2(uuid,text,text), public.log_advance_item_v2(uuid,uuid,text,numeric,text,uuid),
   public.review_advance_item_v2(uuid,text,text), public.advance_balances_v2(),
-  public.submit_reimbursement_v2(uuid,text,numeric,text,text,text,text),
+  public.submit_reimbursement_v2(uuid,text,numeric,text,text,text,text,uuid),
   public.review_reimbursement_v2(uuid,text,text), public.mark_reimbursement_paid_v2(uuid,text)
   TO authenticated;
 
@@ -681,7 +714,7 @@ DECLARE requested_role text; active boolean; existing public.users; requested_of
 BEGIN
   requested_role := NEW.raw_app_meta_data->>'petty_cash_role';
   IF requested_role IS NULL THEN RETURN NEW; END IF;
-  IF requested_role NOT IN ('office_boy','finance','admin','super_admin') THEN RAISE EXCEPTION 'Invalid app role'; END IF;
+  IF requested_role NOT IN ('office_boy','finance','admin','super_admin','manager') THEN RAISE EXCEPTION 'Invalid app role'; END IF;
   
   active := coalesce((NEW.raw_app_meta_data->>'petty_cash_active')::boolean,true);
   

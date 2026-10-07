@@ -25,6 +25,7 @@ class AppTheme {
   static const Color roleAdmin = Color(0xFF3B82F6); // Blue 500
   static const Color roleFinance = Color(0xFF10B981); // Emerald 500
   static const Color roleOfficeBoy = Color(0xFFF59E0B); // Amber 500
+  static const Color roleManager = Color(0xFFF43F5E); // Rose 500
 
   // Custom Shadow for Premium Feel
   static List<BoxShadow> get premiumShadow => [

@@ -174,6 +174,7 @@ class CoreFlowProvider extends ChangeNotifier {
     required String item,
     required double amount,
     String? billPath,
+    String? taggedManagerId,
   }) => _run('add-item', () async {
     final row = await _db.logCoreAdvanceItem(
       id: id ?? const Uuid().v4(),
@@ -181,6 +182,7 @@ class CoreFlowProvider extends ChangeNotifier {
       item: item,
       amount: amount,
       billPath: billPath,
+      taggedManagerId: taggedManagerId,
     );
     items = [row, ...items.where((entry) => entry.id != row.id)];
   });
@@ -243,6 +245,7 @@ class CoreFlowProvider extends ChangeNotifier {
     String? billPath,
     String? accountName,
     String? accountDetails,
+    String? taggedManagerId,
   }) => _run('request-reimbursement', () async {
     final row = await _db.submitCoreReimbursement(
       id: id ?? const Uuid().v4(),
@@ -252,6 +255,7 @@ class CoreFlowProvider extends ChangeNotifier {
       billPath: billPath,
       accountName: accountName,
       accountDetails: accountDetails,
+      taggedManagerId: taggedManagerId,
     );
     reimbursements = [
       row,

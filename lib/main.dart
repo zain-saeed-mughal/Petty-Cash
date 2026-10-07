@@ -20,6 +20,7 @@ import 'screens/office_boy/office_boy_dashboard.dart';
 import 'screens/finance/finance_dashboard.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'screens/super_admin/super_admin_dashboard.dart';
+import 'screens/manager/manager_dashboard.dart';
 import 'services/push_notification_service.dart';
 import 'services/database_service.dart';
 import 'screens/core/core_dashboard_screens.dart';
@@ -460,6 +461,8 @@ class RoleRouter extends StatelessWidget {
         return const AdminDashboard();
       case UserRole.finance:
         return const FinanceDashboard();
+      case UserRole.manager:
+        return const ManagerDashboard();
       case UserRole.officeBoy:
         return const OfficeBoyDashboard();
     }

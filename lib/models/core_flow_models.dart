@@ -52,7 +52,7 @@ class CoreAdvance {
 
 class CoreAdvanceItem {
   final String id, advanceId, officeBoyId, officeId, description, status;
-  final String? billPath, reviewedBy, rejectionReason;
+  final String? billPath, reviewedBy, rejectionReason, taggedManagerId;
   final double amount;
   final DateTime createdAt;
   final DateTime? reviewedAt;
@@ -69,6 +69,7 @@ class CoreAdvanceItem {
     this.reviewedBy,
     this.reviewedAt,
     this.rejectionReason,
+    this.taggedManagerId,
   });
   factory CoreAdvanceItem.fromMap(Map<String, dynamic> row) => CoreAdvanceItem(
     id: row['id'].toString(),
@@ -83,6 +84,7 @@ class CoreAdvanceItem {
     reviewedBy: row['reviewed_by']?.toString(),
     reviewedAt: row['reviewed_at'] == null ? null : coreDate(row['reviewed_at']),
     rejectionReason: row['rejection_reason']?.toString(),
+    taggedManagerId: row['tagged_manager_id']?.toString(),
   );
 }
 
@@ -116,7 +118,8 @@ class CoreReimbursement {
       accountName,
       accountDetails,
       rejectionReason,
-      paidMethod;
+      paidMethod,
+      taggedManagerId;
   final double amount;
   final DateTime createdAt;
   final DateTime? reviewedAt, paidAt;
@@ -134,6 +137,7 @@ class CoreReimbursement {
     this.accountDetails,
     this.rejectionReason,
     this.paidMethod,
+    this.taggedManagerId,
     this.reviewedAt,
     this.paidAt,
   });
@@ -152,6 +156,7 @@ class CoreReimbursement {
         accountDetails: row['receiver_account_details']?.toString(),
         rejectionReason: row['rejection_reason']?.toString(),
         paidMethod: row['paid_method']?.toString(),
+        taggedManagerId: row['tagged_manager_id']?.toString(),
         reviewedAt: row['reviewed_at'] == null
             ? null
             : coreDate(row['reviewed_at']),

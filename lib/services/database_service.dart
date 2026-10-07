@@ -521,6 +521,7 @@ class DatabaseService {
     required String item,
     required double amount,
     String? billPath,
+    String? taggedManagerId,
   }) async {
     final row = await _client.rpc(
       'log_advance_item_v2',
@@ -530,6 +531,7 @@ class DatabaseService {
         'p_item': item,
         'p_amount': amount,
         'p_bill_path': billPath,
+        'p_tagged_manager_id': taggedManagerId,
       },
     );
     return CoreAdvanceItem.fromMap(_asMap(row));
@@ -575,6 +577,7 @@ class DatabaseService {
     String? billPath,
     String? accountName,
     String? accountDetails,
+    String? taggedManagerId,
   }) async {
     final row = await _client.rpc(
       'submit_reimbursement_v2',
@@ -586,6 +589,7 @@ class DatabaseService {
         'p_bill_path': billPath,
         'p_account_name': accountName,
         'p_account_details': accountDetails,
+        'p_tagged_manager_id': taggedManagerId,
       },
     );
     return CoreReimbursement.fromMap(_asMap(row));

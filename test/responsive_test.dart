@@ -26,6 +26,7 @@ import 'package:petty_cash/screens/payments/payment_center_screen.dart';
 import 'package:petty_cash/models/user_model.dart';
 import 'package:petty_cash/models/expense_request_model.dart';
 import 'package:petty_cash/models/notification_model.dart';
+import 'package:petty_cash/models/core_flow_models.dart';
 import 'package:petty_cash/screens/auth/login_screen.dart';
 import 'package:petty_cash/screens/reports/monthly_reporting_screen.dart';
 import 'package:petty_cash/screens/super_admin/analytics_screen.dart';
@@ -53,6 +54,7 @@ final staff = AppUser(
   email: 'abdullah@example.test',
   role: UserRole.officeBoy,
   createdAt: DateTime(2026),
+  officeId: 'main',
 );
 final manager = AppUser(
   uid: 'manager',
@@ -258,6 +260,38 @@ void main() {
           }
         },
       );
+  testWidgets('User cards show office, date, and edit action for admins', (
+    tester,
+  ) async {
+    final language = LanguageProvider(initialLanguage: 'en', loadSaved: false);
+    await language.ready;
+    final auth = A();
+    final users = U();
+    final coreFlow = CoreFlowTestProvider()
+      ..offices = const [OfficeRecord('main', 'Main Office')];
+
+    for (final role in [UserRole.superAdmin, UserRole.admin]) {
+      auth.user = manager.copyWith(role: role);
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<AuthProvider>.value(value: auth),
+            ChangeNotifierProvider<UserProvider>.value(value: users),
+            ChangeNotifierProvider<LanguageProvider>.value(value: language),
+            ChangeNotifierProvider<CoreFlowProvider>.value(value: coreFlow),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: UserManagementScreen()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Main Office'), findsWidgets);
+      expect(find.text(language.date(staff.createdAt)), findsWidgets);
+      expect(find.byIcon(Icons.edit_outlined), findsWidgets);
+    }
+  });
   testWidgets('All screens fit supported sizes and enlarged text', (t) async {
     await t.runAsync(() async {
       await dir.create(recursive: true);
@@ -408,7 +442,8 @@ void main() {
                   ChangeNotifierProvider<NotificationProvider>.value(value: n),
                   ChangeNotifierProvider<PaymentProvider>.value(value: p),
                   ChangeNotifierProvider<CoreFlowProvider>.value(
-                    value: CoreFlowTestProvider(),
+                    value: CoreFlowTestProvider()
+                      ..offices = const [OfficeRecord('main', 'Main Office')],
                   ),
                 ],
                 child: RepaintBoundary(
@@ -431,6 +466,9 @@ void main() {
               ),
             );
             await t.pump(const Duration(seconds: 1));
+            if (entry.key == 'users') {
+              expect(find.textContaining('Main Office'), findsWidgets);
+            }
             if ([
                   'login',
                   'super_dashboard',

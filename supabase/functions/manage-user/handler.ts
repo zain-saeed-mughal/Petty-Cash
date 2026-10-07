@@ -138,7 +138,7 @@ export const createHandler =
         !name || name.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
       ) return reply({ error: "Enter a valid name and email" }, 400);
       if (
-        !["office_boy", "finance", "admin", "super_admin"].includes(role) ||
+        !["office_boy", "finance", "admin", "super_admin", "manager"].includes(role) ||
         (actor.role === "admin" && !["office_boy", "finance"].includes(role))
       ) return reply({ error: "Role is not allowed" }, 403);
       if (

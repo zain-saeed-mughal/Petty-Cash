@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/core_flow_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../models/user_model.dart';
 import '../../config/app_theme.dart';
@@ -520,6 +521,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   Widget _buildUserCard(AppUser user, AppUser currentUser) {
+    final offices = context.watch<CoreFlowProvider>().offices;
+    final officeName = offices
+        .where((office) => office.id == user.officeId)
+        .map((office) => office.name)
+        .firstOrNull;
     Color roleColor;
     switch (user.role) {
       case UserRole.superAdmin:
@@ -533,6 +539,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         break;
       case UserRole.officeBoy:
         roleColor = AppTheme.roleOfficeBoy;
+        break;
+      case UserRole.manager:
+        roleColor = AppTheme.roleManager;
         break;
     }
 
@@ -598,6 +607,28 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
               ),
+              const SizedBox(height: 5),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.business_outlined,
+                    size: 14,
+                    color: Color(0xFF94A3B8),
+                  ),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Text(
+                      '${context.t('Office')}: ${officeName ?? context.t('Not assigned')}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -607,10 +638,22 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     final metadata = Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Text(
-          context.language.date(user.createdAt),
-          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.calendar_today_outlined,
+              size: 13,
+              color: Color(0xFF94A3B8),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              context.language.date(user.createdAt),
+              style: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
+            ),
+          ],
         ),
+        const SizedBox(height: 6),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -621,7 +664,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   size: 18,
                   color: Color(0xFF64748B),
                 ),
-                constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 padding: EdgeInsets.zero,
                 tooltip: Provider.of<LanguageProvider>(
                   context,
@@ -637,7 +680,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   size: 18,
                   color: AppTheme.statusRejected,
                 ),
-                constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 padding: EdgeInsets.zero,
                 tooltip: Provider.of<LanguageProvider>(
                   context,

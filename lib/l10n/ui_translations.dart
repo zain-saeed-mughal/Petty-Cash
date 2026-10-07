@@ -3,6 +3,7 @@ class UiTranslations {
   static const ur = <String, String>{
     "Details": "تفصیل",
     "Office": "دفتر",
+    "Not assigned": "مقرر نہیں",
     "Previous notification": "پرانا اطلاع نامہ",
     "This request is archived.": "یہ درخواست پرانے ریکارڈ میں محفوظ ہے۔",
     "Update Settlement": "حساب میں تبدیلی کریں",
