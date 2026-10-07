@@ -182,6 +182,17 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: '$locale at $width px');
         expect(find.byType(CoreMonthlyRecords), findsOneWidget);
+        final filters = find.byWidgetPredicate(
+          (widget) => widget is DropdownButtonFormField<Object?>,
+        );
+        expect(filters, findsNWidgets(4));
+        final positions = List.generate(
+          4,
+          (index) => tester.getTopLeft(filters.at(index)),
+        );
+        expect(positions[0].dy, closeTo(positions[1].dy, 1));
+        expect(positions[2].dy, closeTo(positions[3].dy, 1));
+        expect(positions[0].dy, lessThan(positions[2].dy));
       }
     }
     tester.view.resetPhysicalSize();

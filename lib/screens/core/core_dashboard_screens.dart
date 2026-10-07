@@ -1182,13 +1182,13 @@ class _FinanceHomeState extends State<FinanceHome> {
           0,
           (s, b) => s + b.remaining,
         );
-        
+
         final monthAdvances = flow.advances.where((a) => 
-            a.status != 'declined' && 
+            a.status != 'declined' &&
             a.status != 'pending' &&
             a.status != 'rejected' &&
-            a.clearedAt != null && 
-            a.clearedAt!.year == _selectedMonth.year && 
+            a.clearedAt != null &&
+            a.clearedAt!.year == _selectedMonth.year &&
             a.clearedAt!.month == _selectedMonth.month
         ).fold<double>(0, (s, a) => s + a.amount);
 
@@ -1681,7 +1681,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
             )
             .toList();
         final managers = context.watch<UserProvider>().allUsers.where((u) => u.isManager).toList();
-        
+
         final allAdvances = flow.advances
             .where(
               (a) =>
@@ -1770,155 +1770,228 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _Panel(
-                    child: Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: () async {
-                            final range = await showDateRangePicker(
-                              context: context,
-                              initialDateRange: _dateRange,
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime(2100),
-                            );
-                            if (range != null) {
-                              setState(() => _dateRange = range);
-                            }
-                          },
-                          icon: const Icon(Icons.calendar_month),
-                          label: Text(
-                            _dateRange.start.day == 1 &&
-                                    _dateRange.start.month == _dateRange.end.month &&
-                                    _dateRange.start.year == _dateRange.end.year &&
-                                    _dateRange.end.day == DateTime(_dateRange.start.year, _dateRange.start.month + 1, 0).day
-                                ? DateFormat('MMMM yyyy').format(_dateRange.start)
-                                : '${DateFormat('d MMM yy').format(_dateRange.start)} - ${DateFormat('d MMM yy').format(_dateRange.end)}',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 180,
-                          child: DropdownButtonFormField<String?>(
-                            initialValue: _officeId,
-                            isExpanded: true,
-                            decoration: InputDecoration(
-                              labelText: _label(context, 'Office', 'دفتر'),
-                            ),
-                            items: [
-                              DropdownMenuItem<String?>(
-                                value: null,
-                                child: Text(
-                                  _label(context, 'All offices', 'تمام دفاتر'),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final fieldWidth = constraints.maxWidth < 220
+                            ? constraints.maxWidth
+                            : ((constraints.maxWidth - 10) / 2).clamp(
+                                0.0,
+                                420.0,
+                              );
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: () async {
+                                final range = await showDateRangePicker(
+                                  context: context,
+                                  initialDateRange: _dateRange,
+                                  firstDate: DateTime(2020),
+                                  lastDate: DateTime(2100),
+                                );
+                                if (range != null) {
+                                  setState(() => _dateRange = range);
+                                }
+                              },
+                              icon: const Icon(Icons.calendar_month),
+                              label: Text(
+                                _dateRange.start.day == 1 &&
+                                        _dateRange.start.month ==
+                                            _dateRange.end.month &&
+                                        _dateRange.start.year ==
+                                            _dateRange.end.year &&
+                                        _dateRange.end.day ==
+                                            DateTime(
+                                              _dateRange.start.year,
+                                              _dateRange.start.month + 1,
+                                              0,
+                                            ).day
+                                    ? DateFormat('MMMM yyyy')
+                                          .format(_dateRange.start)
+                                    : '${DateFormat('d MMM yy').format(_dateRange.start)} - ${DateFormat('d MMM yy').format(_dateRange.end)}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              ...flow.offices.map(
-                                (o) => DropdownMenuItem<String?>(
-                                  value: o.id,
-                                  child: Text(
-                                    o.name,
-                                    overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: [
+                                SizedBox(
+                                  width: fieldWidth,
+                                  child: DropdownButtonFormField<String?>(
+                                    initialValue: _officeId,
+                                    isExpanded: true,
+                                    decoration: InputDecoration(
+                                      labelText: _label(
+                                        context,
+                                        'Office',
+                                        'دفتر',
+                                      ),
+                                    ),
+                                    items: [
+                                      DropdownMenuItem<String?>(
+                                        value: null,
+                                        child: Text(
+                                          _label(
+                                            context,
+                                            'All offices',
+                                            'تمام دفاتر',
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      ...flow.offices.map(
+                                        (o) => DropdownMenuItem<String?>(
+                                          value: o.id,
+                                          child: Text(
+                                            o.name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    onChanged: (v) => setState(() {
+                                      _officeId = v;
+                                      _personId = null;
+                                    }),
                                   ),
                                 ),
-                              ),
-                            ],
-                            onChanged: (v) => setState(() {
-                              _officeId = v;
-                              _personId = null;
-                            }),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 180,
-                          child: DropdownButtonFormField<String?>(
-                            initialValue: _personId,
-                            isExpanded: true,
-                            decoration: InputDecoration(
-                              labelText: _label(
-                                context,
-                                'Office Boy',
-                                'آفس بوائے',
-                              ),
-                            ),
-                            items: [
-                              DropdownMenuItem<String?>(
-                                value: null,
-                                child: Text(
-                                  _label(context, 'All people', 'تمام لوگ'),
-                                ),
-                              ),
-                              ...people.map(
-                                (u) => DropdownMenuItem<String?>(
-                                  value: u.uid,
-                                  child: Text(
-                                    u.name,
-                                    overflow: TextOverflow.ellipsis,
+                                SizedBox(
+                                  width: fieldWidth,
+                                  child: DropdownButtonFormField<String?>(
+                                    initialValue: _personId,
+                                    isExpanded: true,
+                                    decoration: InputDecoration(
+                                      labelText: _label(
+                                        context,
+                                        'Office Boy',
+                                        'آفس بوائے',
+                                      ),
+                                    ),
+                                    items: [
+                                      DropdownMenuItem<String?>(
+                                        value: null,
+                                        child: Text(
+                                          _label(
+                                            context,
+                                            'All people',
+                                            'تمام لوگ',
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      ...people.map(
+                                        (u) => DropdownMenuItem<String?>(
+                                          value: u.uid,
+                                          child: Text(
+                                            u.name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    onChanged: (v) =>
+                                        setState(() => _personId = v),
                                   ),
                                 ),
-                              ),
-                            ],
-                            onChanged: (v) => setState(() => _personId = v),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 180,
-                          child: DropdownButtonFormField<String?>(
-                            initialValue: _managerId,
-                            isExpanded: true,
-                            decoration: InputDecoration(
-                              labelText: _label(context, 'Manager', 'مینیجر'),
-                            ),
-                            items: [
-                              DropdownMenuItem<String?>(
-                                value: null,
-                                child: Text(_label(context, 'All Managers', 'تمام مینیجرز')),
-                              ),
-                              ...managers.map((m) => DropdownMenuItem<String?>(
-                                value: m.uid,
-                                child: Text(m.name, overflow: TextOverflow.ellipsis),
-                              )),
-                            ],
-                            onChanged: (v) => setState(() => _managerId = v),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 180,
-                          child: DropdownButtonFormField<String>(
-                            initialValue: _type,
-                            isExpanded: true,
-                            decoration: InputDecoration(
-                              labelText: _label(context, 'Type', 'قسم'),
-                            ),
-                            items: [
-                              DropdownMenuItem(
-                                value: 'all',
-                                child: Text(
-                                  _label(
-                                    context,
-                                    'All payments',
-                                    'تمام ادائیگیاں',
+                                SizedBox(
+                                  width: fieldWidth,
+                                  child: DropdownButtonFormField<String?>(
+                                    initialValue: _managerId,
+                                    isExpanded: true,
+                                    decoration: InputDecoration(
+                                      labelText: _label(
+                                        context,
+                                        'Manager',
+                                        'مینیجر',
+                                      ),
+                                    ),
+                                    items: [
+                                      DropdownMenuItem<String?>(
+                                        value: null,
+                                        child: Text(
+                                          _label(
+                                            context,
+                                            'All Managers',
+                                            'تمام مینیجرز',
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      ...managers.map(
+                                        (m) => DropdownMenuItem<String?>(
+                                          value: m.uid,
+                                          child: Text(
+                                            m.name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    onChanged: (v) =>
+                                        setState(() => _managerId = v),
                                   ),
                                 ),
-                              ),
-                              DropdownMenuItem(
-                                value: 'advance',
-                                child: Text(
-                                  _label(context, 'Advance', 'ایڈوانس'),
+                                SizedBox(
+                                  width: fieldWidth,
+                                  child: DropdownButtonFormField<String>(
+                                    initialValue: _type,
+                                    isExpanded: true,
+                                    decoration: InputDecoration(
+                                      labelText: _label(context, 'Type', 'قسم'),
+                                    ),
+                                    items: [
+                                      DropdownMenuItem(
+                                        value: 'all',
+                                        child: Text(
+                                          _label(
+                                            context,
+                                            'All payments',
+                                            'تمام ادائیگیاں',
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'advance',
+                                        child: Text(
+                                          _label(context, 'Advance', 'ایڈوانس'),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'reimbursement',
+                                        child: Text(
+                                          _label(
+                                            context,
+                                            'Own money',
+                                            'اپنی رقم',
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                    onChanged: (v) =>
+                                        setState(() => _type = v ?? 'all'),
+                                  ),
                                 ),
-                              ),
-                              DropdownMenuItem(
-                                value: 'reimbursement',
-                                child: Text(
-                                  _label(context, 'Own money', 'اپنی رقم'),
-                                ),
-                              ),
-                            ],
-                            onChanged: (v) =>
-                                setState(() => _type = v ?? 'all'),
-                          ),
-                        ),
-                      ],
+                              ],
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 14),
