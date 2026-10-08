@@ -4,6 +4,7 @@ import 'package:petty_cash/l10n/context_l10n.dart';
 import 'package:flutter/material.dart';
 
 import '../config/app_theme.dart';
+import 'curved_nav_bar.dart';
 
 class NavigationItem {
   final IconData icon;
@@ -95,15 +96,12 @@ class AdaptiveScaffold extends StatelessWidget {
 
     // Mobile View
     return Scaffold(
+      extendBody: false,
       appBar: const AccountAppBar(),
       body: body,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: currentIndex,
-        onDestinationSelected: onNavigationIndexChanged,
-        backgroundColor: Colors.white,
-        elevation: 2,
-        indicatorColor: AppTheme.primaryBlue.withValues(alpha: 0.15),
-        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+      bottomNavigationBar: CurvedNavBar(
+        currentIndex: currentIndex,
+        onNavigationIndexChanged: onNavigationIndexChanged,
         destinations: destinations.map((d) {
           final label = screenWidth < 380
               ? switch (d.label) {
@@ -112,17 +110,11 @@ class AdaptiveScaffold extends StatelessWidget {
                   _ => d.label,
                 }
               : d.label;
-          return NavigationDestination(
-            icon: d.badgeCount != null && d.badgeCount! > 0
-                ? Badge(label: Text('${d.badgeCount}'), child: Icon(d.icon))
-                : Icon(d.icon),
-            selectedIcon: d.badgeCount != null && d.badgeCount! > 0
-                ? Badge(
-                    label: Text('${d.badgeCount}'),
-                    child: Icon(d.selectedIcon),
-                  )
-                : Icon(d.selectedIcon),
+          return NavigationItem(
+            icon: d.icon,
+            selectedIcon: d.selectedIcon,
             label: label,
+            badgeCount: d.badgeCount,
           );
         }).toList(),
       ),

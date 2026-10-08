@@ -92,6 +92,9 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   fonts:
+    - family: JameelNooriNastaleeq
+      fonts:
+        - asset: assets/fonts/JameelNooriNastaleeq.ttf
     - family: NotoSansArabic
       fonts:
         - asset: assets/fonts/NotoSansArabic.ttf

@@ -18,7 +18,9 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
   Widget build(BuildContext context) {
     final ur = context.watch<LanguageProvider>().isRtl;
     final flow = context.watch<CoreFlowProvider>();
-    final advances = flow.advances.where((a) => a.status == 'pending').length;
+    final advances = flow.advances
+        .where((a) => a.status == 'pending' || a.status == 'awaiting_office_boy_approval')
+        .length;
     final repayments = flow.reimbursements
         .where((r) => r.status == 'pending' || r.status == 'approved')
         .length;

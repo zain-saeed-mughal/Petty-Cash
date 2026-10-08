@@ -20,16 +20,22 @@ String accountServiceMessage(int status, dynamic details) {
 }
 
 String userMessage(Object error) {
+  final text = error.toString();
+  if (text.contains('SocketException') ||
+      text.contains('ClientException') ||
+      text.contains('Failed to fetch') ||
+      text.contains('Failed host lookup') ||
+      text.contains('Network is unreachable') ||
+      text.contains('Connection refused')) {
+    return 'Connection unavailable. Check your internet and try again.';
+  }
+
   if (error is PostgrestException) return error.message;
   if (error is AuthException) return error.message;
-  final text = error.toString().replaceFirst(
+
+  final cleanText = text.replaceFirst(
     RegExp(r'^(Exception|Bad state):\s*'),
     '',
   );
-  if (text.contains('SocketException') ||
-      text.contains('ClientException') ||
-      text.contains('Failed to fetch')) {
-    return 'Connection unavailable. Check your internet and try again.';
-  }
-  return text;
+  return cleanText;
 }

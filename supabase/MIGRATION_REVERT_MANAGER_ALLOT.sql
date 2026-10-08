@@ -71,5 +71,13 @@ CREATE POLICY core_activity_read ON public.core_payment_activity FOR SELECT TO a
   ))
 );
 
+-- Reimbursement requests: managers can see requests tagged to them
+DROP POLICY IF EXISTS reimbursements_read ON public.reimbursement_requests;
+CREATE POLICY reimbursements_read ON public.reimbursement_requests FOR SELECT TO authenticated USING (
+  public.current_user_role() IN ('finance','admin','super_admin') OR
+  (office_boy_id = auth.uid() AND office_id = public.current_office_id()) OR
+  (public.current_user_role() = 'manager' AND tagged_manager_id = auth.uid())
+);
+
 -- 5. FINALLY drop the column
 ALTER TABLE public.advance_requests DROP COLUMN IF EXISTS allotted_by_manager_id;

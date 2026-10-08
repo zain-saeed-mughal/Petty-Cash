@@ -13,9 +13,10 @@ class NotificationsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<NotificationProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SafeArea(
       child: Material(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         child: SizedBox(
           width: 440,
@@ -34,7 +35,7 @@ class NotificationsPanel extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: AppTheme.primaryNavy,
+                        color: isDark ? Colors.white : AppTheme.primaryNavy,
                       ),
                     ),
                     if (provider.unreadCount > 0)
@@ -45,7 +46,7 @@ class NotificationsPanel extends StatelessWidget {
                     IconButton(
                       tooltip: context.t('Close'),
                       onPressed: () => Navigator.maybePop(context),
-                      icon: const Icon(Icons.close),
+                      icon: Icon(Icons.close, color: isDark ? Colors.white70 : null),
                     ),
                   ],
                 ),
@@ -87,23 +88,26 @@ class NotificationsPanel extends StatelessWidget {
                   ),
                 ),
               if (provider.isLoading) const LinearProgressIndicator(),
-              const Divider(height: 1),
+              Divider(height: 1, color: isDark ? Colors.white12 : null),
               Expanded(
                 child: provider.notifications.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.notifications_none_rounded,
                               size: 40,
-                              color: Colors.grey,
+                              color: isDark ? Colors.white38 : Colors.grey,
                             ),
                             const SizedBox(height: 12),
                             Text(
                               provider.errorMessage == null
                                   ? context.t('You are all caught up.')
                                   : context.t('Notifications are unavailable.'),
+                              style: TextStyle(
+                                color: isDark ? Colors.white70 : null,
+                              ),
                             ),
                             if (provider.errorMessage != null)
                               TextButton(
@@ -123,7 +127,7 @@ class NotificationsPanel extends StatelessWidget {
                         child: ListView.separated(
                           physics: const AlwaysScrollableScrollPhysics(),
                           itemCount: provider.notifications.length,
-                          separatorBuilder: (_, _) => const Divider(height: 1),
+                          separatorBuilder: (_, _) => Divider(height: 1, color: isDark ? Colors.white12 : null),
                           itemBuilder: (context, index) {
                             final n = provider.notifications[index];
                             return Dismissible(
@@ -148,29 +152,37 @@ class NotificationsPanel extends StatelessWidget {
                                 ),
                                 tileColor: n.isRead
                                     ? null
-                                    : const Color(0xffeff6ff),
+                                    : (isDark
+                                        ? const Color(0xFF334155)
+                                        : const Color(0xffeff6ff)),
                                 title: Text(
                                   context.language.notificationTitle(n),
                                   style: TextStyle(
                                     fontWeight: n.isRead
                                         ? FontWeight.w500
                                         : FontWeight.w700,
+                                    color: isDark ? Colors.white : Colors.black87,
                                   ),
                                 ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     const SizedBox(height: 6),
-                                    Text(context.language.notificationBody(n)),
+                                    Text(
+                                      context.language.notificationBody(n),
+                                      style: TextStyle(
+                                        color: isDark ? Colors.white70 : Colors.black87,
+                                      ),
+                                    ),
                                     const SizedBox(height: 6),
                                     Text(
                                       context.language.date(
                                         n.createdAt.toLocal(),
                                         pattern: 'dd MMM, hh:mm a',
                                       ),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.grey,
+                                        color: isDark ? Colors.white38 : Colors.grey,
                                       ),
                                     ),
                                   ],
@@ -209,24 +221,51 @@ class NotificationsPanel extends StatelessWidget {
                                       );
                                       return;
                                     }
-                                    await Navigator.of(context).push(
+                                    final nav = Navigator.of(context);
+                                    nav.pop(); // Close notifications bottom sheet first
+                                    await nav.push(
                                       MaterialPageRoute<void>(
                                         builder: (_) => Scaffold(
                                           appBar: AppBar(
                                             title: Text(context.t('Details')),
                                           ),
-                                          body: ListView(
-                                            padding: const EdgeInsets.all(16),
-                                            children: [
-                                              if (advance != null)
-                                                CoreAdvanceCard(
-                                                  advance: advance,
-                                                ),
-                                              if (repayment != null)
-                                                CoreReimbursementCard(
-                                                  request: repayment,
-                                                ),
-                                            ],
+                                          body: Consumer<CoreFlowProvider>(
+                                            builder: (ctx, liveFlow, _) {
+                                              final liveAdvance = n.relatedCoreAdvanceId != null
+                                                  ? liveFlow.advances
+                                                      .where((a) => a.id == n.relatedCoreAdvanceId)
+                                                      .firstOrNull
+                                                  : null;
+                                              final liveRepayment = n.relatedReimbursementId != null
+                                                  ? liveFlow.reimbursements
+                                                      .where((r) => r.id == n.relatedReimbursementId)
+                                                      .firstOrNull
+                                                  : null;
+                                              if (liveAdvance == null && liveRepayment == null) {
+                                                return Center(
+                                                  child: Padding(
+                                                    padding: const EdgeInsets.all(24.0),
+                                                    child: Text(
+                                                      context.t('This request is no longer available.'),
+                                                      textAlign: TextAlign.center,
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                              return ListView(
+                                                padding: const EdgeInsets.all(16),
+                                                children: [
+                                                  if (liveAdvance != null)
+                                                    CoreAdvanceCard(
+                                                      advance: liveAdvance,
+                                                    ),
+                                                  if (liveRepayment != null)
+                                                    CoreReimbursementCard(
+                                                      request: liveRepayment,
+                                                    ),
+                                                ],
+                                              );
+                                            },
                                           ),
                                         ),
                                       ),

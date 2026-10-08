@@ -6,8 +6,16 @@ import 'package:petty_cash/providers/language_provider.dart';
 class AppStatusBadge extends StatelessWidget {
   final String status;
   final bool isCompact;
+  /// Set to true when the badge is shown to the person who *received* the money
+  /// (e.g. Office Boy's own advance card). Changes 'Sent' → 'Received'.
+  final bool isRecipient;
 
-  const AppStatusBadge({super.key, required this.status, this.isCompact = false});
+  const AppStatusBadge({
+    super.key,
+    required this.status,
+    this.isCompact = false,
+    this.isRecipient = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,9 +39,15 @@ class AppStatusBadge extends StatelessWidget {
       case 'awaiting_office_boy_approval':
         textColor = AppTheme.statusPending;
         bgColor = AppTheme.statusPendingBg;
-        icon = Icons.touch_app_rounded;
-        labelEn = 'Confirm receipt';
-        labelUr = 'وصولی بتائیں';
+        if (isRecipient) {
+          icon = Icons.touch_app_rounded;
+          labelEn = 'Confirm receipt';
+          labelUr = 'وصولی بتائیں';
+        } else {
+          icon = Icons.hourglass_top_rounded;
+          labelEn = 'Awaiting confirmation';
+          labelUr = 'تصدیق کا انتظار';
+        }
         break;
       case 'cleared':
       case 'payment cleared':
@@ -45,8 +59,13 @@ class AppStatusBadge extends StatelessWidget {
         labelEn = 'Approved';
         labelUr = 'منظور شدہ';
         if (normalized == 'cleared') {
-          labelEn = 'Sent';
-          labelUr = 'بھیج دی';
+          if (isRecipient) {
+            labelEn = 'Received';
+            labelUr = 'پیسے مل گئے';
+          } else {
+            labelEn = 'Sent';
+            labelUr = 'بھیج دی';
+          }
         }
         break;
       case 'paid':

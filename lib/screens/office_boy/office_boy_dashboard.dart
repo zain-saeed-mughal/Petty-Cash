@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/auth_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/core_flow_provider.dart';
 import '../../widgets/adaptive_scaffold.dart';
@@ -17,10 +18,11 @@ class _OfficeBoyDashboardState extends State<OfficeBoyDashboard> {
   @override
   Widget build(BuildContext context) {
     final ur = context.watch<LanguageProvider>().isRtl;
+    final uid = context.watch<AuthProvider>().currentUser?.uid ?? '';
     final flow = context.watch<CoreFlowProvider>();
     final waiting =
-        flow.advances.where((a) => a.status == 'pending').length +
-        flow.reimbursements.where((r) => r.status == 'pending').length;
+        flow.advances.where((a) => a.officeBoyId == uid && (a.status == 'pending' || a.status == 'awaiting_office_boy_approval')).length +
+        flow.reimbursements.where((r) => r.officeBoyId == uid && r.status == 'pending').length;
     return AdaptiveScaffold(
       title: '',
       currentIndex: _index,

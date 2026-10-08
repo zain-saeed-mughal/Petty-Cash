@@ -95,13 +95,19 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
         ? UserRole.values
         : [UserRole.officeBoy, UserRole.finance];
     final self = widget.user?.uid == widget.actor.uid;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
       canPop: !_busy,
       child: AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         title: Text(
           widget.user == null
               ? context.t('Create account')
               : context.t('Edit account'),
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontWeight: FontWeight.w700,
+          ),
         ),
         content: SizedBox(
           width: 440,
@@ -244,16 +250,36 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
             ),
           ),
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          TextButton(
-            onPressed: _busy ? null : () => Navigator.pop(context),
-            child: Text(context.t('Cancel')),
-          ),
-          FilledButton(
-            onPressed: _busy ? null : _save,
-            child: Text(
-              _busy ? context.t('Saving…') : context.t('Save account'),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ),
+                onPressed: _busy ? null : () => Navigator.pop(context),
+                child: Text(context.t('Cancel')),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF7C3AED),
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: _busy ? null : _save,
+                child: _busy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Text(context.t('Save account')),
+              ),
+            ],
           ),
         ],
       ),

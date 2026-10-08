@@ -194,7 +194,9 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
     final isReimbursement = widget.mode == 'reimbursement';
     final showAccount = !isItem && _method == 'card' && !isDirectAdvance;
     final managers = context.watch<UserProvider>().allUsers.where((u) => u.isManager).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AlertDialog(
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       title: Text(
         isAdvance
             ? coreText(context, 'Request Advance', 'ایڈوانس مانگیں')
@@ -205,6 +207,10 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                 'I Bought Something Myself',
                 'میں نے اپنی رقم سے خریدا',
               ),
+        style: TextStyle(
+          color: isDark ? Colors.white : const Color(0xFF0F172A),
+          fontWeight: FontWeight.w700,
+        ),
       ),
       content: SizedBox(
         width: 440,
@@ -475,24 +481,40 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
           ),
         ),
       ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       actions: [
-        TextButton(
-          onPressed: _busy ? null : () => Navigator.pop(context, false),
-          child: Text(coreText(context, 'Cancel', 'منسوخ کریں')),
-        ),
-        FilledButton(
-          onPressed: _busy ? null : _submit,
-          child: _busy
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(
-                  isItem
-                      ? coreText(context, 'Save Purchase', 'خریداری محفوظ کریں')
-                      : coreText(context, 'Send Request', 'درخواست بھیجیں'),
-                ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+              onPressed: _busy ? null : () => Navigator.pop(context, false),
+              child: Text(coreText(context, 'Cancel', 'منسوخ کریں')),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: _busy ? null : _submit,
+              child: _busy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      isItem
+                          ? coreText(context, 'Save Purchase', 'خریداری محفوظ کریں')
+                          : coreText(context, 'Send Request', 'درخواست بھیجیں'),
+                    ),
+            ),
+          ],
         ),
       ],
     );
@@ -511,34 +533,52 @@ class _MethodCard extends StatelessWidget {
     required this.onTap,
   });
   @override
-  Widget build(BuildContext context) => InkWell(
-    borderRadius: BorderRadius.circular(14),
-    onTap: onTap,
-    child: Container(
-      constraints: const BoxConstraints(minHeight: 64),
-      decoration: BoxDecoration(
-        color: selected ? const Color(0xFFE2E9FF) : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: selected ? const Color(0xFF3159E8) : const Color(0xFFD8DFE8),
-          width: selected ? 2 : 1,
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 64),
+        decoration: BoxDecoration(
+          color: isDark
+              ? (selected ? const Color(0xFF312E81).withValues(alpha: 0.6) : const Color(0xFF0F172A))
+              : (selected ? const Color(0xFFF3E8FF) : Colors.white),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected
+                ? const Color(0xFF8B5CF6)
+                : (isDark ? const Color(0xFF334155) : const Color(0xFFD8DFE8)),
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: selected
+                  ? const Color(0xFF8B5CF6)
+                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: selected
+                      ? (isDark ? Colors.white : const Color(0xFF7C3AED))
+                      : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 20),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+    );
+  }
 }

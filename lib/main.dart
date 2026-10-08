@@ -14,6 +14,7 @@ import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/language_provider.dart';
+import 'providers/theme_provider.dart';
 import 'providers/core_flow_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/office_boy/office_boy_dashboard.dart';
@@ -37,6 +38,7 @@ class AppProviders extends StatelessWidget {
   Widget build(BuildContext context) => MultiProvider(
     providers: [
       ChangeNotifierProvider(create: (_) => LanguageProvider()),
+      ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ChangeNotifierProvider(create: (_) => AuthProvider()),
       ChangeNotifierProxyProvider<AuthProvider, CoreFlowProvider>(
         create: (_) => CoreFlowProvider(),
@@ -211,6 +213,7 @@ class _PettyCashAppState extends State<PettyCashApp> {
       _navigationIdentity = navigationIdentity;
       _navigatorKey = GlobalKey<NavigatorState>();
     }
+    final theme = context.watch<ThemeProvider>();
     return MaterialApp(
       key: ValueKey(
         identity == null ? 'signed-out' : identity.uid + identity.role.roleCode,
@@ -218,7 +221,10 @@ class _PettyCashAppState extends State<PettyCashApp> {
       navigatorKey: _navigatorKey,
       title: context.t(AppConstants.appName),
       debugShowCheckedModeBanner: false,
+      themeAnimationDuration: Duration.zero,
       theme: AppTheme.forLanguage(language.currentLanguage),
+      darkTheme: AppTheme.darkTheme(language.currentLanguage),
+      themeMode: theme.themeMode,
       locale: language.locale,
       supportedLocales: const [Locale('en'), Locale('ur')],
       localizationsDelegates: [
@@ -235,38 +241,33 @@ class _PettyCashAppState extends State<PettyCashApp> {
           child: child ?? const SizedBox(),
         );
       },
-      home: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200),
-        switchInCurve: Curves.easeIn,
-        switchOutCurve: Curves.easeOut,
-        child: _startupError != null
-            ? Scaffold(
-                body: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.cloud_off_rounded, size: 48),
-                        const SizedBox(height: 16),
-                        Text(
-                          context.language.error(_startupError!),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        FilledButton(
-                          onPressed: _initializeServices,
-                          child: Text(context.t('Try again')),
-                        ),
-                      ],
-                    ),
+      home: _startupError != null
+          ? Scaffold(
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.cloud_off_rounded, size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        context.language.error(_startupError!),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton(
+                        onPressed: _initializeServices,
+                        child: Text(context.t('Try again')),
+                      ),
+                    ],
                   ),
                 ),
-              )
-            : _isInitialized
-            ? const RoleRouter()
-            : const _StartupSplash(key: ValueKey('splash')),
-      ),
+              ),
+            )
+          : _isInitialized
+              ? const RoleRouter()
+              : const _StartupSplash(key: ValueKey('splash')),
     );
   }
 }

@@ -41,19 +41,125 @@ class AppTheme {
     ),
   ];
 
+  // Dark Theme Tokens
+  static const Color backgroundDark = Color(0xFF0B0F19);
+  static const Color surfaceDark = Color(0xFF1E293B);
+  static const Color surfaceMutedDark = Color(0xFF0F172A);
+  static const Color borderDark = Color(0xFF334155);
+
   static ThemeData get lightTheme => forLanguage('en');
 
-  static ThemeData forLanguage(String language) {
-    final family = language == 'ur' ? 'NotoSansArabic' : 'Inter';
-    final baseTextTheme = ThemeData.light().textTheme.apply(
+  static ThemeData darkTheme(String language) {
+    final family = language == 'ur' ? 'JameelNooriNastaleeq' : 'Inter';
+    final baseTextTheme = ThemeData.dark().textTheme.apply(
       fontFamily: family,
-      fontFamilyFallback: const ['NotoSansArabic', 'Inter'],
+      fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
     );
 
     return ThemeData(
       useMaterial3: true,
       fontFamily: family,
-      fontFamilyFallback: const ['NotoSansArabic', 'Inter'],
+      fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF8B5CF6),
+        brightness: Brightness.dark,
+        primary: const Color(0xFF8B5CF6),
+        onPrimary: Colors.white,
+        secondary: const Color(0xFF14B8A6),
+        surface: surfaceDark,
+        error: const Color(0xFFF87171),
+      ),
+      scaffoldBackgroundColor: backgroundDark,
+      textTheme: baseTextTheme.copyWith(
+        titleLarge: baseTextTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          letterSpacing: language == 'ur' ? 0 : -0.5,
+        ),
+        titleMedium: baseTextTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+          letterSpacing: language == 'ur' ? 0 : -0.3,
+        ),
+        bodyLarge: baseTextTheme.bodyLarge?.copyWith(color: const Color(0xFFE2E8F0)),
+        bodyMedium: baseTextTheme.bodyMedium?.copyWith(color: const Color(0xFFCBD5E1)),
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: surfaceDark,
+        foregroundColor: Colors.white,
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          fontFamily: family,
+          fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+          letterSpacing: language == 'ur' ? 0 : -0.8,
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: surfaceDark,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: borderDark, width: 0.5),
+        ),
+        margin: EdgeInsets.zero,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: surfaceDark,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: borderDark),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: borderDark),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 2),
+        ),
+        labelStyle: const TextStyle(
+          color: Color(0xFF94A3B8),
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+        ),
+        hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 15),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: surfaceDark,
+        elevation: 24,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: borderDark,
+        thickness: 1,
+        space: 24,
+      ),
+    );
+  }
+
+  static ThemeData forLanguage(String language) {
+    final family = language == 'ur' ? 'JameelNooriNastaleeq' : 'Inter';
+    final baseTextTheme = ThemeData.light().textTheme.apply(
+      fontFamily: family,
+      fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      fontFamily: family,
+      fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
       brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryBlue,
@@ -84,7 +190,7 @@ class AppTheme {
         centerTitle: false,
         titleTextStyle: TextStyle(
           fontFamily: family,
-          fontFamilyFallback: const ['NotoSansArabic', 'Inter'],
+          fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
           fontSize: 22,
           fontWeight: FontWeight.w800,
           color: primaryNavy,

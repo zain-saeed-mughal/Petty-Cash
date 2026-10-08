@@ -163,31 +163,54 @@ class _ChoiceCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(18),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: AppTheme.borderLight),
-      boxShadow: AppTheme.premiumShadow,
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: AppTheme.primaryBlue, size: 30),
-        const SizedBox(height: 10),
-        Text(
-          title,
-          style: Theme.of(context).textTheme.titleMedium
-              ?.copyWith(fontWeight: FontWeight.w800),
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : AppTheme.borderLight,
         ),
-        const SizedBox(height: 4),
-        Text(subtitle, style: const TextStyle(color: Color(0xFF475569))),
-        const SizedBox(height: 12),
-        FilledButton(onPressed: onPressed, child: Text(action)),
-      ],
-    ),
-  );
+        boxShadow: isDark ? [] : AppTheme.premiumShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            color: isDark ? const Color(0xFFA78BFA) : const Color(0xFF7C3AED),
+            size: 30,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569),
+            ),
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF7C3AED),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: onPressed,
+            child: Text(action),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _RequestAdvanceDialog extends StatefulWidget {
@@ -227,103 +250,147 @@ class _RequestAdvanceDialogState extends State<_RequestAdvanceDialog> {
   }
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
-    title: Text(_label(context, 'Request an advance', 'ایڈوانس کی درخواست')),
-    content: SizedBox(
-      width: 430,
-      child: Form(
-        key: _form,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _label(
-                  context,
-                  'Finance will review this request. Your balance increases after you confirm receipt.',
-                  'فنانس اس درخواست کا جائزہ لے گا۔ وصولی کی تصدیق کے بعد رقم بیلنس میں آئے گی۔',
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _amount,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
-                ],
-                decoration: InputDecoration(
-                  labelText: _label(context, 'Amount (PKR)', 'رقم (روپے)'),
-                  helperText: _label(
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return AlertDialog(
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+      title: Text(
+        _label(context, 'Request an advance', 'ایڈوانس کی درخواست'),
+        style: TextStyle(
+          color: isDark ? Colors.white : const Color(0xFF0F172A),
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      content: SizedBox(
+        width: 430,
+        child: Form(
+          key: _form,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _label(
                     context,
-                    'Example: 500',
-                    'مثال: ۵۰۰',
+                    'Finance will review this request. Your balance increases after you confirm receipt.',
+                    'فنانس اس درخواست کا جائزہ لے گا۔ وصولی کی تصدیق کے بعد رقم بیلنس میں آئے گی۔',
+                  ),
+                  style: TextStyle(
+                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    fontSize: 13,
                   ),
                 ),
-                validator: (value) {
-                  final parsed = double.tryParse(value?.trim() ?? '');
-                  if (parsed == null ||
-                      !parsed.isFinite ||
-                      parsed <= 0 ||
-                      parsed >= 10000000000 ||
-                      !RegExp(r'^\d+(?:\.\d{1,2})?$')
-                          .hasMatch(value?.trim() ?? '')) {
-                    return _label(
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _amount,
+                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                  ],
+                  decoration: InputDecoration(
+                    labelText: _label(context, 'Amount (PKR)', 'رقم (روپے)'),
+                    helperText: _label(
                       context,
-                      'Enter a valid amount.',
-                      'درست رقم درج کریں۔',
-                    );
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 14),
-              TextFormField(
-                controller: _purpose,
-                maxLength: 2000,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: _label(
-                    context,
-                    'What is the money for?',
-                    'رقم کس کام کے لیے چاہیے؟',
+                      'Example: 500',
+                      'مثال: ۵۰۰',
+                    ),
+                    labelStyle: TextStyle(
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                    helperStyle: TextStyle(
+                      color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    ),
                   ),
-                  helperText: _label(
-                    context,
-                    'Example: paper and printer ink',
-                    'مثال: کاغذ اور پرنٹر کی سیاہی',
-                  ),
-                ),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? _label(
+                  validator: (value) {
+                    final parsed = double.tryParse(value?.trim() ?? '');
+                    if (parsed == null ||
+                        !parsed.isFinite ||
+                        parsed <= 0 ||
+                        parsed >= 10000000000 ||
+                        !RegExp(r'^\d+(?:\.\d{1,2})?$')
+                            .hasMatch(value?.trim() ?? '')) {
+                      return _label(
                         context,
-                        'Tell Finance why you need it.',
-                        'فنانس کو وجہ بتائیں۔',
-                      )
-                    : null,
-              ),
-            ],
+                        'Enter a valid amount.',
+                        'درست رقم درج کریں۔',
+                      );
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _purpose,
+                  maxLength: 2000,
+                  maxLines: 3,
+                  style: TextStyle(color: isDark ? Colors.white : const Color(0xFF0F172A)),
+                  decoration: InputDecoration(
+                    labelText: _label(
+                      context,
+                      'What is the money for?',
+                      'رقم کس کام کے لیے چاہیے؟',
+                    ),
+                    helperText: _label(
+                      context,
+                      'Example: paper and printer ink',
+                      'مثال: کاغذ اور پرنٹر کی سیاہی',
+                    ),
+                    labelStyle: TextStyle(
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    ),
+                    helperStyle: TextStyle(
+                      color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    ),
+                  ),
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? _label(
+                          context,
+                          'Tell Finance why you need it.',
+                          'فنانس کو وجہ بتائیں۔',
+                        )
+                      : null,
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-    actions: [
-      TextButton(
-        onPressed: _busy ? null : () => Navigator.pop(context),
-        child: Text(_label(context, 'Cancel', 'منسوخ')),
-      ),
-      FilledButton(
-        onPressed: _busy ? null : _submit,
-        child: _busy
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Text(_label(context, 'Send to Finance', 'فنانس کو بھیجیں')),
-      ),
-    ],
-  );
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      actions: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              ),
+              onPressed: _busy ? null : () => Navigator.pop(context),
+              child: Text(_label(context, 'Cancel', 'منسوخ')),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF7C3AED),
+                foregroundColor: Colors.white,
+              ),
+              onPressed: _busy ? null : _submit,
+              child: _busy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(_label(context, 'Send to Finance', 'فنانس کو بھیجیں')),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }

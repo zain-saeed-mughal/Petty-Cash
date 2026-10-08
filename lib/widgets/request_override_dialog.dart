@@ -117,18 +117,24 @@ class _RequestOverrideDialogState extends State<RequestOverrideDialog> {
           ),
         ),
       ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       actions: [
-        TextButton(
-          onPressed: _busy ? null : () => Navigator.pop(context),
-          child: Text(context.t('Cancel')),
-        ),
-        FilledButton(
-          onPressed: _busy ? null : _save,
-          child: Text(
-            _busy
-                ? context.t('Saving…')
-                : context.language.tr('apply_override'),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: _busy ? null : () => Navigator.pop(context),
+              child: Text(context.t('Cancel')),
+            ),
+            FilledButton(
+              onPressed: _busy ? null : _save,
+              child: Text(
+                _busy
+                    ? context.t('Saving…')
+                    : context.language.tr('apply_override'),
+              ),
+            ),
+          ],
         ),
       ],
     ),

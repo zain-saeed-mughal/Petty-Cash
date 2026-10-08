@@ -149,22 +149,28 @@ class _RejectionReasonDialogState extends State<RejectionReasonDialog> {
           ),
         ),
       ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(null),
-          child: Text(context.t('Cancel')),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.statusRejected,
-            foregroundColor: Colors.white,
-          ),
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              Navigator.of(context).pop(_reasonController.text.trim());
-            }
-          },
-          child: Text(context.t('Send back')),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: Text(context.t('Cancel')),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.statusRejected,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  Navigator.of(context).pop(_reasonController.text.trim());
+                }
+              },
+              child: Text(context.t('Send back')),
+            ),
+          ],
         ),
       ],
     );

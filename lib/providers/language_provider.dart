@@ -101,7 +101,8 @@ class LanguageProvider extends ChangeNotifier {
       RegExp(r'^(Exception|Bad state|StateError|FormatException):\s*'),
       '',
     );
-    if (_urdu.containsKey(clean)) return _urdu[clean]!;
+    // Only translate to Urdu when Urdu is the active language
+    if (isRtl && _urdu.containsKey(clean)) return _urdu[clean]!;
     final lower = clean.toLowerCase();
     if (RegExp(
       r'network|connection|socket|fetch|timeout|clientexception',

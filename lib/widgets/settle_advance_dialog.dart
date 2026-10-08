@@ -208,18 +208,24 @@ class _SettleAdvanceDialogState extends State<SettleAdvanceDialog> {
             ),
           ),
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          TextButton(
-            onPressed: _busy ? null : () => Navigator.pop(context),
-            child: Text(context.t('Cancel')),
-          ),
-          FilledButton(
-            onPressed: _busy ? null : _submit,
-            child: Text(
-              _busy
-                  ? context.t('Sending...')
-                  : context.t('Send update'),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: _busy ? null : () => Navigator.pop(context),
+                child: Text(context.t('Cancel')),
+              ),
+              FilledButton(
+                onPressed: _busy ? null : _submit,
+                child: Text(
+                  _busy
+                      ? context.t('Sending...')
+                      : context.t('Send update'),
+                ),
+              ),
+            ],
           ),
         ],
       ),

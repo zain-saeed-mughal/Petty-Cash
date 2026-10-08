@@ -5,6 +5,7 @@ import '../config/app_theme.dart';
 import '../l10n/context_l10n.dart';
 import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
+import '../providers/theme_provider.dart';
 import 'notifications_panel.dart';
 
 /// The same compact account controls on every dashboard, in both directions.
@@ -17,61 +18,29 @@ class AccountAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
     final name = auth.currentUser?.name ?? context.t('User');
-    final language = context.language;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppBar(
       automaticallyImplyLeading: false,
       toolbarHeight: 64,
-      titleSpacing: 12,
+      titleSpacing: 16,
       title: Row(
         children: [
-          PopupMenuButton<String>(
-            tooltip: context.t('Language'),
-            initialValue: language.currentLanguage,
-            onSelected: language.setLanguage,
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'en', child: Text('English')),
-              PopupMenuItem(
-                value: 'ur',
-                child: Text(
-                  'اردو',
-                  style: TextStyle(fontFamily: 'NotoSansArabic'),
-                ),
-              ),
-            ],
-            child: Container(
-              height: 40,
-              width: 40,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppTheme.surfaceMuted,
-                border: Border.all(color: AppTheme.borderLight),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.language_rounded,
-                  size: 20,
-                  color: AppTheme.primaryNavy,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
           Expanded(
             child: Tooltip(
               message: name,
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 18,
-                    backgroundColor: AppTheme.primaryNavy.withValues(
-                      alpha: 0.1,
-                    ),
+                    radius: 19,
+                    backgroundColor: isDark
+                        ? const Color(0xFF7C3AED).withValues(alpha: 0.25)
+                        : const Color(0xFF7C3AED).withValues(alpha: 0.12),
                     child: Text(
                       name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryNavy,
+                        color: isDark ? const Color(0xFFA78BFA) : const Color(0xFF7C3AED),
                       ),
                     ),
                   ),
@@ -82,15 +51,26 @@ class AccountAppBar extends StatelessWidget implements PreferredSizeWidget {
                       key: const ValueKey('account-name'),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: TextStyle(
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryNavy,
+                        color: isDark ? Colors.white : AppTheme.primaryNavy,
                       ),
                     ),
                   ),
                 ],
               ),
+            ),
+          ),
+          Consumer<ThemeProvider>(
+            builder: (context, theme, _) => IconButton(
+              tooltip: theme.isDarkMode ? 'Light Mode' : 'Dark Mode',
+              icon: Icon(
+                theme.isDarkMode
+                    ? Icons.light_mode_rounded
+                    : Icons.dark_mode_outlined,
+              ),
+              onPressed: theme.toggleTheme,
             ),
           ),
           Consumer<NotificationProvider>(

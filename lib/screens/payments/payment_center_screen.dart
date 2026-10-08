@@ -1080,20 +1080,26 @@ class _GiveAdvanceDialogState extends State<_GiveAdvanceDialog> {
         ),
       ),
     ),
+    actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
     actions: [
-      TextButton(
-        onPressed: _busy ? null : () => Navigator.of(context).pop(),
-        child: Text(paymentText(context, 'Cancel', 'منسوخ')),
-      ),
-      FilledButton(
-        onPressed: _busy ? null : _submit,
-        child: _busy
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Text(paymentText(context, 'Give Advance', 'ایڈوانس دیں')),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          TextButton(
+            onPressed: _busy ? null : () => Navigator.of(context).pop(),
+            child: Text(paymentText(context, 'Cancel', 'منسوخ')),
+          ),
+          FilledButton(
+            onPressed: _busy ? null : _submit,
+            child: _busy
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(paymentText(context, 'Give Advance', 'ایڈوانس دیں')),
+          ),
+        ],
       ),
     ],
   );
@@ -1235,18 +1241,24 @@ class _AdvanceRequestCard extends StatelessWidget {
                 : null,
           ),
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialog),
-            child: Text(paymentText(context, 'Cancel', 'منسوخ')),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (form.currentState!.validate()) {
-                Navigator.pop(dialog, controller.text.trim());
-              }
-            },
-            child: Text(paymentText(context, 'Reject', 'مسترد کریں')),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialog),
+                child: Text(paymentText(context, 'Cancel', 'منسوخ')),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (form.currentState!.validate()) {
+                    Navigator.pop(dialog, controller.text.trim());
+                  }
+                },
+                child: Text(paymentText(context, 'Reject', 'مسترد کریں')),
+              ),
+            ],
           ),
         ],
       ),
@@ -1867,7 +1879,7 @@ class _AdvanceCard extends StatelessWidget {
                   ),
                 ],
               ),
-              AppStatusBadge(status: advance.status),
+              AppStatusBadge(status: advance.status, isRecipient: officeBoyName == null),
             ],
           ),
           const SizedBox(height: 10),
@@ -2066,27 +2078,33 @@ class _AdvanceCard extends StatelessWidget {
               ),
             ],
           ),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           actions: [
-            TextButton(
-              onPressed: busy ? null : () => Navigator.pop(dialogCtx),
-              child: Text(paymentText(context, 'Cancel', 'منسوخ')),
-            ),
-            FilledButton(
-              onPressed: busy
-                  ? null
-                  : () async {
-                      setDialogState(() => busy = true);
-                      final ok = await context
-                          .read<PaymentProvider>()
-                          .confirmAdvance(advance.id, method);
-                      if (!context.mounted) return;
-                      if (ok) {
-                        Navigator.pop(dialogCtx);
-                      } else {
-                        setDialogState(() => busy = false);
-                      }
-                    },
-              child: Text(paymentText(context, 'Confirm', 'تصدیق کریں')),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: busy ? null : () => Navigator.pop(dialogCtx),
+                  child: Text(paymentText(context, 'Cancel', 'منسوخ')),
+                ),
+                FilledButton(
+                  onPressed: busy
+                      ? null
+                      : () async {
+                          setDialogState(() => busy = true);
+                          final ok = await context
+                              .read<PaymentProvider>()
+                              .confirmAdvance(advance.id, method);
+                          if (!context.mounted) return;
+                          if (ok) {
+                            Navigator.pop(dialogCtx);
+                          } else {
+                            setDialogState(() => busy = false);
+                          }
+                        },
+                  child: Text(paymentText(context, 'Confirm', 'تصدیق کریں')),
+                ),
+              ],
             ),
           ],
         ),
@@ -2452,18 +2470,24 @@ class _ExpenseCard extends StatelessWidget {
             ),
           ),
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(paymentText(context, 'Cancel', 'منسوخ')),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (enteredReason.trim().isNotEmpty) {
-                Navigator.pop(dialogContext, enteredReason.trim());
-              }
-            },
-            child: Text(paymentText(context, 'Reject', 'مسترد کریں')),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(paymentText(context, 'Cancel', 'منسوخ')),
+              ),
+              FilledButton(
+                onPressed: () {
+                  if (enteredReason.trim().isNotEmpty) {
+                    Navigator.pop(dialogContext, enteredReason.trim());
+                  }
+                },
+                child: Text(paymentText(context, 'Reject', 'مسترد کریں')),
+              ),
+            ],
           ),
         ],
       ),
