@@ -461,27 +461,22 @@ class _SubmitPaymentExpenseDialogState
       ),
       actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       actions: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton(
-              onPressed: _busy ? null : () => Navigator.pop(context),
-              child: Text(paymentText(context, 'Cancel', 'منسوخ')),
-            ),
-            FilledButton(
-              onPressed: _busy ? null : _submit,
-              child: _busy
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(paymentText(context, 'Submit', 'جمع کریں')),
-            ),
-          ],
+        TextButton(
+          onPressed: _busy ? null : () => Navigator.pop(context),
+          child: Text(paymentText(context, 'Cancel', 'منسوخ')),
+        ),
+        FilledButton(
+          onPressed: _busy ? null : _submit,
+          child: _busy
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Text(paymentText(context, 'Submit', 'جمع کریں')),
         ),
       ],
     );

@@ -178,8 +178,17 @@ class PushNotificationService {
     if (!_initialized || generation != _generation) return;
     flushPendingOpen();
     try {
-      final settings = await FirebaseMessaging.instance
-          .getNotificationSettings();
+      var settings = await FirebaseMessaging.instance.getNotificationSettings();
+      // A signed-in phone should register without requiring the user to find
+      // the optional button in the notifications panel first.
+      if (!kIsWeb &&
+          settings.authorizationStatus == AuthorizationStatus.notDetermined) {
+        settings = await FirebaseMessaging.instance.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+      }
       if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
         final token = await getDeviceToken();

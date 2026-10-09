@@ -28,6 +28,7 @@ class _FinanceDashboardState extends State<FinanceDashboard> {
       FinanceHome(
         onAdvances: () => setState(() => _index = 1),
         onReimbursements: () => setState(() => _index = 2),
+        onRecords: () => setState(() => _index = 4),
       ),
       const FinanceQueue(advances: true),
       const FinanceQueue(advances: false),

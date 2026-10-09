@@ -118,6 +118,7 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -178,10 +179,14 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppTheme.borderLight,
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : AppTheme.borderLight,
                             width: 0.5,
                           ),
                           boxShadow: AppTheme.premiumShadow,
@@ -262,9 +267,14 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(64),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : AppTheme.borderLight,
+                      width: 0.5,
+                    ),
                     boxShadow: AppTheme.premiumShadow,
                   ),
                   child: Column(
@@ -288,7 +298,7 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: AppTheme.primaryNavy,
+                          color: isDark ? Colors.white : AppTheme.primaryNavy,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -329,6 +339,7 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
 
   Widget _buildFilterChip(String label, RequestStatus? status, {Color? color}) {
     final isSelected = _statusFilter == status;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return FilterChip(
       selected: isSelected,
       label: Text(
@@ -336,10 +347,12 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-          color: isSelected ? Colors.white : const Color(0xFF475569),
+          color: isSelected
+              ? Colors.white
+              : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
         ),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       selectedColor: color ?? AppTheme.primaryBlue,
       checkmarkColor: Colors.white,
       shape: RoundedRectangleBorder(
@@ -347,7 +360,7 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
         side: BorderSide(
           color: isSelected
               ? (color ?? AppTheme.primaryBlue)
-              : AppTheme.borderLight,
+              : (isDark ? const Color(0xFF334155) : AppTheme.borderLight),
         ),
       ),
       onSelected: (_) {
@@ -358,221 +371,234 @@ class _AllTransactionsScreenState extends State<AllTransactionsScreen> {
 
   Widget _buildTransactionCard(ExpenseRequest req, AppUser currentUser) {
     final isNarrow = MediaQuery.of(context).size.width < 420;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.borderLight, width: 0.5),
-        boxShadow: AppTheme.premiumShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final details = Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      Text(
-                        req.displayId,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 11,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.schedule_rounded,
-                            size: 13,
-                            color: Color(0xFF94A3B8),
+    return InkWell(
+      onTap: () => RequestDetailScreen.show(context, req),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? const Color(0xFF334155) : AppTheme.borderLight,
+            width: 0.5,
+          ),
+          boxShadow: AppTheme.premiumShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final details = Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        Text(
+                          req.displayId,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 11,
+                            color: Color(0xFF64748B),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            context.language.date(req.createdAt),
-                            style: const TextStyle(
-                              fontSize: 11,
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.schedule_rounded,
+                              size: 13,
                               color: Color(0xFF94A3B8),
                             ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    req.itemDescription,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.primaryNavy,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${Provider.of<LanguageProvider>(context, listen: false).tr('requested_by')}${req.requesterName} (${req.requesterEmail})',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF64748B),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              );
-              final amount = Column(
-                crossAxisAlignment: isNarrow
-                    ? CrossAxisAlignment.start
-                    : CrossAxisAlignment.end,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.payments_outlined,
-                        size: 17,
-                        color: AppTheme.primaryBlue,
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        context.language.money(req.amount),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.primaryNavy,
+                            const SizedBox(width: 4),
+                            Text(
+                              context.language.date(req.createdAt),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  StatusBadge(status: req.status, isCompact: true),
-                ],
-              );
-
-              return isNarrow
-                  ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [details, const SizedBox(height: 8), amount],
-                    )
-                  : Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: details),
-                        amount,
                       ],
-                    );
-            },
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(8),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      req.itemDescription,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : AppTheme.primaryNavy,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${Provider.of<LanguageProvider>(context, listen: false).tr('requested_by')}${req.requesterName} (${req.requesterEmail})',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                );
+                final amount = Column(
+                  crossAxisAlignment: isNarrow
+                      ? CrossAxisAlignment.start
+                      : CrossAxisAlignment.end,
+                  children: [
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 5,
+                      runSpacing: 2,
+                      children: [
+                        const Icon(
+                          Icons.payments_outlined,
+                          size: 17,
+                          color: AppTheme.primaryBlue,
+                        ),
+                        Text(
+                          context.language.money(req.amount),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: isDark ? Colors.white : AppTheme.primaryNavy,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    StatusBadge(status: req.status, isCompact: true),
+                  ],
+                );
+
+                return isNarrow
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [details, const SizedBox(height: 8), amount],
+                      )
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: details),
+                          amount,
+                        ],
+                      );
+              },
             ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.notes_rounded,
-                  size: 14,
-                  color: Color(0xFF64748B),
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    '${Provider.of<LanguageProvider>(context, listen: false).tr('purpose_prefix')}${req.reason}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF334155),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.notes_rounded,
+                    size: 14,
+                    color: Color(0xFF64748B),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '${Provider.of<LanguageProvider>(context, listen: false).tr('purpose_prefix')}${req.reason}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark
+                            ? const Color(0xFFE2E8F0)
+                            : const Color(0xFF334155),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          if (req.isRejected && req.rejectionReason != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              '${Provider.of<LanguageProvider>(context, listen: false).tr('rejection_reason_prefix')}${req.rejectionReason}',
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppTheme.statusRejected,
-                fontWeight: FontWeight.w500,
+                ],
               ),
             ),
-          ],
-          const SizedBox(height: 12),
+            if (req.isRejected && req.rejectionReason != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                '${Provider.of<LanguageProvider>(context, listen: false).tr('rejection_reason_prefix')}${req.rejectionReason}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.statusRejected,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
 
-          // Actions
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            runAlignment: WrapAlignment.end,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 4,
-            runSpacing: 4,
-            children: [
-              if (req.billImageUrl != null)
-                TextButton.icon(
-                  icon: const Icon(Icons.image_outlined, size: 16),
-                  label: Text(
+            // Actions
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              runAlignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 4,
+              runSpacing: 4,
+              children: [
+                if (req.billImageUrl != null)
+                  TextButton.icon(
+                    icon: const Icon(Icons.image_outlined, size: 16),
+                    label: Text(
+                      Provider.of<LanguageProvider>(
+                        context,
+                        listen: false,
+                      ).tr('view_receipt'),
+                    ),
+                    onPressed: () {
+                      ReceiptViewerDialog.show(
+                        context,
+                        imageUrl: req.billImageUrl!,
+                      );
+                    },
+                  ),
+                TextButton(
+                  onPressed: () => RequestDetailScreen.show(context, req),
+                  child: Text(
                     Provider.of<LanguageProvider>(
                       context,
                       listen: false,
-                    ).tr('view_receipt'),
+                    ).tr('review_detail'),
                   ),
-                  onPressed: () {
-                    ReceiptViewerDialog.show(
+                ),
+                if (currentUser.isSuperAdmin) ...[
+                  IconButton(
+                    icon: const Icon(
+                      Icons.edit_attributes_rounded,
+                      color: AppTheme.roleSuperAdmin,
+                    ),
+                    tooltip: Provider.of<LanguageProvider>(
                       context,
-                      imageUrl: req.billImageUrl!,
-                    );
-                  },
-                ),
-              TextButton(
-                onPressed: () => RequestDetailScreen.show(context, req),
-                child: Text(
-                  Provider.of<LanguageProvider>(
-                    context,
-                    listen: false,
-                  ).tr('review_detail'),
-                ),
-              ),
-              if (currentUser.isSuperAdmin) ...[
-                IconButton(
-                  icon: const Icon(
-                    Icons.edit_attributes_rounded,
-                    color: AppTheme.roleSuperAdmin,
+                      listen: false,
+                    ).tr('override_status_tooltip'),
+                    onPressed: () => _showOverrideDialog(context, req),
                   ),
-                  tooltip: Provider.of<LanguageProvider>(
-                    context,
-                    listen: false,
-                  ).tr('override_status_tooltip'),
-                  onPressed: () => _showOverrideDialog(context, req),
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_forever_rounded,
-                    color: AppTheme.statusRejected,
+                  IconButton(
+                    icon: const Icon(
+                      Icons.delete_forever_rounded,
+                      color: AppTheme.statusRejected,
+                    ),
+                    tooltip: Provider.of<LanguageProvider>(
+                      context,
+                      listen: false,
+                    ).tr('delete_transaction_tooltip'),
+                    onPressed: _deleting.contains(req.id)
+                        ? null
+                        : () => _confirmDelete(context, req),
                   ),
-                  tooltip: Provider.of<LanguageProvider>(
-                    context,
-                    listen: false,
-                  ).tr('delete_transaction_tooltip'),
-                  onPressed: _deleting.contains(req.id)
-                      ? null
-                      : () => _confirmDelete(context, req),
-                ),
+                ],
               ],
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -25,17 +25,19 @@ class AuditTrailWidget extends StatelessWidget {
     final sortedLogs = List<AuditLogEntry>.from(auditLogs)
       ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
             context.t('Audit Trail'),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppTheme.primaryNavy,
+              color: isDark ? Colors.white : AppTheme.primaryNavy,
             ),
           ),
         ),
@@ -63,14 +65,21 @@ class AuditTrailWidget extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: _getLogColor(log.action),
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF1E293B)
+                                  : Colors.white,
+                              width: 2,
+                            ),
                           ),
                         ),
                         if (!isLast)
                           Expanded(
                             child: Container(
                               width: 2,
-                              color: Colors.grey.shade300,
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : Colors.grey.shade300,
                             ),
                           ),
                       ],
@@ -87,9 +96,15 @@ class AuditTrailWidget extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade200),
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : Colors.grey.shade200,
+                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,9 +115,12 @@ class AuditTrailWidget extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     context.language.auditAction(log.action),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 14,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
                                     ),
                                   ),
                                 ),
@@ -113,7 +131,9 @@ class AuditTrailWidget extends StatelessWidget {
                                   ),
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey.shade600,
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : Colors.grey.shade600,
                                   ),
                                 ),
                               ],
@@ -127,7 +147,9 @@ class AuditTrailWidget extends StatelessWidget {
                               ),
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Colors.grey.shade700,
+                                color: isDark
+                                    ? const Color(0xFFCBD5E1)
+                                    : Colors.grey.shade700,
                               ),
                             ),
                             if (log.notes != null && log.notes!.isNotEmpty) ...[
@@ -135,10 +157,16 @@ class AuditTrailWidget extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: Colors.amber.shade50,
+                                  color: isDark
+                                      ? const Color(
+                                          0xFF451A03,
+                                        ).withValues(alpha: 0.3)
+                                      : Colors.amber.shade50,
                                   borderRadius: BorderRadius.circular(4),
                                   border: Border.all(
-                                    color: Colors.amber.shade200,
+                                    color: isDark
+                                        ? Colors.amber.shade800
+                                        : Colors.amber.shade200,
                                   ),
                                 ),
                                 child: Row(
@@ -153,9 +181,11 @@ class AuditTrailWidget extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         log.notes!,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 13,
-                                          color: Colors.black87,
+                                          color: isDark
+                                              ? const Color(0xFFFEF3C7)
+                                              : Colors.black87,
                                         ),
                                       ),
                                     ),

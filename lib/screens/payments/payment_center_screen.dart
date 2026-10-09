@@ -29,16 +29,8 @@ String paymentStatusLabel(BuildContext context, String status) =>
       'Pending' => paymentText(context, 'Waiting', 'انتظار میں'),
       'Approved' => paymentText(context, status, 'منظور شدہ'),
       'Rejected' => paymentText(context, 'Sent back', 'واپس'),
-      'Rejection Acknowledged' => paymentText(
-        context,
-        'Seen',
-        'دیکھ لیا',
-      ),
-      'Payment Cleared' => paymentText(
-        context,
-        'Sent',
-        'بھیج دی',
-      ),
+      'Rejection Acknowledged' => paymentText(context, 'Seen', 'دیکھ لیا'),
+      'Payment Cleared' => paymentText(context, 'Sent', 'بھیج دی'),
       'Paid' => paymentText(context, status, 'ادا شدہ'),
       _ => paymentText(context, 'In progress', 'جاری ہے'),
     };
@@ -156,17 +148,22 @@ class PaymentPanel extends StatelessWidget {
       boxShadow: AppTheme.premiumShadow,
     ),
     padding: const EdgeInsets.all(20),
-    child: child,
+    child: DefaultTextStyle.merge(
+      style: const TextStyle(color: AppTheme.primaryNavy),
+      child: child,
+    ),
   );
 }
 
-Widget _recordText(String value, {bool bold = false}) => Text(
-  value,
-  maxLines: 2,
-  overflow: TextOverflow.ellipsis,
-  style: TextStyle(
-    color: const Color(0xFF172238),
-    fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+Widget _recordText(String value, {bool bold = false}) => Builder(
+  builder: (context) => Text(
+    value,
+    maxLines: 2,
+    overflow: TextOverflow.ellipsis,
+    style: TextStyle(
+      color: Theme.of(context).colorScheme.onSurface,
+      fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+    ),
   ),
 );
 
@@ -596,9 +593,21 @@ class PaymentCenterScreen extends StatelessWidget {
                       PaymentPanel(
                         child: Column(
                           children: [
-                            Text(paymentText(context, 'No advance requests yet.', 'ابھی کوئی ایڈوانس درخواست نہیں۔')),
+                            Text(
+                              paymentText(
+                                context,
+                                'No advance requests yet.',
+                                'ابھی کوئی ایڈوانس درخواست نہیں۔',
+                              ),
+                            ),
                             const SizedBox(height: 4),
-                            Text(paymentText(context, 'New requests will show here.', 'نئی درخواستیں یہاں نظر آئیں گی۔')),
+                            Text(
+                              paymentText(
+                                context,
+                                'New requests will show here.',
+                                'نئی درخواستیں یہاں نظر آئیں گی۔',
+                              ),
+                            ),
                           ],
                         ),
                       )
@@ -674,9 +683,21 @@ class PaymentCenterScreen extends StatelessWidget {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(paymentText(context, 'No advances yet.', 'ابھی کوئی ایڈوانس نہیں۔')),
+                              Text(
+                                paymentText(
+                                  context,
+                                  'No advances yet.',
+                                  'ابھی کوئی ایڈوانس نہیں۔',
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text(paymentText(context, 'Advances will show here after money is sent.', 'رقم بھیجنے کے بعد ایڈوانس یہاں نظر آئیں گے۔')),
+                              Text(
+                                paymentText(
+                                  context,
+                                  'Advances will show here after money is sent.',
+                                  'رقم بھیجنے کے بعد ایڈوانس یہاں نظر آئیں گے۔',
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -781,9 +802,21 @@ class PaymentCenterScreen extends StatelessWidget {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(paymentText(context, 'No expenses yet.', 'ابھی کوئی خرچہ نہیں۔')),
+                              Text(
+                                paymentText(
+                                  context,
+                                  'No expenses yet.',
+                                  'ابھی کوئی خرچہ نہیں۔',
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text(paymentText(context, 'Submitted expenses will show here.', 'جمع کیے گئے اخراجات یہاں نظر آئیں گے۔')),
+                              Text(
+                                paymentText(
+                                  context,
+                                  'Submitted expenses will show here.',
+                                  'جمع کیے گئے اخراجات یہاں نظر آئیں گے۔',
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -999,11 +1032,7 @@ class _GiveAdvanceDialogState extends State<_GiveAdvanceDialog> {
                 ],
                 decoration: InputDecoration(
                   labelText: paymentText(context, 'Amount (PKR)', 'رقم (روپے)'),
-                  helperText: paymentText(
-                    context,
-                    'Example: 500',
-                    'مثال: ۵۰۰',
-                  ),
+                  helperText: paymentText(context, 'Example: 500', 'مثال: ۵۰۰'),
                 ),
                 validator: (value) {
                   final parsed = double.tryParse(value?.trim() ?? '');
@@ -1082,24 +1111,19 @@ class _GiveAdvanceDialogState extends State<_GiveAdvanceDialog> {
     ),
     actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
     actions: [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          TextButton(
-            onPressed: _busy ? null : () => Navigator.of(context).pop(),
-            child: Text(paymentText(context, 'Cancel', 'منسوخ')),
-          ),
-          FilledButton(
-            onPressed: _busy ? null : _submit,
-            child: _busy
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Text(paymentText(context, 'Give Advance', 'ایڈوانس دیں')),
-          ),
-        ],
+      TextButton(
+        onPressed: _busy ? null : () => Navigator.of(context).pop(),
+        child: Text(paymentText(context, 'Cancel', 'منسوخ')),
+      ),
+      FilledButton(
+        onPressed: _busy ? null : _submit,
+        child: _busy
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Text(paymentText(context, 'Give Advance', 'ایڈوانس دیں')),
       ),
     ],
   );
@@ -1214,54 +1238,116 @@ class _AdvanceRequestCard extends StatelessWidget {
     final form = GlobalKey<FormState>();
     final reason = await showDialog<String>(
       context: context,
-      builder: (dialog) => AlertDialog(
-        title: Text(
-          paymentText(
-            context,
-            'Reject advance request',
-            'ایڈوانس درخواست مسترد کریں',
-          ),
-        ),
-        content: Form(
-          key: form,
-          child: TextFormField(
-            controller: controller,
-            maxLength: 2000,
-            maxLines: 3,
-            decoration: InputDecoration(
-              labelText: paymentText(context, 'Reason', 'وجہ'),
-              helperText: paymentText(
-                context,
-                'Example: missing receipt',
-                'مثال: رسید موجود نہیں',
-              ),
+      builder: (dialog) {
+        final isDark = Theme.of(dialog).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
             ),
-            validator: (value) => value == null || value.trim().isEmpty
-                ? paymentText(context, 'Enter a reason.', 'وجہ درج کریں۔')
-                : null,
           ),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialog),
-                child: Text(paymentText(context, 'Cancel', 'منسوخ')),
-              ),
-              FilledButton(
-                onPressed: () {
-                  if (form.currentState!.validate()) {
-                    Navigator.pop(dialog, controller.text.trim());
-                  }
-                },
-                child: Text(paymentText(context, 'Reject', 'مسترد کریں')),
-              ),
-            ],
+          title: Text(
+            paymentText(
+              context,
+              'Reject advance request',
+              'ایڈوانس درخواست مسترد کریں',
+            ),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : AppTheme.primaryNavy,
+            ),
           ),
-        ],
-      ),
+          content: Form(
+            key: form,
+            child: TextFormField(
+              controller: controller,
+              maxLength: 2000,
+              maxLines: 3,
+              style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF8FAFC),
+                labelText: paymentText(context, 'Reason', 'وجہ'),
+                labelStyle: TextStyle(
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
+                ),
+                helperText: paymentText(
+                  context,
+                  'Example: missing receipt',
+                  'مثال: رسید موجود نہیں',
+                ),
+                helperStyle: TextStyle(
+                  color: isDark
+                      ? const Color(0xFF64748B)
+                      : const Color(0xFF94A3B8),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFCBD5E1),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: isDark
+                        ? const Color(0xFF334155)
+                        : const Color(0xFFCBD5E1),
+                  ),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                  borderSide: BorderSide(
+                    color: AppTheme.statusRejected,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+              validator: (value) => value == null || value.trim().isEmpty
+                  ? paymentText(context, 'Enter a reason.', 'وجہ درج کریں۔')
+                  : null,
+            ),
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
+                  onPressed: () => Navigator.pop(dialog),
+                  child: Text(paymentText(context, 'Cancel', 'منسوخ')),
+                ),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.statusRejected,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    if (form.currentState!.validate()) {
+                      Navigator.pop(dialog, controller.text.trim());
+                    }
+                  },
+                  child: Text(paymentText(context, 'Reject', 'مسترد کریں')),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
     controller.dispose();
     if (reason != null && context.mounted) {
@@ -1290,8 +1376,10 @@ class _AdvanceRequestCard extends StatelessWidget {
               Text(
                 officeBoyName ??
                     paymentText(context, 'My request', 'میری درخواست'),
-                style: Theme.of(context).textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w800),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.primaryNavy,
+                ),
               ),
               AppStatusBadge(status: request.status),
             ],
@@ -1299,8 +1387,10 @@ class _AdvanceRequestCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             language.money(request.amount),
-            style: Theme.of(context).textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: AppTheme.primaryNavy,
+            ),
           ),
           Text(request.purpose),
           Text(
@@ -1413,8 +1503,10 @@ class _PocketSummary extends StatelessWidget {
         children: [
           Text(
             paymentText(context, 'My own-pocket spending', 'اپنی جیب سے خرچ'),
-            style: Theme.of(context).textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: AppTheme.primaryNavy,
+            ),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -1524,8 +1616,10 @@ class _BalanceOverview extends StatelessWidget {
                 personal ? 'My balance' : 'Balances by Office Boy',
                 personal ? 'میرا بیلنس' : 'ہر آفس بوائے کا بیلنس',
               ),
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppTheme.primaryNavy,
+              ),
             ),
             if (period != null)
               Text(period!, style: const TextStyle(color: Color(0xFF64748B))),
@@ -1541,7 +1635,11 @@ class _BalanceOverview extends StatelessWidget {
             const SizedBox(height: 16),
             LayoutBuilder(
               builder: (context, constraints) {
-                final metricWidth = constraints.maxWidth < 340
+                final largeText =
+                    MediaQuery.textScalerOf(context).scale(12) > 14.4;
+                final metricWidth =
+                    constraints.maxWidth < 260 ||
+                        (largeText && constraints.maxWidth < 420)
                     ? constraints.maxWidth
                     : constraints.maxWidth < 420
                     ? (constraints.maxWidth - 10) / 2
@@ -1870,8 +1968,10 @@ class _AdvanceCard extends StatelessWidget {
                   Text(
                     officeBoyName ??
                         paymentText(context, 'My Advance', 'میرا ایڈوانس'),
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w800),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.primaryNavy,
+                    ),
                   ),
                   Text(
                     language.date(advance.createdAt),
@@ -1879,14 +1979,19 @@ class _AdvanceCard extends StatelessWidget {
                   ),
                 ],
               ),
-              AppStatusBadge(status: advance.status, isRecipient: officeBoyName == null),
+              AppStatusBadge(
+                status: advance.status,
+                isRecipient: officeBoyName == null,
+              ),
             ],
           ),
           const SizedBox(height: 10),
           Text(
             language.money(advance.amount),
-            style: Theme.of(context).textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: AppTheme.primaryNavy,
+            ),
           ),
           Text(
             '${paymentText(context, 'Advance ID', 'ایڈوانس نمبر')}: ${advance.id.substring(0, 8)}',
@@ -1911,20 +2016,31 @@ class _AdvanceCard extends StatelessWidget {
             ),
           ],
           if (linkedExpenses.isNotEmpty)
-            ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              title: Text(
-                '${paymentText(context, 'Purchases from this advance', 'اس ایڈوانس سے خریداری')} (${linkedExpenses.length})',
-              ),
-              children: linkedExpenses
-                  .map(
-                    (expense) => ListTile(
-                      title: Text(expense.itemDescription),
-                      subtitle: Text(language.date(expense.createdAt)),
-                      trailing: Text(language.money(expense.amount)),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
                     ),
-                  )
-                  .toList(),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () => _showLinkedExpensesModal(
+                    context,
+                    linkedExpenses,
+                    language,
+                  ),
+                  icon: const Icon(Icons.shopping_bag_outlined, size: 16),
+                  label: Text(
+                    '${paymentText(context, 'View Purchases', 'خریداری دیکھیں')} (${linkedExpenses.length})',
+                  ),
+                ),
+              ),
             ),
           const SizedBox(height: 8),
           Wrap(
@@ -1989,31 +2105,202 @@ class _AdvanceCard extends StatelessWidget {
               ),
             ),
           if (activity.isNotEmpty)
-            ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              title: Text(
-                paymentText(context, 'Activity timeline', 'سرگرمی کی تفصیل'),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () =>
+                      _showActivityModal(context, activity, language),
+                  icon: const Icon(Icons.history_rounded, size: 16),
+                  label: Text(
+                    '${paymentText(context, 'View Activity Timeline', 'سرگرمی کی تفصیل دیکھیں')} (${activity.length})',
+                  ),
+                ),
               ),
-              children: activity
-                  .map(
-                    (event) => ListTile(
-                      dense: true,
-                      leading: const Icon(
-                        Icons.circle,
-                        size: 10,
-                        color: AppTheme.primaryBlue,
-                      ),
-                      title: Text(_activityLabel(context, event.action)),
-                      subtitle: Text(
-                        language.date(
-                          event.createdAt,
-                          pattern: 'dd MMM yyyy, h:mm a',
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showLinkedExpensesModal(
+    BuildContext context,
+    List<PaymentExpense> expenses,
+    LanguageProvider language,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        title: Row(
+          children: [
+            const Icon(
+              Icons.shopping_bag_outlined,
+              color: AppTheme.primaryBlue,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${paymentText(context, 'Purchases from this advance', 'اس ایڈوانس سے خریداری')} (${expenses.length})',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: expenses.map((expense) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              expense.itemDescription,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.primaryNavy,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              language.date(expense.createdAt),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF94A3B8),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  )
-                  .toList(),
+                      Text(
+                        language.money(expense.amount),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          color: isDark ? Colors.white : AppTheme.primaryNavy,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(paymentText(context, 'Close', 'بند کریں')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showActivityModal(
+    BuildContext context,
+    List<PaymentActivity> events,
+    LanguageProvider language,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        title: Row(
+          children: [
+            const Icon(Icons.history_rounded, color: AppTheme.primaryBlue),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                paymentText(context, 'Activity Timeline', 'سرگرمی کی تفصیل'),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: events.map((event) {
+                return ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.circle,
+                    size: 10,
+                    color: AppTheme.primaryBlue,
+                  ),
+                  title: Text(
+                    _activityLabel(context, event.action),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppTheme.primaryNavy,
+                    ),
+                  ),
+                  subtitle: Text(
+                    language.date(
+                      event.createdAt,
+                      pattern: 'dd MMM yyyy, h:mm a',
+                    ),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(paymentText(context, 'Close', 'بند کریں')),
+          ),
         ],
       ),
     );
@@ -2148,8 +2435,10 @@ class _ExpenseCard extends StatelessWidget {
                   Text(
                     officeBoyName ??
                         paymentText(context, 'My Expense', 'میرا خرچہ'),
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w800),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.primaryNavy,
+                    ),
                   ),
                   Text(
                     language.date(expense.createdAt),
@@ -2163,8 +2452,10 @@ class _ExpenseCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             language.money(expense.amount),
-            style: Theme.of(context).textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w800),
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: AppTheme.primaryNavy,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -2418,21 +2709,82 @@ class _ExpenseCard extends StatelessWidget {
               ),
             ),
           if (activity.isNotEmpty)
-            ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              title: Text(
-                paymentText(context, 'Activity timeline', 'سرگرمی کی تفصیل'),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () =>
+                      _showActivityModal(context, activity, language),
+                  icon: const Icon(Icons.history_rounded, size: 16),
+                  label: Text(
+                    '${paymentText(context, 'View Activity Timeline', 'سرگرمی کی تفصیل دیکھیں')} (${activity.length})',
+                  ),
+                ),
               ),
-              children: activity.map((event) {
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showActivityModal(
+    BuildContext context,
+    List<PaymentActivity> events,
+    LanguageProvider language,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        title: Row(
+          children: [
+            const Icon(Icons.history_rounded, color: AppTheme.primaryBlue),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                paymentText(context, 'Activity Timeline', 'سرگرمی کی تفصیل'),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: events.map((event) {
                 final details = _activityDetail(context, event.detail);
                 return ListTile(
                   dense: true,
+                  contentPadding: EdgeInsets.zero,
                   leading: const Icon(
                     Icons.circle,
                     size: 10,
                     color: AppTheme.primaryBlue,
                   ),
-                  title: Text(_activityLabel(context, event.action)),
+                  title: Text(
+                    _activityLabel(context, event.action),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppTheme.primaryNavy,
+                    ),
+                  ),
                   subtitle: Text(
                     [
                       language.date(
@@ -2441,10 +2793,21 @@ class _ExpenseCard extends StatelessWidget {
                       ),
                       if (details.isNotEmpty) details,
                     ].join('\n'),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF94A3B8),
+                    ),
                   ),
                 );
               }).toList(),
             ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(paymentText(context, 'Close', 'بند کریں')),
+          ),
         ],
       ),
     );
@@ -2454,43 +2817,113 @@ class _ExpenseCard extends StatelessWidget {
     var enteredReason = '';
     return showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(paymentText(context, 'Reject expense', 'خرچہ مسترد کریں')),
-        content: TextField(
-          autofocus: true,
-          maxLength: 2000,
-          maxLines: 3,
-          onChanged: (value) => enteredReason = value,
-          decoration: InputDecoration(
-            labelText: paymentText(context, 'Reason (required)', 'وجہ (ضروری)'),
-            helperText: paymentText(
-              context,
-              'Example: the receipt is unclear',
-              'مثال: رسید صاف نظر نہیں آ رہی',
+      builder: (dialogContext) {
+        final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
             ),
           ),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: Text(paymentText(context, 'Cancel', 'منسوخ')),
-              ),
-              FilledButton(
-                onPressed: () {
-                  if (enteredReason.trim().isNotEmpty) {
-                    Navigator.pop(dialogContext, enteredReason.trim());
-                  }
-                },
-                child: Text(paymentText(context, 'Reject', 'مسترد کریں')),
-              ),
-            ],
+          title: Text(
+            paymentText(context, 'Reject expense', 'خرچہ مسترد کریں'),
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: isDark ? Colors.white : AppTheme.primaryNavy,
+            ),
           ),
-        ],
-      ),
+          content: TextField(
+            autofocus: true,
+            maxLength: 2000,
+            maxLines: 3,
+            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+            onChanged: (value) => enteredReason = value,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: isDark
+                  ? const Color(0xFF0F172A)
+                  : const Color(0xFFF8FAFC),
+              labelText: paymentText(
+                context,
+                'Reason (required)',
+                'وجہ (ضروری)',
+              ),
+              labelStyle: TextStyle(
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
+              ),
+              helperText: paymentText(
+                context,
+                'Example: the receipt is unclear',
+                'مثال: رسید صاف نظر نہیں آ رہی',
+              ),
+              helperStyle: TextStyle(
+                color: isDark
+                    ? const Color(0xFF64748B)
+                    : const Color(0xFF94A3B8),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFCBD5E1),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFCBD5E1),
+                ),
+              ),
+              focusedBorder: const OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+                borderSide: BorderSide(
+                  color: AppTheme.statusRejected,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          actions: [
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(paymentText(context, 'Cancel', 'منسوخ')),
+                ),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.statusRejected,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    if (enteredReason.trim().isNotEmpty) {
+                      Navigator.pop(dialogContext, enteredReason.trim());
+                    }
+                  },
+                  child: Text(paymentText(context, 'Reject', 'مسترد کریں')),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 

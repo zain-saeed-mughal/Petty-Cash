@@ -22,15 +22,19 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppTheme.borderLight, width: 0.5),
+          border: Border.all(
+            color: isDark ? const Color(0xFF334155) : AppTheme.borderLight,
+            width: 0.5,
+          ),
           boxShadow: AppTheme.premiumShadow,
         ),
         child: Column(
@@ -44,10 +48,10 @@ class StatCard extends StatelessWidget {
                     title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF64748B),
+                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                     ),
                   ),
                 ),
@@ -70,7 +74,7 @@ class StatCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: AppTheme.primaryNavy,
+                color: isDark ? Colors.white : AppTheme.primaryNavy,
                 letterSpacing: -0.5,
               ),
             ),

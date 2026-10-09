@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +7,9 @@ import 'package:provider/provider.dart';
 import '../models/core_flow_models.dart';
 import '../providers/auth_provider.dart';
 import '../providers/core_flow_provider.dart';
+import '../providers/expense_provider.dart';
 import '../providers/language_provider.dart';
+import '../providers/payment_provider.dart';
 
 class QuickActionData {
   final IconData icon;
@@ -72,6 +75,7 @@ class ModernDashboardView extends StatefulWidget {
   final ValueChanged<DateTime>? onMonthChanged;
   final void Function(DateTime from, DateTime to)? onDateRangeChanged;
   final bool showBranchFilter;
+  final bool showFinancialCards;
   final Widget? actionHeader;
 
   const ModernDashboardView({
@@ -103,6 +107,7 @@ class ModernDashboardView extends StatefulWidget {
     this.onMonthChanged,
     this.onDateRangeChanged,
     this.showBranchFilter = true,
+    this.showFinancialCards = true,
     this.actionHeader,
   });
 
@@ -120,7 +125,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
   void initState() {
     super.initState();
     _selectedOfficeId = widget.initialOfficeId;
-    _selectedMonth = widget.initialMonth ?? DateTime(DateTime.now().year, DateTime.now().month);
+    _selectedMonth =
+        widget.initialMonth ??
+        DateTime(DateTime.now().year, DateTime.now().month);
     _startDate = widget.initialStartDate;
     _endDate = widget.initialEndDate;
   }
@@ -128,7 +135,8 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
   @override
   void didUpdateWidget(ModernDashboardView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initialMonth != null && widget.initialMonth != oldWidget.initialMonth) {
+    if (widget.initialMonth != null &&
+        widget.initialMonth != oldWidget.initialMonth) {
       _selectedMonth = widget.initialMonth!;
     }
     if (widget.initialStartDate != oldWidget.initialStartDate) {
@@ -175,38 +183,65 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
       }
     }
 
-    final totalFloat = widget.heroAmount > 0 ? widget.heroAmount : (widget.availableAmount + widget.onHoldAmount + widget.spentAmount);
-    final availPct = totalFloat > 0 ? (widget.availableAmount / totalFloat * 100).toStringAsFixed(1) : '0.0';
-    final onHoldPct = totalFloat > 0 ? (widget.onHoldAmount / totalFloat * 100).toStringAsFixed(1) : '0.0';
-    final spentPct = totalFloat > 0 ? (widget.spentAmount / totalFloat * 100).toStringAsFixed(1) : '0.0';
+    final totalFloat = widget.heroAmount > 0
+        ? widget.heroAmount
+        : (widget.availableAmount + widget.onHoldAmount + widget.spentAmount);
+    final availPct = totalFloat > 0
+        ? (widget.availableAmount / totalFloat * 100).toStringAsFixed(1)
+        : '0.0';
+    final onHoldPct = totalFloat > 0
+        ? (widget.onHoldAmount / totalFloat * 100).toStringAsFixed(1)
+        : '0.0';
+    final spentPct = totalFloat > 0
+        ? (widget.spentAmount / totalFloat * 100).toStringAsFixed(1)
+        : '0.0';
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return ColoredBox(
       color: isDark ? const Color(0xFF0B0F19) : const Color(0xFFF8FAFC),
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-        children: [
-          // 1. Top Greeting Header with Language Toggle
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          '${_getGreeting(ur)}, ',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+      child: RefreshIndicator(
+        onRefresh: () async {
+          flow.refresh();
+          if (context.mounted) {
+            try {
+              context.read<PaymentProvider?>()?.refresh();
+            } catch (_) {}
+            try {
+              context.read<ExpenseProvider?>()?.refresh();
+            } catch (_) {}
+          }
+          await Future.delayed(const Duration(milliseconds: 500));
+        },
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+          children: [
+            // 1. Top Greeting Header with Language Toggle
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 2,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            '${_getGreeting(ur)}, ',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                            ),
                           ),
-                        ),
-                        Flexible(
-                          child: Text(
+                          Text(
                             userName,
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 20,
@@ -214,526 +249,626 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                               color: Color(0xFF7C3AED),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      ur
-                          ? 'یہاں آپ کی کمپنی کا تازہ ترین خلاصہ ہے'
-                          : "Here's what's happening across your company",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Language Switcher Capsule [EN | اردو]
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE2E8F0).withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        if (langProvider.currentLanguage != 'en') {
-                          langProvider.setLanguage('en');
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: langProvider.currentLanguage == 'en'
-                              ? const Color(0xFF1E60FF)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          'EN',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: langProvider.currentLanguage == 'en'
-                                ? Colors.white
-                                : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        if (langProvider.currentLanguage != 'ur') {
-                          langProvider.setLanguage('ur');
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: langProvider.currentLanguage == 'ur'
-                              ? const Color(0xFF1E60FF)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          'اردو',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            fontFamily: 'JameelNooriNastaleeq',
-                            color: langProvider.currentLanguage == 'ur'
-                                ? Colors.white
-                                : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 18),
-
-          // 2. Section Header: Overview + Role Badge
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                ur ? 'خلاصہ' : 'Overview',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF312E81).withValues(alpha: 0.5) : const Color(0xFFF5F3FF),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isDark ? const Color(0xFF6366F1).withValues(alpha: 0.4) : const Color(0xFFDDD6FE)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.verified_user_rounded, size: 14, color: Color(0xFF7C3AED)),
-                    const SizedBox(width: 4),
-                    Text(
-                      widget.roleBadgeText,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF7C3AED),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          if (widget.actionHeader != null) ...[
-            const SizedBox(height: 12),
-            widget.actionHeader!,
-          ],
-
-          const SizedBox(height: 12),
-
-          // 3. Filters Row: Branch Dropdown & Date Range Picker
-          Row(
-            children: [
-              if (widget.showBranchFilter) ...[
-                // Branch Filter
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _openBranchPicker(context, flow.offices),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.business_rounded, size: 17, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              officeDisplayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white : const Color(0xFF1E293B),
-                              ),
-                            ),
-                          ),
-                          const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF94A3B8)),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 3),
+                      Text(
+                        ur
+                            ? 'یہاں آپ کی کمپنی کا تازہ ترین خلاصہ ہے'
+                            : "Here's what's happening across your company",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 10),
-              ],
-              // Date Range Filter (With Separate Calendars)
-              Expanded(
-                child: InkWell(
-                  onTap: () => _openDateRangePicker(context),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                    decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.calendar_today_rounded, size: 16, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
-                        const SizedBox(width: 6),
-                        Expanded(
+                // Language Switcher Capsule [EN | اردو]
+                Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0).withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          if (langProvider.currentLanguage != 'en') {
+                            langProvider.setLanguage('en');
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: langProvider.currentLanguage == 'en'
+                                ? const Color(0xFF1E60FF)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                           child: Text(
-                            _startDate != null && _endDate != null
-                                ? '${DateFormat('dd MMM').format(_startDate!)} - ${DateFormat('dd MMM').format(_endDate!)}'
-                                : DateFormat('MMMM yyyy').format(_selectedMonth),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            'EN',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.white : const Color(0xFF1E293B),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: langProvider.currentLanguage == 'en'
+                                  ? Colors.white
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                         ),
-                        const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF94A3B8)),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          // 4. Hero Card (Gradient Purple - never overflows in RTL / Urdu)
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              gradient: LinearGradient(
-                colors: isDark
-                    ? const [Color(0xFF6D28D9), Color(0xFF4C1D95)]
-                    : const [Color(0xFF7C3AED), Color(0xFF5B21B6)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
-                  blurRadius: 18,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.heroTitle,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
                       ),
-                      const SizedBox(height: 8),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: AlignmentDirectional.centerStart,
-                        child: Text(
-                          _formatMoney(widget.heroAmount),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
+                      GestureDetector(
+                        onTap: () {
+                          if (langProvider.currentLanguage != 'ur') {
+                            langProvider.setLanguage('ur');
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: langProvider.currentLanguage == 'ur'
+                                ? const Color(0xFF1E60FF)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            'اردو',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: 'JameelNooriNastaleeq',
+                              color: langProvider.currentLanguage == 'ur'
+                                  ? Colors.white
+                                  : const Color(0xFF64748B),
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+              ],
+            ),
+
+            const SizedBox(height: 18),
+
+            // 2. Section Header: Overview + Role Badge
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                Text(
+                  ur ? 'خلاصہ' : 'Overview',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
                 Container(
-                  width: 44,
-                  height: 44,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    Icons.account_balance_wallet_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // 5. Small Cards Row 1: Available, On Hold, Spent (3 in one row with different colors)
-          Row(
-            children: [
-              // Available (Mint Green)
-              Expanded(
-                child: _buildSmallStatCard(
-                  bgColor: const Color(0xFFF0FDF4),
-                  borderColor: const Color(0xFFBBF7D0),
-                  icon: Icons.account_balance_wallet_rounded,
-                  iconColor: const Color(0xFF10B981),
-                  iconBgColor: const Color(0xFFDCFCE7),
-                  title: ur ? 'دستیاب' : 'Available',
-                  amount: _formatMoney(widget.availableAmount),
-                  subtitle: '$availPct% ${ur ? 'کل کا' : 'of total'}',
-                ),
-              ),
-              const SizedBox(width: 8),
-              // On Hold (Amber/Orange)
-              Expanded(
-                child: _buildSmallStatCard(
-                  bgColor: const Color(0xFFFFFBEB),
-                  borderColor: const Color(0xFFFDE68A),
-                  icon: Icons.access_time_filled_rounded,
-                  iconColor: const Color(0xFFF59E0B),
-                  iconBgColor: const Color(0xFFFEF3C7),
-                  title: ur ? 'زیر التوا' : 'On Hold',
-                  amount: _formatMoney(widget.onHoldAmount),
-                  subtitle: '$onHoldPct% ${ur ? 'کل کا' : 'of total'}',
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Spent (Soft Blue)
-              Expanded(
-                child: _buildSmallStatCard(
-                  bgColor: const Color(0xFFEFF6FF),
-                  borderColor: const Color(0xFFBFDBFE),
-                  icon: Icons.pie_chart_rounded,
-                  iconColor: const Color(0xFF2563EB),
-                  iconBgColor: const Color(0xFFDBEAFE),
-                  title: ur ? 'خرچ شدہ' : 'Spent',
-                  amount: _formatMoney(widget.spentAmount),
-                  subtitle: '$spentPct% ${ur ? 'کل کا' : 'of total'}',
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // 6. Small Cards Row 2: Users, Branches, Pending (3 in one row with different colors)
-          Row(
-            children: [
-              // Metric 1 (Pastel Blue)
-              Expanded(
-                child: _buildCounterCard(
-                  icon: widget.metric1Icon,
-                  iconColor: const Color(0xFF2563EB),
-                  iconBgColor: isDark ? const Color(0xFF1E3A8A).withValues(alpha: 0.5) : const Color(0xFFEFF6FF),
-                  count: '${widget.metric1Count}',
-                  label: widget.metric1Label,
-                  isDark: isDark,
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Metric 2 (Pastel Teal)
-              Expanded(
-                child: _buildCounterCard(
-                  icon: widget.metric2Icon,
-                  iconColor: const Color(0xFF0D9488),
-                  iconBgColor: isDark ? const Color(0xFF134E4A).withValues(alpha: 0.5) : const Color(0xFFF0FDFA),
-                  count: '${widget.metric2Count}',
-                  label: widget.metric2Label,
-                  isDark: isDark,
-                ),
-              ),
-              const SizedBox(width: 8),
-              // Metric 3 (Pastel Amber)
-              Expanded(
-                child: _buildCounterCard(
-                  icon: widget.metric3Icon,
-                  iconColor: const Color(0xFFD97706),
-                  iconBgColor: isDark ? const Color(0xFF78350F).withValues(alpha: 0.5) : const Color(0xFFFFFBEB),
-                  count: '${widget.metric3Count}',
-                  label: widget.metric3Label,
-                  isDark: isDark,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-
-          // Spending Overview (Bar Chart)
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x06000000),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      ur ? 'اخراجات کا جائزہ' : 'Spending overview',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      ),
+                    color: isDark
+                        ? const Color(0xFF312E81).withValues(alpha: 0.5)
+                        : const Color(0xFFF5F3FF),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF6366F1).withValues(alpha: 0.4)
+                          : const Color(0xFFDDD6FE),
                     ),
-                    if (widget.onViewReport != null)
-                      InkWell(
-                        onTap: widget.onViewReport,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.verified_user_rounded,
+                        size: 14,
+                        color: Color(0xFF7C3AED),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        widget.roleBadgeText,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF7C3AED),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            if (widget.actionHeader != null) ...[
+              const SizedBox(height: 12),
+              widget.actionHeader!,
+            ],
+
+            const SizedBox(height: 12),
+
+            // 3. Filters Row: Branch Dropdown & Date Range Picker
+            Row(
+              children: [
+                if (widget.showBranchFilter) ...[
+                  // Branch Filter
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => _openBranchPicker(context, flow.offices),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 9,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : const Color(0xFFE2E8F0),
+                          ),
+                        ),
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              ur ? 'رپورٹ دیکھیں' : 'View report',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF7C3AED),
+                            Icon(
+                              Icons.business_rounded,
+                              size: 17,
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                officeDisplayName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF1E293B),
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 3),
                             const Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 11,
-                              color: Color(0xFF7C3AED),
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 18,
+                              color: Color(0xFF94A3B8),
                             ),
                           ],
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildSpendingBarChart(flow, isDark, ur),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 22),
-
-          // 9. Recent Activity Section
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x06000000),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      ur ? 'حالیہ سرگرمی' : 'Recent activity',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                      ),
                     ),
-                    if (widget.onViewAllActivity != null)
-                      InkWell(
-                        onTap: widget.onViewAllActivity,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              ur ? 'سب دیکھیں' : 'View all',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF7C3AED),
-                              ),
-                            ),
-                            const SizedBox(width: 3),
-                            const Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 11,
-                              color: Color(0xFF7C3AED),
-                            ),
-                          ],
+                  ),
+                  const SizedBox(width: 10),
+                ],
+                // Date Range Filter (With Separate Calendars)
+                Expanded(
+                  child: InkWell(
+                    onTap: () => _openDateRangePicker(context),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 9,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                if (widget.recentActivities.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Center(
-                      child: Text(
-                        ur ? 'ابھی کوئی سرگرمی نہیں' : 'No recent activity yet',
-                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 16,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              _startDate != null && _endDate != null
+                                  ? '${DateFormat('dd MMM').format(_startDate!)} - ${DateFormat('dd MMM').format(_endDate!)}'
+                                  : DateFormat('MMMM yyyy')
+                                        .format(_selectedMonth),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF1E293B),
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 18,
+                            color: Color(0xFF94A3B8),
+                          ),
+                        ],
                       ),
                     ),
-                  )
-                else
-                  ...() {
-                    final seen = <String>{};
-                    final unique = widget.recentActivities.where((act) {
-                      final k = '${act.title}_${act.subtitle}_${act.time}';
-                      return seen.add(k);
-                    }).toList();
-                    return unique.map((act) => _buildActivityRow(act, isDark));
-                  }(),
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
+
+            const SizedBox(height: 14),
+
+            // 4. Hero Card (Gradient Purple - never overflows in RTL / Urdu)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(22),
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? const [Color(0xFF6D28D9), Color(0xFF4C1D95)]
+                      : const [Color(0xFF7C3AED), Color(0xFF5B21B6)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.heroTitle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(
+                            _formatMoney(widget.heroAmount),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            if (widget.showFinancialCards) ...[
+              const SizedBox(height: 12),
+
+              // 5. Small Cards Row 1: Available, On Hold, Spent (3 in one row with different colors)
+              Row(
+                children: [
+                  // Available (Mint Green)
+                  Expanded(
+                    child: _buildSmallStatCard(
+                      bgColor: const Color(0xFFF0FDF4),
+                      borderColor: const Color(0xFFBBF7D0),
+                      icon: Icons.account_balance_wallet_rounded,
+                      iconColor: const Color(0xFF10B981),
+                      iconBgColor: const Color(0xFFDCFCE7),
+                      title: ur ? 'دستیاب' : 'Available',
+                      amount: _formatMoney(widget.availableAmount),
+                      subtitle: '$availPct% ${ur ? 'کل کا' : 'of total'}',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // On Hold (Amber/Orange)
+                  Expanded(
+                    child: _buildSmallStatCard(
+                      bgColor: const Color(0xFFFFFBEB),
+                      borderColor: const Color(0xFFFDE68A),
+                      icon: Icons.access_time_filled_rounded,
+                      iconColor: const Color(0xFFF59E0B),
+                      iconBgColor: const Color(0xFFFEF3C7),
+                      title: ur ? 'زیر التوا' : 'On Hold',
+                      amount: _formatMoney(widget.onHoldAmount),
+                      subtitle: '$onHoldPct% ${ur ? 'کل کا' : 'of total'}',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Spent (Soft Blue)
+                  Expanded(
+                    child: _buildSmallStatCard(
+                      bgColor: const Color(0xFFEFF6FF),
+                      borderColor: const Color(0xFFBFDBFE),
+                      icon: Icons.pie_chart_rounded,
+                      iconColor: const Color(0xFF2563EB),
+                      iconBgColor: const Color(0xFFDBEAFE),
+                      title: ur ? 'خرچ شدہ' : 'Spent',
+                      amount: _formatMoney(widget.spentAmount),
+                      subtitle: '$spentPct% ${ur ? 'کل کا' : 'of total'}',
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            const SizedBox(height: 12),
+
+            // 6. Small Cards Row 2: Users, Branches, Pending (3 in one row with different colors)
+            Row(
+              children: [
+                // Metric 1 (Pastel Blue)
+                Expanded(
+                  child: _buildCounterCard(
+                    icon: widget.metric1Icon,
+                    iconColor: const Color(0xFF2563EB),
+                    iconBgColor: isDark
+                        ? const Color(0xFF1E3A8A).withValues(alpha: 0.5)
+                        : const Color(0xFFEFF6FF),
+                    count: '${widget.metric1Count}',
+                    label: widget.metric1Label,
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Metric 2 (Pastel Teal)
+                Expanded(
+                  child: _buildCounterCard(
+                    icon: widget.metric2Icon,
+                    iconColor: const Color(0xFF0D9488),
+                    iconBgColor: isDark
+                        ? const Color(0xFF134E4A).withValues(alpha: 0.5)
+                        : const Color(0xFFF0FDFA),
+                    count: '${widget.metric2Count}',
+                    label: widget.metric2Label,
+                    isDark: isDark,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Metric 3 (Pastel Amber)
+                Expanded(
+                  child: _buildCounterCard(
+                    icon: widget.metric3Icon,
+                    iconColor: const Color(0xFFD97706),
+                    iconBgColor: isDark
+                        ? const Color(0xFF78350F).withValues(alpha: 0.5)
+                        : const Color(0xFFFFFBEB),
+                    count: '${widget.metric3Count}',
+                    label: widget.metric3Label,
+                    isDark: isDark,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // Spending Overview (Bar Chart)
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x06000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          ur ? 'اخراجات کا جائزہ' : 'Spending overview',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ),
+                      if (widget.onViewReport != null)
+                        InkWell(
+                          onTap: widget.onViewReport,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                ur ? 'رپورٹ دیکھیں' : 'View report',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF7C3AED),
+                                ),
+                              ),
+                              const SizedBox(width: 3),
+                              const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 11,
+                                color: Color(0xFF7C3AED),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSpendingBarChart(flow, isDark, ur),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 22),
+
+            // 9. Recent Activity Section
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFE2E8F0),
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x06000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          ur ? 'حالیہ سرگرمی' : 'Recent activity',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
+                          ),
+                        ),
+                      ),
+                      if (widget.onViewAllActivity != null)
+                        InkWell(
+                          onTap: widget.onViewAllActivity,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                ur ? 'سب دیکھیں' : 'View all',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF7C3AED),
+                                ),
+                              ),
+                              const SizedBox(width: 3),
+                              const Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 11,
+                                color: Color(0xFF7C3AED),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  if (widget.recentActivities.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: Text(
+                          ur
+                              ? 'ابھی کوئی سرگرمی نہیں'
+                              : 'No recent activity yet',
+                          style: const TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    ...() {
+                      final seen = <String>{};
+                      final unique = widget.recentActivities.where((act) {
+                        final k = '${act.title}_${act.subtitle}_${act.time}';
+                        return seen.add(k);
+                      }).toList();
+                      return unique.map(
+                        (act) => _buildActivityRow(act, isDark),
+                      );
+                    }(),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -820,7 +955,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+        ),
       ),
       child: Row(
         children: [
@@ -854,7 +991,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ],
@@ -875,10 +1014,13 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
 
     for (final item in flow.items) {
       if (item.status == 'rejected') continue;
-      if (_selectedOfficeId != null && _selectedOfficeId!.isNotEmpty && _selectedOfficeId != 'all') {
+      if (_selectedOfficeId != null &&
+          _selectedOfficeId!.isNotEmpty &&
+          _selectedOfficeId != 'all') {
         if (item.officeId != _selectedOfficeId) continue;
       }
-      if (item.createdAt.year == _selectedMonth.year && item.createdAt.month == _selectedMonth.month) {
+      if (item.createdAt.year == _selectedMonth.year &&
+          item.createdAt.month == _selectedMonth.month) {
         final w = item.createdAt.weekday - 1;
         if (w >= 0 && w < 7) {
           weekdayTotals[w] += item.amount;
@@ -888,11 +1030,14 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
 
     for (final r in flow.reimbursements) {
       if (r.status != 'paid') continue;
-      if (_selectedOfficeId != null && _selectedOfficeId!.isNotEmpty && _selectedOfficeId != 'all') {
+      if (_selectedOfficeId != null &&
+          _selectedOfficeId!.isNotEmpty &&
+          _selectedOfficeId != 'all') {
         if (r.officeId != _selectedOfficeId) continue;
       }
       final date = r.paidAt ?? r.createdAt;
-      if (date.year == _selectedMonth.year && date.month == _selectedMonth.month) {
+      if (date.year == _selectedMonth.year &&
+          date.month == _selectedMonth.month) {
         final w = date.weekday - 1;
         if (w >= 0 && w < 7) {
           weekdayTotals[w] += r.amount;
@@ -919,15 +1064,21 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
     String formatK(double val) {
       if (val <= 0) return '0';
       if (val >= 1000000) return '${(val / 1000000).toStringAsFixed(1)}M';
-      if (val >= 1000) return '${(val / 1000).toStringAsFixed(val >= 10000 ? 0 : 1)}k';
+      if (val >= 1000) {
+        return '${(val / 1000).toStringAsFixed(val >= 10000 ? 0 : 1)}k';
+      }
       return val.toInt().toString();
     }
 
     final amounts = weekdayTotals.map((v) => formatK(v)).toList();
     final activeDays = weekdayTotals.where((v) => v > 0).length;
-    final avgPerDay = totalSpent > 0 ? (totalSpent / (activeDays > 0 ? activeDays : 7)) : 0.0;
+    final avgPerDay = totalSpent > 0
+        ? (totalSpent / (activeDays > 0 ? activeDays : 7))
+        : 0.0;
     final avgText = totalSpent > 0
-        ? (ur ? 'اوسط: PKR ${formatK(avgPerDay)}/دن' : 'Avg: PKR ${formatK(avgPerDay)}/day')
+        ? (ur
+              ? 'اوسط: PKR ${formatK(avgPerDay)}/دن'
+              : 'Avg: PKR ${formatK(avgPerDay)}/day')
         : (ur ? 'اس ماہ کوئی خرچ نہیں' : 'PKR 0 this month');
 
     return Column(
@@ -938,26 +1089,40 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                ur ? 'ہفتہ وار اخراجات کا رجحان' : 'Weekly Trend',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              Flexible(
+                child: Text(
+                  ur ? 'ہفتہ وار اخراجات کا رجحان' : 'Weekly Trend',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  avgText,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF7C3AED),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C3AED).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    avgText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF7C3AED),
+                    ),
                   ),
                 ),
               ),
@@ -980,13 +1145,17 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                       if (isPeak)
                         Container(
                           margin: const EdgeInsets.only(bottom: 4),
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1.5,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF7C3AED),
                             borderRadius: BorderRadius.circular(6),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                                color: const Color(0xFF7C3AED)
+                                    .withValues(alpha: 0.3),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -1015,7 +1184,8 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                   width: 14,
                                   decoration: BoxDecoration(
                                     color: isDark
-                                        ? const Color(0xFF334155).withValues(alpha: 0.5)
+                                        ? const Color(0xFF334155)
+                                              .withValues(alpha: 0.5)
                                         : const Color(0xFFF1F5F9),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
@@ -1023,14 +1193,20 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                 // Purple gradient bar
                                 Container(
                                   width: 14,
-                                  height: constraints.maxHeight * heights[index],
+                                  height:
+                                      constraints.maxHeight * heights[index],
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: isPeak
-                                          ? const [Color(0xFF8B5CF6), Color(0xFF6D28D9)]
+                                          ? const [
+                                              Color(0xFF8B5CF6),
+                                              Color(0xFF6D28D9),
+                                            ]
                                           : [
-                                              const Color(0xFFA78BFA).withValues(alpha: 0.8),
-                                              const Color(0xFF7C3AED).withValues(alpha: 0.9),
+                                              const Color(0xFFA78BFA)
+                                                  .withValues(alpha: 0.8),
+                                              const Color(0xFF7C3AED)
+                                                  .withValues(alpha: 0.9),
                                             ],
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
@@ -1039,7 +1215,8 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                     boxShadow: isPeak
                                         ? [
                                             BoxShadow(
-                                              color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
+                                              color: const Color(0xFF7C3AED)
+                                                  .withValues(alpha: 0.35),
                                               blurRadius: 8,
                                               offset: const Offset(0, 3),
                                             ),
@@ -1059,10 +1236,14 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: isPeak ? FontWeight.w800 : FontWeight.w600,
+                          fontWeight: isPeak
+                              ? FontWeight.w800
+                              : FontWeight.w600,
                           color: isPeak
                               ? const Color(0xFF7C3AED)
-                              : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                              : (isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B)),
                         ),
                       ),
                     ],
@@ -1112,7 +1293,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                   ),
                 ),
               ],
@@ -1177,12 +1360,19 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
               ),
               Divider(height: 1, color: isDark ? Colors.white12 : null),
               ListTile(
-                leading: const Icon(Icons.corporate_fare_rounded, color: Color(0xFF7C3AED)),
+                leading: const Icon(
+                  Icons.corporate_fare_rounded,
+                  color: Color(0xFF7C3AED),
+                ),
                 title: Text(
                   ur ? 'تمام برانچز' : 'All Branches',
-                  style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
-                trailing: _selectedOfficeId == null ? const Icon(Icons.check, color: Color(0xFF7C3AED)) : null,
+                trailing: _selectedOfficeId == null
+                    ? const Icon(Icons.check, color: Color(0xFF7C3AED))
+                    : null,
                 onTap: () {
                   setState(() => _selectedOfficeId = null);
                   widget.onOfficeChanged?.call(null);
@@ -1192,12 +1382,21 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
               ...offices.map((office) {
                 final isSel = _selectedOfficeId == office.id;
                 return ListTile(
-                  leading: Icon(Icons.business_rounded, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  leading: Icon(
+                    Icons.business_rounded,
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
+                  ),
                   title: Text(
                     office.name,
-                    style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
                   ),
-                  trailing: isSel ? const Icon(Icons.check, color: Color(0xFF7C3AED)) : null,
+                  trailing: isSel
+                      ? const Icon(Icons.check, color: Color(0xFF7C3AED))
+                      : null,
                   onTap: () {
                     setState(() => _selectedOfficeId = office.id);
                     widget.onOfficeChanged?.call(office.id);
@@ -1215,8 +1414,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
   void _openDateRangePicker(BuildContext context) {
     final ur = context.read<LanguageProvider>().isRtl;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    DateTime tempStart = _startDate ?? DateTime(_selectedMonth.year, _selectedMonth.month, 1);
-    DateTime tempEnd = _endDate ?? DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
+    DateTime tempStart =
+        _startDate ?? DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+    DateTime tempEnd =
+        _endDate ?? DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
 
     showModalBottomSheet(
       context: context,
@@ -1257,11 +1458,15 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      ur ? 'شروع اور اختتام کی تاریخ منتخب کریں' : 'Choose From and To dates to filter records',
+                      ur
+                          ? 'شروع اور اختتام کی تاریخ منتخب کریں'
+                          : 'Choose From and To dates to filter records',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -1277,7 +1482,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                 initialDate: tempStart,
                                 firstDate: DateTime(2020),
                                 lastDate: DateTime(2100),
-                                helpText: ur ? 'شروع کی تاریخ' : 'Select From Date',
+                                helpText: ur
+                                    ? 'شروع کی تاریخ'
+                                    : 'Select From Date',
                               );
                               if (picked != null) {
                                 setModalState(() {
@@ -1292,10 +1499,13 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF0B0F19) : const Color(0xFFF8FAFC),
+                                color: isDark
+                                    ? const Color(0xFF0B0F19)
+                                    : const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: const Color(0xFF7C3AED).withValues(alpha: 0.4),
+                                  color: const Color(0xFF7C3AED)
+                                      .withValues(alpha: 0.4),
                                   width: 1.5,
                                 ),
                               ),
@@ -1304,7 +1514,11 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.event_available_rounded, size: 16, color: Color(0xFF7C3AED)),
+                                      const Icon(
+                                        Icons.event_available_rounded,
+                                        size: 16,
+                                        color: Color(0xFF7C3AED),
+                                      ),
                                       const SizedBox(width: 6),
                                       Text(
                                         ur ? 'شروع (From)' : 'From Date',
@@ -1322,7 +1536,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -1330,7 +1546,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                     DateFormat('EEEE').format(tempStart),
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],
@@ -1345,10 +1563,14 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                             onTap: () async {
                               final picked = await showDatePicker(
                                 context: context,
-                                initialDate: tempEnd.isBefore(tempStart) ? tempStart : tempEnd,
+                                initialDate: tempEnd.isBefore(tempStart)
+                                    ? tempStart
+                                    : tempEnd,
                                 firstDate: DateTime(2020),
                                 lastDate: DateTime(2100),
-                                helpText: ur ? 'اختتام کی تاریخ' : 'Select To Date',
+                                helpText: ur
+                                    ? 'اختتام کی تاریخ'
+                                    : 'Select To Date',
                               );
                               if (picked != null) {
                                 setModalState(() {
@@ -1363,10 +1585,13 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF0B0F19) : const Color(0xFFF8FAFC),
+                                color: isDark
+                                    ? const Color(0xFF0B0F19)
+                                    : const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: const Color(0xFF0D9488).withValues(alpha: 0.4),
+                                  color: const Color(0xFF0D9488)
+                                      .withValues(alpha: 0.4),
                                   width: 1.5,
                                 ),
                               ),
@@ -1375,7 +1600,11 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.event_busy_rounded, size: 16, color: Color(0xFF0D9488)),
+                                      const Icon(
+                                        Icons.event_busy_rounded,
+                                        size: 16,
+                                        color: Color(0xFF0D9488),
+                                      ),
                                       const SizedBox(width: 6),
                                       Text(
                                         ur ? 'اختتام (To)' : 'To Date',
@@ -1393,7 +1622,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -1401,7 +1632,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                     DateFormat('EEEE').format(tempEnd),
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
                                     ),
                                   ),
                                 ],
@@ -1422,7 +1655,11 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                           onTap: () {
                             final now = DateTime.now();
                             setModalState(() {
-                              tempStart = DateTime(now.year, now.month, now.day);
+                              tempStart = DateTime(
+                                now.year,
+                                now.month,
+                                now.day,
+                              );
                               tempEnd = DateTime(now.year, now.month, now.day);
                             });
                           },
@@ -1455,7 +1692,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                           onTap: () {
                             final now = DateTime.now();
                             setModalState(() {
-                              tempStart = now.subtract(const Duration(days: 30));
+                              tempStart = now.subtract(
+                                const Duration(days: 30),
+                              );
                               tempEnd = now;
                             });
                           },
@@ -1477,7 +1716,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                         setState(() {
                           _startDate = tempStart;
                           _endDate = tempEnd;
-                          _selectedMonth = DateTime(tempStart.year, tempStart.month);
+                          _selectedMonth = DateTime(
+                            tempStart.year,
+                            tempStart.month,
+                          );
                         });
                         widget.onDateRangeChanged?.call(tempStart, tempEnd);
                         widget.onMonthChanged?.call(_selectedMonth);
@@ -1485,7 +1727,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                       },
                       child: Text(
                         ur ? 'فلٹر لاگو کریں' : 'Apply Date Range',
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                   ],

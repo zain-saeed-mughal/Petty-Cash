@@ -66,7 +66,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         title: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 24),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Color(0xFF10B981),
+              size: 24,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -88,7 +92,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               Text(
                 '$name ${Provider.of<LanguageProvider>(context, listen: false).tr('can_use_temp_creds')}',
                 style: TextStyle(
-                  color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                  color: isDark
+                      ? const Color(0xFFCBD5E1)
+                      : const Color(0xFF334155),
                   fontSize: 13,
                 ),
               ),
@@ -120,7 +126,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ).tr('share_password_securely'),
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
                 ),
               ),
             ],
@@ -140,7 +148,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               ),
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: Text(
-                Provider.of<LanguageProvider>(context, listen: false).tr('done'),
+                Provider.of<LanguageProvider>(
+                  context,
+                  listen: false,
+                ).tr('done'),
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
@@ -177,7 +188,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    color: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -195,7 +208,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           IconButton(
             tooltip:
                 '${Provider.of<LanguageProvider>(context, listen: false).tr('copy_tooltip')}$label',
-            icon: const Icon(Icons.copy_rounded, size: 18, color: Color(0xFF8B5CF6)),
+            icon: const Icon(
+              Icons.copy_rounded,
+              size: 18,
+              color: Color(0xFF8B5CF6),
+            ),
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: value));
               if (context.mounted) {
@@ -356,7 +373,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w800,
-                                    color: isDark ? Colors.white : AppTheme.primaryNavy,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.primaryNavy,
                                     letterSpacing: -0.8,
                                   ),
                                 ),
@@ -369,7 +388,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                             .tr('admin_manage_desc'),
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
                                     fontWeight: FontWeight.w500,
                                   ),
                                   maxLines: 2,
@@ -381,7 +402,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           const SizedBox(width: 8),
                           // + Icon Add Button (Purple gradient, NOT blue)
                           InkWell(
-                            onTap: () => _showAddUserDialog(context, currentUser),
+                            onTap: () =>
+                                _showAddUserDialog(context, currentUser),
                             borderRadius: BorderRadius.circular(14),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
@@ -390,12 +412,16 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               ),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [Color(0xFF7C3AED), Color(0xFF6D28D9)],
+                                  colors: [
+                                    Color(0xFF7C3AED),
+                                    Color(0xFF6D28D9),
+                                  ],
                                 ),
                                 borderRadius: BorderRadius.circular(14),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
+                                    color: const Color(0xFF7C3AED)
+                                        .withValues(alpha: 0.35),
                                     blurRadius: 8,
                                     offset: const Offset(0, 3),
                                   ),
@@ -404,10 +430,15 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.add_rounded, size: 20, color: Colors.white),
+                                  const Icon(
+                                    Icons.add_rounded,
+                                    size: 20,
+                                    color: Colors.white,
+                                  ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    Provider.of<LanguageProvider>(context).tr('add_btn'),
+                                    Provider.of<LanguageProvider>(context)
+                                        .tr('add_btn'),
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
@@ -426,10 +457,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF334155) : AppTheme.borderLight,
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : AppTheme.borderLight,
                             width: 0.8,
                           ),
                           boxShadow: isDark ? null : AppTheme.premiumShadow,
@@ -443,16 +478,24 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                 onChanged: (_) => setState(() {}),
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppTheme.primaryNavy,
                                 ),
                                 decoration: InputDecoration(
                                   isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                                  hintText: Provider.of<LanguageProvider>(context)
-                                      .tr('search_users_hint'),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 10,
+                                  ),
+                                  hintText: Provider.of<LanguageProvider>(
+                                    context,
+                                  ).tr('search_users_hint'),
                                   hintStyle: TextStyle(
                                     fontSize: 13,
-                                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                                    color: isDark
+                                        ? const Color(0xFF64748B)
+                                        : const Color(0xFF94A3B8),
                                   ),
                                   prefixIcon: const Icon(
                                     Icons.search_rounded,
@@ -475,13 +518,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: BorderSide(
-                                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                      color: isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0),
                                     ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                     borderSide: BorderSide(
-                                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                                      color: isDark
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xFFE2E8F0),
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
@@ -599,12 +646,17 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   .copyWith(bottom: 32),
               sliver: SliverList.separated(
                 itemCount: filtered.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 12),
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   return Center(
                     child: Container(
                       constraints: const BoxConstraints(maxWidth: 1000),
-                      child: _buildUserCard(filtered[index], currentUser, isDark),
+                      child: _buildUserCard(
+                        filtered[index],
+                        currentUser,
+                        isDark,
+                      ),
                     ),
                   );
                 },
@@ -615,7 +667,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, UserRole? role, {Color? color, bool isDark = false}) {
+  Widget _buildFilterChip(
+    String label,
+    UserRole? role, {
+    Color? color,
+    bool isDark = false,
+  }) {
     final isSelected = _roleFilter == role;
     return FilterChip(
       selected: isSelected,
@@ -624,7 +681,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-          color: isSelected ? Colors.white : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
+          color: isSelected
+              ? Colors.white
+              : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
         ),
       ),
       backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
@@ -644,7 +703,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  Widget _buildUserCard(AppUser user, AppUser currentUser, [bool isDark = false]) {
+  Widget _buildUserCard(
+    AppUser user,
+    AppUser currentUser, [
+    bool isDark = false,
+  ]) {
     final offices = context.watch<CoreFlowProvider>().offices;
     final officeName = offices
         .where((office) => office.id == user.officeId)
@@ -759,41 +822,63 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   runSpacing: 4,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.mail_outline_rounded,
-                          size: 13,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          user.email,
-                          style: TextStyle(
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                            fontSize: 12,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 240),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.mail_outline_rounded,
+                            size: 13,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              user.email,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.business_outlined,
-                          size: 13,
-                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${context.t('Office')}: ${officeName ?? context.t('Not assigned')}',
-                          style: TextStyle(
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
-                            fontSize: 12,
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 240),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.business_outlined,
+                            size: 13,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              '${context.t('Office')}: ${officeName ?? context.t('Not assigned')}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -806,15 +891,23 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     Icon(
                       Icons.calendar_today_outlined,
                       size: 12,
-                      color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                      color: isDark
+                          ? const Color(0xFF64748B)
+                          : const Color(0xFF94A3B8),
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      context.language.date(user.createdAt),
-                      style: TextStyle(
-                        color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
+                    Flexible(
+                      child: Text(
+                        context.language.date(user.createdAt),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: isDark
+                              ? const Color(0xFF64748B)
+                              : const Color(0xFF94A3B8),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
@@ -837,22 +930,29 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   child: Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: () => _showEditUserDialog(context, user, currentUser),
+                      onTap: () =>
+                          _showEditUserDialog(context, user, currentUser),
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
                         width: 38,
                         height: 38,
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF334155).withValues(alpha: 0.5) : const Color(0xFFF1F5F9),
+                          color: isDark
+                              ? const Color(0xFF334155).withValues(alpha: 0.5)
+                              : const Color(0xFFF1F5F9),
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
-                            color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0),
+                            color: isDark
+                                ? const Color(0xFF475569)
+                                : const Color(0xFFE2E8F0),
                           ),
                         ),
                         child: Icon(
                           Icons.edit_outlined,
                           size: 19,
-                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                          color: isDark
+                              ? const Color(0xFFCBD5E1)
+                              : const Color(0xFF475569),
                         ),
                       ),
                     ),

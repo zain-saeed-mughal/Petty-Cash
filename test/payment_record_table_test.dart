@@ -67,7 +67,14 @@ void main() {
 
     await tester.tap(find.text('کاغذ'));
     await tester.pumpAndSettle();
-    expect(find.text('تفصیل: کاغذ'), findsOneWidget);
+    expect(find.text('تفصیل: کاغذ'), findsWidgets);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byIcon(Icons.close_rounded),
+      ),
+    );
+    await tester.pumpAndSettle();
 
     await tester.enterText(
       find.byKey(const ValueKey('test-history-search')),

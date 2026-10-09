@@ -80,15 +80,21 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
               widget.searchOf(record).toLowerCase().contains(query));
     }).toList();
     final shown = filtered.take(_limit).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.white, Color(0xFFF7F9FE)],
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        gradient: isDark
+            ? null
+            : const LinearGradient(
+                colors: [Colors.white, Color(0xFFF7F9FE)],
+              ),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : AppTheme.borderLight,
         ),
-        border: Border.all(color: AppTheme.borderLight),
         borderRadius: BorderRadius.circular(22),
-        boxShadow: AppTheme.premiumShadow,
+        boxShadow: isDark ? null : AppTheme.premiumShadow,
       ),
       padding: const EdgeInsets.all(16),
       child: LayoutBuilder(
@@ -155,8 +161,8 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
               const SizedBox(height: 12),
               Text(
                 '${filtered.length} ${widget.recordsLabel}',
-                style: const TextStyle(
-                  color: Color(0xFF64748B),
+                style: TextStyle(
+                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -164,15 +170,22 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
               if (shown.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 28),
-                  child: Center(child: Text(widget.noMatchesLabel)),
+                  child: Center(
+                    child: Text(
+                      widget.noMatchesLabel,
+                      style: TextStyle(
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ),
                 )
               else if (wide)
-                _tableRows(context, shown)
+                _tableRows(context, shown, isDark)
               else
                 Column(
                   children: [
                     for (var index = 0; index < shown.length; index++)
-                      _mobileRecord(context, shown[index], index),
+                      _mobileRecord(context, shown[index], index, isDark),
                   ],
                 ),
               if (filtered.length > shown.length)
@@ -193,10 +206,107 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
     );
   }
 
-  Widget _header(BuildContext context) => Container(
+  void _showRecordModal(BuildContext context, T record) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                widget.detailsLabel,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                ),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close_rounded),
+              onPressed: () => Navigator.pop(ctx),
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 580,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFD),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      for (final col in widget.columns)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                col.label,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                ),
+                              ),
+                              Flexible(
+                                child: col.cell(context, record),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                widget.details(context, record),
+              ],
+            ),
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF7C3AED),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleRecordTap(BuildContext context, T record) {
+    _toggle(widget.idOf(record));
+    _showRecordModal(context, record);
+  }
+
+  Widget _header(BuildContext context, bool isDark) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
     decoration: BoxDecoration(
-      color: const Color(0xFFEAF1FD),
+      color: isDark ? const Color(0xFF0F172A) : const Color(0xFFEAF1FD),
       borderRadius: BorderRadius.circular(10),
     ),
     child: Row(
@@ -206,8 +316,8 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
             flex: column.flex,
             child: Text(
               column.label,
-              style: const TextStyle(
-                color: Color(0xFF344766),
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF344766),
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
               ),
@@ -218,26 +328,29 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
     ),
   );
 
-  Widget _tableRows(BuildContext context, List<T> records) => Column(
+  Widget _tableRows(BuildContext context, List<T> records, bool isDark) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      _header(context),
+      _header(context, isDark),
       for (var index = 0; index < records.length; index++)
-        _record(context, records[index], index),
+        _record(context, records[index], index, isDark),
     ],
   );
 
-  Widget _record(BuildContext context, T record, int index) {
+  Widget _record(BuildContext context, T record, int index, bool isDark) {
     final id = widget.idOf(record);
     final expanded = _expanded.contains(id);
+    final rowBg = index.isEven
+        ? (isDark ? const Color(0xFF1E293B) : Colors.white)
+        : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFD));
     return Column(
       key: ValueKey('${widget.tableId}-$id'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Material(
-          color: index.isEven ? Colors.white : const Color(0xFFF8FAFD),
+          color: rowBg,
           child: InkWell(
-            onTap: () => _toggle(id),
+            onTap: () => _handleRecordTap(context, record),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
               child: Row(
@@ -257,7 +370,7 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
                       child: Icon(
                         expanded
                             ? Icons.keyboard_arrow_up_rounded
-                            : Icons.keyboard_arrow_down_rounded,
+                            : Icons.visibility_outlined,
                         color: AppTheme.primaryBlue,
                       ),
                     ),
@@ -272,22 +385,25 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
             padding: const EdgeInsets.fromLTRB(10, 0, 10, 12),
             child: widget.details(context, record),
           ),
-        const Divider(height: 1, color: Color(0xFFE5EAF2)),
+        Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFE5EAF2)),
       ],
     );
   }
 
-  Widget _mobileRecord(BuildContext context, T record, int index) {
+  Widget _mobileRecord(BuildContext context, T record, int index, bool isDark) {
     final id = widget.idOf(record);
     final expanded = _expanded.contains(id);
+    final cardBg = index.isEven
+        ? (isDark ? const Color(0xFF1E293B) : Colors.white)
+        : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFD));
     return Column(
       key: ValueKey('${widget.tableId}-$id'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Material(
-          color: index.isEven ? Colors.white : const Color(0xFFF8FAFD),
+          color: cardBg,
           child: InkWell(
-            onTap: () => _toggle(id),
+            onTap: () => _handleRecordTap(context, record),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               child: Column(
@@ -307,8 +423,8 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
                               padding: const EdgeInsets.symmetric(vertical: 5),
                               child: Text(
                                 column.label,
-                                style: const TextStyle(
-                                  color: Color(0xFF64748B),
+                                style: TextStyle(
+                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -339,7 +455,7 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
                         Icon(
                           expanded
                               ? Icons.keyboard_arrow_up_rounded
-                              : Icons.keyboard_arrow_down_rounded,
+                              : Icons.visibility_outlined,
                           color: AppTheme.primaryBlue,
                         ),
                       ],
@@ -355,7 +471,7 @@ class _PaymentRecordTableState<T> extends State<PaymentRecordTable<T>> {
             padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
             child: widget.details(context, record),
           ),
-        const Divider(height: 1, color: Color(0xFFE5EAF2)),
+        Divider(height: 1, color: isDark ? const Color(0xFF334155) : const Color(0xFFE5EAF2)),
       ],
     );
   }

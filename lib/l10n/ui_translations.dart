@@ -1,6 +1,11 @@
 // Additional shared UI and server-message translations. API identifiers remain unchanged.
 class UiTranslations {
   static const ur = <String, String>{
+    "Light Mode": "روشن انداز",
+    "Dark Mode": "تاریک انداز",
+    "copied_to_clipboard": "کاپی ہو گیا",
+    "Account created successfully!": "اکاؤنٹ بن گیا ہے۔",
+    "This request is no longer available.": "یہ درخواست اب دستیاب نہیں ہے۔",
     "Details": "تفصیل",
     "Office": "دفتر",
     "Update Settlement": "حساب میں تبدیلی کریں",
@@ -140,7 +145,8 @@ class UiTranslations {
     "Unable to load receipt image preview": "رسید کی تصویر نہیں کھل سکی",
     "Receipt Attached": "رسید منسلک ہے",
     "Reject Expense Request": "خرچ کی درخواست مسترد کریں",
-    "Tell the person why you sent this back.": "بتائیں کہ آپ نے یہ کیوں واپس بھیجی۔",
+    "Tell the person why you sent this back.":
+        "بتائیں کہ آپ نے یہ کیوں واپس بھیجی۔",
     "Missing official tax receipt / invoice":
         "سرکاری ٹیکس رسید یا انوائس موجود نہیں",
     "Receipt image is blurry or unreadable":
@@ -150,7 +156,8 @@ class UiTranslations {
     "Duplicate request already submitted": "یہ درخواست پہلے ہی جمع ہو چکی ہے",
     "Unapproved expenditure purpose": "خرچ کا مقصد منظور شدہ نہیں ہے",
     "Rejection Reason *": "مسترد کرنے کی وجہ *",
-    "e.g. Please add a clear receipt photo": "مثال: رسید کی صاف تصویر شامل کریں",
+    "e.g. Please add a clear receipt photo":
+        "مثال: رسید کی صاف تصویر شامل کریں",
     "Please provide a clear reason for rejection":
         "مسترد کرنے کی واضح وجہ درج کریں",
     "Reason must be at least 5 characters":

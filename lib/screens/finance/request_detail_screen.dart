@@ -232,6 +232,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
         context.watch<ExpenseProvider>().findRequest(widget.request.id) ??
         widget.request;
     final isDesktop = MediaQuery.of(context).size.width >= 800;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: const AccountAppBar(),
@@ -253,16 +254,22 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.borderLight),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : AppTheme.borderLight,
+                    ),
+                    boxShadow: isDark
+                        ? []
+                        : [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.02),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,10 +303,10 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                       const SizedBox(height: 16),
                       Text(
                         req.itemDescription,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: AppTheme.primaryNavy,
+                          color: isDark ? Colors.white : AppTheme.primaryNavy,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -333,9 +340,13 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.borderLight),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : AppTheme.borderLight,
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,7 +356,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -367,10 +380,12 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                               children: [
                                 Text(
                                   req.requesterName,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: AppTheme.primaryNavy,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.primaryNavy,
                                   ),
                                 ),
                                 Text(
@@ -386,22 +401,31 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      const Divider(height: 1),
+                      Divider(
+                        height: 1,
+                        color: isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFE2E8F0),
+                      ),
                       const SizedBox(height: 20),
                       Text(
                         context.t('Purpose & Reason for Purchase'),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF64748B),
+                          color: isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         req.reason,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: Color(0xFF334155),
+                          color: isDark
+                              ? const Color(0xFFCBD5E1)
+                              : const Color(0xFF334155),
                           height: 1.5,
                         ),
                       ),
@@ -412,7 +436,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                         Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: AppTheme.statusRejectedBg,
+                            color: isDark
+                                ? const Color(0xFF450A0A).withValues(alpha: 0.5)
+                                : AppTheme.statusRejectedBg,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: AppTheme.statusRejected.withValues(
@@ -425,7 +451,7 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                             children: [
                               Text(
                                 lang.tr('rejection_explanation'),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                   color: AppTheme.statusRejected,
                                   fontSize: 13,
@@ -434,9 +460,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                               const SizedBox(height: 4),
                               Text(
                                 req.rejectionReason!,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 13,
-                                  color: Color(0xFF7F1D1D),
+                                  color: isDark
+                                      ? const Color(0xFFFCA5A5)
+                                      : const Color(0xFF7F1D1D),
                                 ),
                               ),
                               if (req.reviewedByName != null) ...[
@@ -447,9 +475,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                                     'جائزہ لینے والا: {name}',
                                     {'name': req.reviewedByName},
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
-                                    color: Color(0xFF991B1B),
+                                    color: isDark
+                                        ? const Color(0xFFF87171)
+                                        : const Color(0xFF991B1B),
                                   ),
                                 ),
                               ],
@@ -466,9 +496,13 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.borderLight),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : AppTheme.borderLight,
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,7 +516,9 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: Color(0xFF64748B),
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
                               ),
                             ),
                           ),
@@ -563,9 +599,15 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(28),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
+                            color: isDark
+                                ? const Color(0xFF0F172A)
+                                : const Color(0xFFF8FAFC),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppTheme.borderLight),
+                            border: Border.all(
+                              color: isDark
+                                  ? const Color(0xFF334155)
+                                  : AppTheme.borderLight,
+                            ),
                           ),
                           child: Column(
                             children: [
@@ -725,19 +767,25 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppTheme.surfaceMuted,
+                      color: isDark
+                          ? const Color(0xFF0F172A)
+                          : AppTheme.surfaceMuted,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppTheme.borderLight),
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF334155)
+                            : AppTheme.borderLight,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           context.t('Advance Settlement Details'),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: AppTheme.primaryNavy,
+                            color: isDark ? Colors.white : AppTheme.primaryNavy,
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -749,12 +797,17 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           children: [
                             Text(
                               context.t('Advance Amount:'),
-                              style: const TextStyle(color: Colors.black87),
+                              style: TextStyle(
+                                color: isDark
+                                    ? const Color(0xFFCBD5E1)
+                                    : Colors.black87,
+                              ),
                             ),
                             Text(
                               context.language.money(req.amount),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                           ],
@@ -768,7 +821,11 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           children: [
                             Text(
                               context.t('Amount Spent:'),
-                              style: const TextStyle(color: Colors.black87),
+                              style: TextStyle(
+                                color: isDark
+                                    ? const Color(0xFFCBD5E1)
+                                    : Colors.black87,
+                              ),
                             ),
                             Text(
                               context.language.money(req.settlementAmount ?? 0),
@@ -788,12 +845,17 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           children: [
                             Text(
                               context.t('Returned via:'),
-                              style: const TextStyle(color: Colors.black87),
+                              style: TextStyle(
+                                color: isDark
+                                    ? const Color(0xFFCBD5E1)
+                                    : Colors.black87,
+                              ),
                             ),
                             Text(
                               context.t(req.settlementMethod ?? 'None'),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
                               ),
                             ),
                           ],
@@ -803,15 +865,21 @@ class _RequestDetailScreenState extends State<RequestDetailScreen> {
                           const SizedBox(height: 12),
                           Text(
                             context.t('Note:'),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : Colors.black87,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             req.settlementNote!,
-                            style: const TextStyle(color: Colors.black87),
+                            style: TextStyle(
+                              color: isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : Colors.black87,
+                            ),
                           ),
                         ],
                       ],

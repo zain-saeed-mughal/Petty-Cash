@@ -53,13 +53,21 @@ class AppTheme {
     final family = language == 'ur' ? 'JameelNooriNastaleeq' : 'Inter';
     final baseTextTheme = ThemeData.dark().textTheme.apply(
       fontFamily: family,
-      fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
+      fontFamilyFallback: const [
+        'JameelNooriNastaleeq',
+        'NotoSansArabic',
+        'Inter',
+      ],
     );
 
     return ThemeData(
       useMaterial3: true,
       fontFamily: family,
-      fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
+      fontFamilyFallback: const [
+        'JameelNooriNastaleeq',
+        'NotoSansArabic',
+        'Inter',
+      ],
       brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(
         seedColor: const Color(0xFF8B5CF6),
@@ -82,8 +90,12 @@ class AppTheme {
           color: Colors.white,
           letterSpacing: language == 'ur' ? 0 : -0.3,
         ),
-        bodyLarge: baseTextTheme.bodyLarge?.copyWith(color: const Color(0xFFE2E8F0)),
-        bodyMedium: baseTextTheme.bodyMedium?.copyWith(color: const Color(0xFFCBD5E1)),
+        bodyLarge: baseTextTheme.bodyLarge?.copyWith(
+          color: const Color(0xFFE2E8F0),
+        ),
+        bodyMedium: baseTextTheme.bodyMedium?.copyWith(
+          color: const Color(0xFFCBD5E1),
+        ),
       ),
       appBarTheme: AppBarTheme(
         elevation: 0,
@@ -93,7 +105,11 @@ class AppTheme {
         centerTitle: false,
         titleTextStyle: TextStyle(
           fontFamily: family,
-          fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
+          fontFamilyFallback: const [
+            'JameelNooriNastaleeq',
+            'NotoSansArabic',
+            'Inter',
+          ],
           fontSize: 22,
           fontWeight: FontWeight.w800,
           color: Colors.white,
@@ -136,6 +152,55 @@ class AppTheme {
         ),
         hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 15),
       ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: const Color(0xFFA78BFA),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: TextStyle(
+            inherit: true,
+            fontFamily: family,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF7C3AED),
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: TextStyle(
+            inherit: true,
+            fontFamily: family,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFFE2E8F0),
+          side: const BorderSide(color: borderDark, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: TextStyle(
+            inherit: true,
+            fontFamily: family,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
       dialogTheme: DialogThemeData(
         backgroundColor: surfaceDark,
         elevation: 24,
@@ -153,13 +218,21 @@ class AppTheme {
     final family = language == 'ur' ? 'JameelNooriNastaleeq' : 'Inter';
     final baseTextTheme = ThemeData.light().textTheme.apply(
       fontFamily: family,
-      fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
+      fontFamilyFallback: const [
+        'JameelNooriNastaleeq',
+        'NotoSansArabic',
+        'Inter',
+      ],
     );
 
     return ThemeData(
       useMaterial3: true,
       fontFamily: family,
-      fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
+      fontFamilyFallback: const [
+        'JameelNooriNastaleeq',
+        'NotoSansArabic',
+        'Inter',
+      ],
       brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryBlue,
@@ -190,7 +263,11 @@ class AppTheme {
         centerTitle: false,
         titleTextStyle: TextStyle(
           fontFamily: family,
-          fontFamilyFallback: const ['JameelNooriNastaleeq', 'NotoSansArabic', 'Inter'],
+          fontFamilyFallback: const [
+            'JameelNooriNastaleeq',
+            'NotoSansArabic',
+            'Inter',
+          ],
           fontSize: 22,
           fontWeight: FontWeight.w800,
           color: primaryNavy,

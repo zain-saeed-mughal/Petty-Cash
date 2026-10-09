@@ -166,17 +166,45 @@ class _PettyCashAppState extends State<PettyCashApp> {
               )
             : null;
         if (!mounted || auth.currentUser?.uid != uid) return;
+        if (advance == null && repayment == null) {
+          final navContext = _navigatorKey.currentContext;
+          if (navContext != null && navContext.mounted) {
+            ScaffoldMessenger.of(navContext).showSnackBar(
+              SnackBar(
+                content: Text(navContext.t('This request is unavailable.')),
+              ),
+            );
+          }
+          return;
+        }
         _navigatorKey.currentState?.push(
           MaterialPageRoute<void>(
-            builder: (_) => Scaffold(
-              appBar: AppBar(title: Text(context.t('Details'))),
-              body: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  if (advance != null) CoreAdvanceCard(advance: advance),
-                  if (repayment != null)
-                    CoreReimbursementCard(request: repayment),
-                ],
+            builder: (routeContext) => Scaffold(
+              appBar: AppBar(title: Text(routeContext.t('Details'))),
+              body: Consumer<CoreFlowProvider>(
+                builder: (ctx, flow, _) {
+                  final currentAdvance = advance == null
+                      ? null
+                      : flow.advances
+                                .where((row) => row.id == advance.id)
+                                .firstOrNull ??
+                            advance;
+                  final currentRepayment = repayment == null
+                      ? null
+                      : flow.reimbursements
+                                .where((row) => row.id == repayment.id)
+                                .firstOrNull ??
+                            repayment;
+                  return ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      if (currentAdvance != null)
+                        CoreAdvanceCard(advance: currentAdvance),
+                      if (currentRepayment != null)
+                        CoreReimbursementCard(request: currentRepayment),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -266,8 +294,8 @@ class _PettyCashAppState extends State<PettyCashApp> {
               ),
             )
           : _isInitialized
-              ? const RoleRouter()
-              : const _StartupSplash(key: ValueKey('splash')),
+          ? const RoleRouter()
+          : const _StartupSplash(key: ValueKey('splash')),
     );
   }
 }

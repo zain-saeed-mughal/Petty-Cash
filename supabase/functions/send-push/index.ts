@@ -45,7 +45,8 @@ Deno.serve(async(req)=>{
         notification:device.language_code === "ur" ? {title:"پیٹی کیش کی نئی اطلاع",body:"اپنی اطلاع دیکھنے کے لیے پیٹی کیش کھولیں۔"} : {title:"Petty Cash update",body:"Open Petty Cash to view your notification."},
         data:{request_id:job.request_id??"",core_advance_id:job.core_advance_id??"",
           reimbursement_id:job.reimbursement_id??"",user_id:job.user_id},
-        android:{priority:"high"},apns:{payload:{aps:{sound:"default"}}},
+        android:{priority:"high",notification:{channel_id:"petty_cash_updates",notification_priority:"PRIORITY_HIGH"}},
+        apns:{headers:{"apns-priority":"10"},payload:{aps:{sound:"default"}}},
        }}),signal:AbortSignal.timeout(15000)});
       if(!response.ok){
        const result=await response.json();

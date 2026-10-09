@@ -21,7 +21,9 @@ class DatabaseService {
 
   Map<String, dynamic> _asMap(dynamic row) {
     if (row is List) {
-      if (row.isEmpty) throw StateError('Expected a record but got an empty list.');
+      if (row.isEmpty) {
+        throw StateError('Expected a record but got an empty list.');
+      }
       return Map<String, dynamic>.from(row.first as Map);
     }
     return Map<String, dynamic>.from(row as Map);
@@ -272,19 +274,14 @@ class DatabaseService {
       },
     );
     return (rows as List)
-        .map(
-          (row) => FloatSummary.fromMap(_asMap(row)),
-        )
+        .map((row) => FloatSummary.fromMap(_asMap(row)))
         .toList();
   }
 
   Future<List<AdvanceBalance>> getAdvanceBalances() async {
     final rows = await _client.rpc('advance_balance_overview');
     return (rows as List)
-        .map(
-          (row) =>
-              AdvanceBalance.fromMap(_asMap(row)),
-        )
+        .map((row) => AdvanceBalance.fromMap(_asMap(row)))
         .toList();
   }
 
@@ -451,9 +448,7 @@ class DatabaseService {
   Future<List<CoreBalance>> getCoreBalances() async {
     final rows = await _client.rpc('advance_balances_v2');
     return (rows as List)
-        .map(
-          (row) => CoreBalance.fromMap(_asMap(row)),
-        )
+        .map((row) => CoreBalance.fromMap(_asMap(row)))
         .toList();
   }
 
@@ -484,23 +479,23 @@ class DatabaseService {
     return CoreAdvance.fromMap(_asMap(row));
   }
 
-  Future<CoreAdvance> getCoreAdvance(String id) async {
+  Future<CoreAdvance?> getCoreAdvance(String id) async {
     final row = await _client
         .from('advance_requests')
         .select()
         .eq('id', id)
         .eq('flow_version', 2)
-        .single();
-    return CoreAdvance.fromMap(row);
+        .maybeSingle();
+    return row == null ? null : CoreAdvance.fromMap(row);
   }
 
-  Future<CoreReimbursement> getCoreReimbursement(String id) async {
+  Future<CoreReimbursement?> getCoreReimbursement(String id) async {
     final row = await _client
         .from('reimbursement_requests')
         .select()
         .eq('id', id)
-        .single();
-    return CoreReimbursement.fromMap(row);
+        .maybeSingle();
+    return row == null ? null : CoreReimbursement.fromMap(row);
   }
 
   Future<CoreAdvance> clearCoreAdvance(
@@ -665,16 +660,19 @@ class DatabaseService {
     'isActive': user.isActive,
     'officeId': user.officeId,
   });
-  Future<void> updateUser(AppUser user) => _manageUser({
-    'action': 'update',
-    'uid': user.uid,
-    'name': user.name,
-    'email': user.email,
-    'password': user.password?.isNotEmpty == true ? user.password : null,
-    'role': user.role.roleCode,
-    'isActive': user.isActive,
-    'officeId': user.officeId,
-  });
+  Future<void> updateUser(AppUser user) async {
+    await _manageUser({
+      'action': 'update',
+      'uid': user.uid,
+      'name': user.name,
+      'email': user.email,
+      'password': user.password?.isNotEmpty == true ? user.password : null,
+      'role': user.role.roleCode,
+      'isActive': user.isActive,
+      'officeId': user.officeId,
+    });
+  }
+
   Future<void> deleteUser(String uid) =>
       _manageUser({'action': 'delete', 'uid': uid});
   Future<void> markNotificationAsRead(String id) async {
@@ -711,10 +709,7 @@ class DatabaseService {
     try {
       await _client.rpc(
         'respond_to_direct_advance_v2',
-        params: {
-          'p_id': id,
-          'p_decision': decision,
-        },
+        params: {'p_id': id, 'p_decision': decision},
       );
     } on PostgrestException catch (e) {
       throw StateError(e.message);

@@ -528,7 +528,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Request Advance'), findsOneWidget);
-    expect(find.text('I Bought Something Myself'), findsOneWidget);
+    expect(find.text('Reimbursement'), findsOneWidget);
   });
 }
 

@@ -87,13 +87,19 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
   @override
   Widget build(BuildContext context) {
     final offices = context.watch<CoreFlowProvider>().offices;
-    if (offices.isNotEmpty &&
-        !offices.any((office) => office.id == _officeId)) {
-      _officeId = offices.first.id;
+    final selectedOfficeId = offices.isNotEmpty
+        ? (offices.any((o) => o.id == _officeId) ? _officeId : offices.first.id)
+        : _officeId;
+    if (_officeId != selectedOfficeId) {
+      _officeId = selectedOfficeId;
     }
     final roles = widget.actor.isSuperAdmin
         ? UserRole.values
         : [UserRole.officeBoy, UserRole.finance];
+    final selectedRole = roles.contains(_role) ? _role : roles.first;
+    if (_role != selectedRole) {
+      _role = selectedRole;
+    }
     final self = widget.user?.uid == widget.actor.uid;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return PopScope(
@@ -181,7 +187,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                   const SizedBox(height: 16),
                   if (offices.isNotEmpty) ...[
                     DropdownButtonFormField<String>(
-                      initialValue: _officeId,
+                      initialValue: selectedOfficeId,
                       isExpanded: true,
                       decoration: InputDecoration(
                         labelText: context.t('Office'),
@@ -205,7 +211,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                     const SizedBox(height: 16),
                   ],
                   DropdownButtonFormField<UserRole>(
-                    initialValue: _role,
+                    initialValue: selectedRole,
                     isExpanded: true,
                     decoration: InputDecoration(
                       labelText: context.t('Role'),
@@ -224,7 +230,9 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                         .toList(),
                     onChanged: _busy || self
                         ? null
-                        : (v) => setState(() => _role = v!),
+                        : (v) {
+                            if (v != null) setState(() => _role = v);
+                          },
                   ),
                   if (widget.user != null)
                     SwitchListTile(
@@ -253,31 +261,38 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+              Expanded(
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  ),
+                  onPressed: _busy ? null : () => Navigator.pop(context),
+                  child: Text(context.t('Cancel')),
                 ),
-                onPressed: _busy ? null : () => Navigator.pop(context),
-                child: Text(context.t('Cancel')),
               ),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF7C3AED),
-                  foregroundColor: Colors.white,
-                ),
-                onPressed: _busy ? null : _save,
-                child: _busy
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C3AED),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: _busy ? null : _save,
+                  child: _busy
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Text(
+                          context.t('Save account'),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      )
-                    : Text(context.t('Save account')),
+                ),
               ),
             ],
           ),

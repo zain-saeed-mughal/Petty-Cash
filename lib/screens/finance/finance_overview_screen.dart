@@ -8,6 +8,7 @@ import '../../providers/payment_provider.dart';
 import '../../config/app_theme.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
+import 'request_detail_screen.dart';
 
 class FinanceOverviewScreen extends StatelessWidget {
   final VoidCallback onViewPendingTap;
@@ -75,6 +76,7 @@ class FinanceOverviewScreen extends StatelessWidget {
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -339,159 +341,183 @@ class FinanceOverviewScreen extends StatelessWidget {
                         else
                           Column(
                             children: recentPending.map((req) {
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: AppTheme.borderLight,
+                              return InkWell(
+                                onTap: () =>
+                                    RequestDetailScreen.show(context, req),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? const Color(0xFF1E293B)
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? const Color(0xFF334155)
+                                          : AppTheme.borderLight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.02,
+                                        ),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.02,
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundColor: isDark
+                                            ? const Color(0xFF78350F)
+                                            : const Color(0xFFFEF3C7),
+                                        child: Icon(
+                                          req.isAdvance
+                                              ? Icons
+                                                    .account_balance_wallet_outlined
+                                              : Icons.receipt_rounded,
+                                          color: AppTheme.statusPending,
+                                        ),
                                       ),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: const Color(0xFFFEF3C7),
-                                      child: Icon(
-                                        req.isAdvance
-                                            ? Icons
-                                                  .account_balance_wallet_outlined
-                                            : Icons.receipt_rounded,
-                                        color: AppTheme.statusPending,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            req.requesterName,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 15,
-                                              color: AppTheme.primaryNavy,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Text(
-                                            req.itemDescription,
-                                            style: const TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: 13,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 3),
-                                          Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.schedule_rounded,
-                                                size: 13,
-                                                color: Color(0xFF94A3B8),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                context.language.date(req.createdAt),
-                                                style: const TextStyle(
-                                                  color: Color(0xFF94A3B8),
-                                                  fontSize: 11,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Flexible(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        children: [
-                                        Wrap(
-                                          alignment: WrapAlignment.end,
-                                          spacing: 4,
-                                          runSpacing: 2,
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
                                           crossAxisAlignment:
-                                              WrapCrossAlignment.center,
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            const Icon(
-                                              Icons.payments_outlined,
-                                              size: 15,
-                                              color: AppTheme.primaryBlue,
-                                            ),
-                                            const SizedBox(width: 4),
                                             Text(
-                                              context.language.money(req.amount),
-                                              maxLines: 2,
+                                              req.requesterName,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 15,
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : AppTheme.primaryNavy,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Text(
+                                              req.itemDescription,
                                               style: const TextStyle(
-                                                fontWeight: FontWeight.w800,
-                                                color: AppTheme.primaryNavy,
+                                                color: Colors.grey,
+                                                fontSize: 13,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 3),
+                                            Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.schedule_rounded,
+                                                  size: 13,
+                                                  color: Color(0xFF94A3B8),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Flexible(
+                                                  child: Text(
+                                                    context.language.date(
+                                                      req.createdAt,
+                                                    ),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      color: Color(0xFF94A3B8),
+                                                      fontSize: 11,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Flexible(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          children: [
+                                            Wrap(
+                                              alignment: WrapAlignment.end,
+                                              spacing: 4,
+                                              runSpacing: 2,
+                                              crossAxisAlignment:
+                                                  WrapCrossAlignment.center,
+                                              children: [
+                                                const Icon(
+                                                  Icons.payments_outlined,
+                                                  size: 15,
+                                                  color: AppTheme.primaryBlue,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  context.language.money(
+                                                    req.amount,
+                                                  ),
+                                                  maxLines: 2,
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w800,
+                                                    color: isDark
+                                                        ? Colors.white
+                                                        : AppTheme.primaryNavy,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            StatusBadge(
+                                              status: req.status,
+                                              isCompact: true,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 2,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: req.isAdvance
+                                                    ? Colors.purple.withValues(
+                                                        alpha: 0.1,
+                                                      )
+                                                    : Colors.blue.withValues(
+                                                        alpha: 0.1,
+                                                      ),
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              child: Text(
+                                                req.isAdvance
+                                                    ? context.language.format(
+                                                        'Advance',
+                                                        'ایڈوانس',
+                                                        {},
+                                                      )
+                                                    : context.language.format(
+                                                        'Expense',
+                                                        'خرچہ',
+                                                        {},
+                                                      ),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  color: req.isAdvance
+                                                      ? Colors.purple
+                                                      : Colors.blue,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
                                             ),
                                           ],
                                         ),
-                                          const SizedBox(height: 4),
-                                          StatusBadge(
-                                            status: req.status,
-                                            isCompact: true,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: req.isAdvance
-                                                ? Colors.purple.withValues(
-                                                    alpha: 0.1,
-                                                  )
-                                                : Colors.blue.withValues(
-                                                    alpha: 0.1,
-                                                  ),
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            req.isAdvance
-                                                ? context.language.format(
-                                                    'Advance',
-                                                    'ایڈوانس',
-                                                    {},
-                                                  )
-                                                : context.language.format(
-                                                    'Expense',
-                                                    'خرچہ',
-                                                    {},
-                                                  ),
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: req.isAdvance
-                                                  ? Colors.purple
-                                                  : Colors.blue,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          ),
-                                        ],
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               );
                             }).toList(),

@@ -124,6 +124,9 @@ class AuthProvider extends ChangeNotifier {
     _errorMessage = null;
     _emit();
     try {
+      // Remove this phone's push token while the user's session can still
+      // authorize unregister_device. Otherwise alerts can arrive after logout.
+      await PushNotificationService().bindUser(null);
       await _authService.signOut();
     } catch (e) {
       _errorMessage = userMessage(e);

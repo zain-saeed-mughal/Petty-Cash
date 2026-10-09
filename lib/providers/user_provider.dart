@@ -158,6 +158,7 @@ class UserProvider extends ChangeNotifier {
         if (index != -1) {
           _allUsers[index] = user;
         }
+        notifyListeners();
         refresh();
       }
       return true;

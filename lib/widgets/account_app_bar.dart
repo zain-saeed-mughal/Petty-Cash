@@ -40,7 +40,9 @@ class AccountAppBar extends StatelessWidget implements PreferredSizeWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? const Color(0xFFA78BFA) : const Color(0xFF7C3AED),
+                        color: isDark
+                            ? const Color(0xFFA78BFA)
+                            : const Color(0xFF7C3AED),
                       ),
                     ),
                   ),
@@ -62,36 +64,45 @@ class AccountAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ),
-          Consumer<ThemeProvider>(
-            builder: (context, theme, _) => IconButton(
-              tooltip: theme.isDarkMode ? 'Light Mode' : 'Dark Mode',
-              icon: Icon(
-                theme.isDarkMode
-                    ? Icons.light_mode_rounded
-                    : Icons.dark_mode_outlined,
-              ),
-              onPressed: theme.toggleTheme,
-            ),
-          ),
-          Consumer<NotificationProvider>(
-            builder: (context, notifications, _) => IconButton(
-              tooltip: context.t('Notifications'),
-              icon: Badge(
-                isLabelVisible: notifications.unreadCount > 0,
-                label: Text(
-                  notifications.unreadCount > 99
-                      ? '99+'
-                      : '${notifications.unreadCount}',
+          Builder(
+            builder: (context) {
+              final theme = Provider.of<ThemeProvider?>(context, listen: true);
+              if (theme == null) return const SizedBox.shrink();
+              return IconButton(
+                tooltip: context.t(
+                  theme.isDarkMode ? 'Light Mode' : 'Dark Mode',
                 ),
-                child: const Icon(Icons.notifications_none_rounded),
-              ),
-              onPressed: () => showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => const NotificationsPanel(),
-              ),
-            ),
+                icon: Icon(
+                  theme.isDarkMode
+                      ? Icons.light_mode_rounded
+                      : Icons.dark_mode_outlined,
+                ),
+                onPressed: theme.toggleTheme,
+              );
+            },
+          ),
+          Builder(
+            builder: (context) {
+              final notifications = Provider.of<NotificationProvider?>(
+                context,
+                listen: true,
+              );
+              final unread = notifications?.unreadCount ?? 0;
+              return IconButton(
+                tooltip: context.t('Notifications'),
+                icon: Badge(
+                  isLabelVisible: unread > 0,
+                  label: Text(unread > 99 ? '99+' : '$unread'),
+                  child: const Icon(Icons.notifications_none_rounded),
+                ),
+                onPressed: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => const NotificationsPanel(),
+                ),
+              );
+            },
           ),
           IconButton(
             tooltip: context.t('Sign Out'),

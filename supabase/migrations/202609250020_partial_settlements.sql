@@ -1,3 +1,4 @@
+
 -- Update the settle function to allow updating an already pending settlement
 CREATE OR REPLACE FUNCTION public.settle_advance_request(
     p_request_id text,

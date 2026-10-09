@@ -225,12 +225,15 @@ class AnalyticsScreen extends StatelessWidget {
     required int totalCount,
   }) {
     final lang = Provider.of<LanguageProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderLight),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : AppTheme.borderLight,
+        ),
         boxShadow: AppTheme.premiumShadow,
       ),
       child: Column(
@@ -238,10 +241,10 @@ class AnalyticsScreen extends StatelessWidget {
         children: [
           Text(
             lang.tr('req_status_dist'),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppTheme.primaryNavy,
+              color: isDark ? Colors.white : AppTheme.primaryNavy,
             ),
           ),
           const SizedBox(height: 4),
@@ -306,14 +309,17 @@ class AnalyticsScreen extends StatelessWidget {
             runSpacing: 12,
             children: [
               _buildLegendItem(
+                context,
                 '${lang.tr('approved_word')} ($approvedCount)',
                 AppTheme.statusApproved,
               ),
               _buildLegendItem(
+                context,
                 '${lang.tr('pending')} ($pendingCount)',
                 AppTheme.statusPending,
               ),
               _buildLegendItem(
+                context,
                 '${lang.tr('rejected')} ($rejectedCount)',
                 AppTheme.statusRejected,
               ),
@@ -324,7 +330,8 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLegendItem(String label, Color color) {
+  Widget _buildLegendItem(BuildContext context, String label, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -337,10 +344,10 @@ class AnalyticsScreen extends StatelessWidget {
         Flexible(
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF475569),
+              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
             ),
             overflow: TextOverflow.ellipsis,
           ),
@@ -354,31 +361,37 @@ class AnalyticsScreen extends StatelessWidget {
     ExpenseProvider expense,
   ) {
     final lang = Provider.of<LanguageProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final requests = expense.allRequests.take(6).toList();
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderLight),
-        boxShadow: AppTheme.premiumShadow,
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : AppTheme.borderLight,
+        ),
+        boxShadow: isDark ? [] : AppTheme.premiumShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             lang.tr('recent_exp_amt_comp'),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppTheme.primaryNavy,
+              color: isDark ? Colors.white : AppTheme.primaryNavy,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             lang.tr('recent_exp_amt_sub'),
-            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            ),
           ),
           const SizedBox(height: 24),
           SizedBox(
@@ -412,9 +425,11 @@ class AnalyticsScreen extends StatelessWidget {
                                   padding: const EdgeInsets.only(top: 6),
                                   child: Text(
                                     short,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 10,
-                                      color: Color(0xFF64748B),
+                                      color: isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
                                     ),
                                   ),
                                 );
@@ -435,9 +450,11 @@ class AnalyticsScreen extends StatelessWidget {
                                 NumberFormat.compact(
                                   locale: context.language.currentLanguage,
                                 ).format(val),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 10,
-                                  color: Color(0xFF94A3B8),
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF94A3B8),
                                 ),
                                 textAlign: TextAlign.right,
                               );
@@ -456,7 +473,9 @@ class AnalyticsScreen extends StatelessWidget {
                         show: true,
                         drawVerticalLine: false,
                         getDrawingHorizontalLine: (value) => FlLine(
-                          color: const Color(0xFFF1F5F9),
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFF1F5F9),
                           strokeWidth: 1,
                         ),
                       ),
@@ -493,6 +512,7 @@ class AnalyticsScreen extends StatelessWidget {
     ExpenseProvider expense,
   ) {
     final lang = Provider.of<LanguageProvider>(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final Map<String, double> requesterTotals = {};
     for (final r in expense.allRequests) {
       if (r.hasDisbursement) {
@@ -507,39 +527,56 @@ class AnalyticsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderLight),
-        boxShadow: AppTheme.premiumShadow,
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : AppTheme.borderLight,
+        ),
+        boxShadow: isDark ? [] : AppTheme.premiumShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             lang.tr('disbursements_by_req'),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: AppTheme.primaryNavy,
+              color: isDark ? Colors.white : AppTheme.primaryNavy,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             lang.tr('disbursements_by_req_sub'),
-            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+            ),
           ),
           const SizedBox(height: 16),
           if (sorted.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Text(lang.tr('no_paid_transactions_yet')),
+              child: Text(
+                lang.tr('no_paid_transactions_yet'),
+                style: TextStyle(
+                  color: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
+                ),
+              ),
             )
           else
             ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: sorted.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
+              separatorBuilder: (_, _) => Divider(
+                height: 1,
+                color: isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFE2E8F0),
+              ),
               itemBuilder: (context, idx) {
                 final entry = sorted[idx];
                 return Padding(
@@ -566,20 +603,24 @@ class AnalyticsScreen extends StatelessWidget {
                           expense.allRequests
                               .firstWhere((r) => r.requestedBy == entry.key)
                               .requesterName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: AppTheme.primaryNavy,
+                            color: isDark ? Colors.white : AppTheme.primaryNavy,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Text(
-                        context.language.money(entry.value),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                          color: AppTheme.primaryBlue,
+                      Flexible(
+                        child: Text(
+                          context.language.money(entry.value),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
+                            color: AppTheme.primaryBlue,
+                          ),
                         ),
                       ),
                     ],

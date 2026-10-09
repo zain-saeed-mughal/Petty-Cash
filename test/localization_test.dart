@@ -71,6 +71,21 @@ void main() {
     }
     language.dispose();
   });
+  test('Admin payment alerts keep their meaning in Urdu', () {
+    final language = LanguageProvider(initialLanguage: 'ur', loadSaved: false);
+    final alert = AppNotification(
+      userId: 'admin',
+      title: 'Purchase approved',
+      message: 'Finance: Purchase approved. Tap to view details.',
+      relatedCoreAdvanceId: 'advance-id',
+    );
+    expect(language.notificationTitle(alert), 'خریداری منظور ہوئی');
+    expect(
+      language.notificationBody(alert),
+      'Finance: خریداری منظور ہوئی۔ تفصیل دیکھنے کے لیے دبائیں۔',
+    );
+    language.dispose();
+  });
   test('Technical errors become plain next-step messages', () {
     final english = LanguageProvider(initialLanguage: 'en', loadSaved: false);
     expect(
@@ -81,10 +96,7 @@ void main() {
       english.error('PostgrestException: row-level security policy'),
       'You can\'t do this. Ask your administrator for help.',
     );
-    expect(
-      english.error('Enter a valid amount.'),
-      'Enter a valid amount.',
-    );
+    expect(english.error('Enter a valid amount.'), 'Enter a valid amount.');
     english.dispose();
 
     final urdu = LanguageProvider(initialLanguage: 'ur', loadSaved: false);

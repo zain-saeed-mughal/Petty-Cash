@@ -35,6 +35,25 @@ class CoreFlowTestProvider extends ChangeNotifier implements CoreFlowProvider {
   @override
   void refresh() {}
   @override
+  Future<bool> respondToDirectAdvance(String id, String decision) async {
+    advances = advances.map((advance) {
+      if (advance.id != id) return advance;
+      return CoreAdvance(
+        id: advance.id,
+        officeBoyId: advance.officeBoyId,
+        officeId: advance.officeId,
+        purpose: advance.purpose,
+        method: advance.method,
+        status: decision == 'approve' ? 'cleared' : 'declined',
+        amount: advance.amount,
+        createdAt: advance.createdAt,
+      );
+    }).toList();
+    notifyListeners();
+    return true;
+  }
+
+  @override
   Future<bool> requestAdvance({
     String? id,
     required String purpose,

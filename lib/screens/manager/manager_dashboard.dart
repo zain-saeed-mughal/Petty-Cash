@@ -137,12 +137,13 @@ class _ManagerHomeState extends State<ManagerHome> {
 
     return ModernDashboardView(
       showBranchFilter: false,
+      showFinancialCards: false,
       roleBadgeText: ur ? 'مینیجر' : 'Branch Manager',
       heroTitle: ur ? 'مینیج شدہ اخراجات' : 'Managed Branch Budget',
       heroAmount: heroAmount,
-      availableAmount: (heroAmount - totalSpent).clamp(0, double.infinity),
-      onHoldAmount: pendingAmount,
-      spentAmount: totalSpent,
+      availableAmount: 0,
+      onHoldAmount: 0,
+      spentAmount: 0,
       metric1Count: myItems.where((i) => _inRange(i.createdAt)).length,
       metric1Label: ur ? 'خریداری' : 'Purchases',
       metric1Icon: Icons.shopping_cart_rounded,

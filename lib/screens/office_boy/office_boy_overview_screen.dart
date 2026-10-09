@@ -9,6 +9,7 @@ import '../../providers/payment_provider.dart';
 import '../../config/app_theme.dart';
 import '../../widgets/stat_card.dart';
 import '../../widgets/status_badge.dart';
+import '../finance/request_detail_screen.dart';
 
 class OfficeBoyOverviewScreen extends StatelessWidget {
   final VoidCallback onNewRequestTap;
@@ -77,6 +78,7 @@ class OfficeBoyOverviewScreen extends StatelessWidget {
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -292,10 +294,10 @@ class OfficeBoyOverviewScreen extends StatelessWidget {
                                 lang.isRtl
                                     ? 'حالیہ درخواستیں'
                                     : 'Recent Requests',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w800,
-                                  color: AppTheme.primaryNavy,
+                                  color: isDark ? Colors.white : AppTheme.primaryNavy,
                                 ),
                               ),
                             ),
@@ -319,9 +321,11 @@ class OfficeBoyOverviewScreen extends StatelessWidget {
                             width: double.infinity,
                             padding: const EdgeInsets.all(40),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: isDark ? const Color(0xFF1E293B) : Colors.white,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppTheme.borderLight),
+                              border: Border.all(
+                                color: isDark ? const Color(0xFF334155) : AppTheme.borderLight,
+                              ),
                             ),
                             child: Column(
                               children: [
@@ -347,108 +351,113 @@ class OfficeBoyOverviewScreen extends StatelessWidget {
                         else
                           Column(
                             children: recentRequests.map((req) {
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: AppTheme.borderLight,
+                              return InkWell(
+                                onTap: () => RequestDetailScreen.show(context, req),
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: isDark ? const Color(0xFF334155) : AppTheme.borderLight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.02,
+                                        ),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.02,
+                                  child: Row(
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundColor: req.isAdvance
+                                            ? Colors.purple.withValues(alpha: 0.15)
+                                            : Colors.blue.withValues(alpha: 0.15),
+                                        child: Icon(
+                                          req.isAdvance
+                                              ? Icons
+                                                    .account_balance_wallet_outlined
+                                              : Icons.receipt_long_outlined,
+                                          color: req.isAdvance
+                                              ? Colors.purple
+                                              : Colors.blue,
+                                        ),
                                       ),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      backgroundColor: req.isAdvance
-                                          ? Colors.purple.withValues(alpha: 0.1)
-                                          : Colors.blue.withValues(alpha: 0.1),
-                                      child: Icon(
-                                        req.isAdvance
-                                            ? Icons
-                                                  .account_balance_wallet_outlined
-                                            : Icons.receipt_long_outlined,
-                                        color: req.isAdvance
-                                            ? Colors.purple
-                                            : Colors.blue,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            req.itemDescription,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 15,
-                                              color: AppTheme.primaryNavy,
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              req.itemDescription,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 15,
+                                                color: isDark ? Colors.white : AppTheme.primaryNavy,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                            Row(
+                                              children: [
+                                                const Icon(
+                                                  Icons.schedule_rounded,
+                                                  size: 13,
+                                                  color: Color(0xFF94A3B8),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  context.language.date(
+                                                    req.createdAt,
+                                                  ),
+                                                  style: const TextStyle(
+                                                    color: Colors.grey,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
                                           Row(
+                                            mainAxisSize: MainAxisSize.min,
                                             children: [
                                               const Icon(
-                                                Icons.schedule_rounded,
-                                                size: 13,
-                                                color: Color(0xFF94A3B8),
+                                                Icons.payments_outlined,
+                                                size: 15,
+                                                color: AppTheme.primaryBlue,
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
-                                                context.language.date(
-                                                  req.createdAt,
-                                                ),
-                                                style: const TextStyle(
-                                                  color: Colors.grey,
-                                                  fontSize: 12,
+                                                context.language.money(req.amount),
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w800,
+                                                  color: isDark ? Colors.white : AppTheme.primaryNavy,
                                                 ),
                                               ),
                                             ],
                                           ),
+                                          const SizedBox(height: 4),
+                                          StatusBadge(
+                                            status: req.status,
+                                            isCompact: true,
+                                          ),
                                         ],
                                       ),
-                                    ),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(
-                                              Icons.payments_outlined,
-                                              size: 15,
-                                              color: AppTheme.primaryBlue,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              context.language.money(req.amount),
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w800,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        StatusBadge(
-                                          status: req.status,
-                                          isCompact: true,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               );
                             }).toList(),

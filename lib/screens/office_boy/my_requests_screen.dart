@@ -10,6 +10,7 @@ import '../../config/app_theme.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/receipt_viewer_dialog.dart';
 import '../../widgets/settle_advance_dialog.dart';
+import '../finance/request_detail_screen.dart';
 
 class MyRequestsScreen extends StatefulWidget {
   final VoidCallback? onNewRequestTap;
@@ -61,6 +62,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 900;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -92,7 +94,9 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w800,
-                                    color: AppTheme.primaryNavy,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppTheme.primaryNavy,
                                     letterSpacing: -0.8,
                                   ),
                                 ),
@@ -229,10 +233,14 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: isDark
+                              ? const Color(0xFF1E293B)
+                              : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: AppTheme.borderLight,
+                            color: isDark
+                                ? const Color(0xFF334155)
+                                : AppTheme.borderLight,
                             width: 0.5,
                           ),
                           boxShadow: AppTheme.premiumShadow,
@@ -314,17 +322,24 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(64),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDark ? const Color(0xFF1E293B) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppTheme.borderLight, width: 0.5),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : AppTheme.borderLight,
+                      width: 0.5,
+                    ),
                     boxShadow: AppTheme.premiumShadow,
                   ),
                   child: Column(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(24),
-                        decoration: const BoxDecoration(
-                          color: AppTheme.surfaceMuted,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF0F172A)
+                              : AppTheme.surfaceMuted,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -339,7 +354,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: AppTheme.primaryNavy,
+                          color: isDark ? Colors.white : AppTheme.primaryNavy,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -386,6 +401,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 
   Widget _buildFilterChip(String label, RequestStatus? status, {Color? color}) {
     final isSelected = _statusFilter == status;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return FilterChip(
       selected: isSelected,
       label: Text(
@@ -393,10 +409,12 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-          color: isSelected ? Colors.white : const Color(0xFF475569),
+          color: isSelected
+              ? Colors.white
+              : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
         ),
       ),
-      backgroundColor: Colors.white,
+      backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       selectedColor: color ?? AppTheme.primaryBlue,
       checkmarkColor: Colors.white,
       shape: RoundedRectangleBorder(
@@ -404,7 +422,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
         side: BorderSide(
           color: isSelected
               ? (color ?? AppTheme.primaryBlue)
-              : AppTheme.borderLight,
+              : (isDark ? const Color(0xFF334155) : AppTheme.borderLight),
         ),
       ),
       onSelected: (_) {
@@ -417,338 +435,363 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 
   Widget _buildRequestCard(ExpenseRequest req) {
     final isNarrow = MediaQuery.of(context).size.width < 420;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: req.isRejected
-              ? AppTheme.statusRejected.withValues(alpha: 0.3)
-              : AppTheme.borderLight,
-          width: req.isRejected ? 1.5 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    return InkWell(
+      onTap: () => RequestDetailScreen.show(context, req),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: req.isRejected
+                ? AppTheme.statusRejected.withValues(alpha: 0.3)
+                : (isDark ? const Color(0xFF334155) : AppTheme.borderLight),
+            width: req.isRejected ? 1.5 : 1,
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Row: Item name, Amount & Status Badge
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final details = Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        Text(
-                          req.displayId,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF64748B),
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.schedule_rounded,
-                              size: 13,
-                              color: Color(0xFF94A3B8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Row: Item name, Amount & Status Badge
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final details = Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          Text(
+                            req.displayId,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF64748B),
+                              letterSpacing: 0.5,
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              context.language.date(req.createdAt),
-                              style: const TextStyle(
-                                fontSize: 11,
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.schedule_rounded,
+                                size: 13,
                                 color: Color(0xFF94A3B8),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      req.itemDescription,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.primaryNavy,
-                      ),
-                    ),
-                  ],
-                );
-                final amount = Column(
-                  crossAxisAlignment: isNarrow
-                      ? CrossAxisAlignment.start
-                      : CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.payments_outlined,
-                          size: 17,
-                          color: AppTheme.primaryBlue,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          context.language.money(req.amount),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppTheme.primaryNavy,
+                              const SizedBox(width: 4),
+                              Text(
+                                context.language.date(req.createdAt),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    StatusBadge(status: req.status),
-                  ],
-                );
-                return isNarrow
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [details, const SizedBox(height: 8), amount],
-                      )
-                    : Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(child: details),
-                          amount,
                         ],
-                      );
-              },
-            ),
-            const SizedBox(height: 12),
-
-            // Purpose / Reason
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.notes_rounded,
-                    size: 16,
-                    color: Color(0xFF64748B),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      req.reason,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF334155),
-                        height: 1.4,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Rejection Reason Callout (CRITICAL REQUIREMENT: visible to Office Boy)
-            if (req.isRejected &&
-                req.rejectionReason != null &&
-                req.rejectionReason!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.statusRejectedBg,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: AppTheme.statusRejected.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.error_outline_rounded,
-                      size: 18,
-                      color: AppTheme.statusRejected,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      const SizedBox(height: 6),
+                      Text(
+                        req.itemDescription,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : AppTheme.primaryNavy,
+                        ),
+                      ),
+                    ],
+                  );
+                  final amount = Column(
+                    crossAxisAlignment: isNarrow
+                        ? CrossAxisAlignment.start
+                        : CrossAxisAlignment.end,
+                    children: [
+                      Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 5,
+                        runSpacing: 2,
                         children: [
+                          const Icon(
+                            Icons.payments_outlined,
+                            size: 17,
+                            color: AppTheme.primaryBlue,
+                          ),
                           Text(
-                            context.t('Reason for Rejection:'),
+                            context.language.money(req.amount),
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.statusRejected,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: isDark
+                                  ? Colors.white
+                                  : AppTheme.primaryNavy,
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            req.rejectionReason!,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF7F1D1D),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (req.reviewedByName != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              context.language.format(
-                                'Reviewed by: {name}',
-                                'جائزہ لینے والا: {name}',
-                                {'name': req.reviewedByName},
-                              ),
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: Color(0xFF991B1B),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            // Receipt Attachment Action
-            if (req.billImageUrl != null && req.billImageUrl!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.image_outlined, size: 16),
-                    label: Text(context.t('View receipt')),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      textStyle: Theme.of(context).textTheme.labelLarge
-                          ?.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
-                    ),
-                    onPressed: () {
-                      ReceiptViewerDialog.show(
-                        context,
-                        imageUrl: req.billImageUrl!,
-                        title:
-                            '${context.t('Receipt')}: ${req.itemDescription}',
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
-
-            // Advance Settlement Action
-            if ((req.isPaid || req.isPendingSettlement) &&
-                req.isAdvance &&
-                !req.isSettled) ...[
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                icon: const Icon(Icons.calculate, size: 16),
-                label: Text(
-                  context.t(
-                    req.isPendingSettlement
-                        ? 'Update Settlement'
-                        : 'Settle Advance',
-                  ),
-                ),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (ctx) => SettleAdvanceDialog(request: req),
-                  ).then((settled) {
-                    if (!mounted) return;
-                    if (settled == true) {
-                      context.read<ExpenseProvider>().refresh();
-                    }
-                  });
+                      const SizedBox(height: 6),
+                      StatusBadge(status: req.status),
+                    ],
+                  );
+                  return isNarrow
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            details,
+                            const SizedBox(height: 8),
+                            amount,
+                          ],
+                        )
+                      : Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: details),
+                            amount,
+                          ],
+                        );
                 },
               ),
-            ],
-            if (req.isAdvance && req.isSettled) ...[
               const SizedBox(height: 12),
+
+              // Purpose / Reason
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppTheme.statusApprovedBg,
+                  color: isDark
+                      ? const Color(0xFF0F172A)
+                      : const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: AppTheme.statusApproved.withValues(alpha: 0.3),
-                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(
-                      Icons.check_circle_outline,
-                      size: 18,
-                      color: AppTheme.statusApproved,
+                      Icons.notes_rounded,
+                      size: 16,
+                      color: Color(0xFF64748B),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.t('Advance Settled'),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.statusApproved,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${context.t('Spent')}: ${context.language.money(req.settlementAmount ?? 0)}\n${context.t('Returned via')}: ${context.t(req.settlementMethod ?? 'None')}',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF065F46),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (req.settlementNote != null &&
-                              req.settlementNote!.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              req.settlementNote!,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF064E3B),
-                              ),
-                            ),
-                          ],
-                        ],
+                      child: Text(
+                        req.reason,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark
+                              ? const Color(0xFFE2E8F0)
+                              : const Color(0xFF334155),
+                          height: 1.4,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
+
+              // Rejection Reason Callout (CRITICAL REQUIREMENT: visible to Office Boy)
+              if (req.isRejected &&
+                  req.rejectionReason != null &&
+                  req.rejectionReason!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF450A0A).withValues(alpha: 0.5)
+                        : AppTheme.statusRejectedBg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppTheme.statusRejected.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        size: 18,
+                        color: AppTheme.statusRejected,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context.t('Reason for Rejection:'),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.statusRejected,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              req.rejectionReason!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isDark
+                                    ? const Color(0xFFFCA5A5)
+                                    : const Color(0xFF7F1D1D),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            if (req.reviewedByName != null) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                context.language.format(
+                                  'Reviewed by: {name}',
+                                  'جائزہ لینے والا: {name}',
+                                  {'name': req.reviewedByName},
+                                ),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? const Color(0xFFF87171)
+                                      : const Color(0xFF991B1B),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Receipt Attachment Action
+              if (req.billImageUrl != null && req.billImageUrl!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.image_outlined, size: 16),
+                      label: Text(context.t('View receipt')),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        textStyle: Theme.of(context).textTheme.labelLarge
+                            ?.copyWith(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                      onPressed: () {
+                        ReceiptViewerDialog.show(
+                          context,
+                          imageUrl: req.billImageUrl!,
+                          title:
+                              '${context.t('Receipt')}: ${req.itemDescription}',
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+
+              // Advance Settlement Action
+              if ((req.isPaid || req.isPendingSettlement) &&
+                  req.isAdvance &&
+                  !req.isSettled) ...[
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  icon: const Icon(Icons.calculate, size: 16),
+                  label: Text(
+                    context.t(
+                      req.isPendingSettlement
+                          ? 'Update Settlement'
+                          : 'Settle Advance',
+                    ),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (ctx) => SettleAdvanceDialog(request: req),
+                    ).then((settled) {
+                      if (!mounted) return;
+                      if (settled == true) {
+                        context.read<ExpenseProvider>().refresh();
+                      }
+                    });
+                  },
+                ),
+              ],
+              if (req.isAdvance && req.isSettled) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.statusApprovedBg,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppTheme.statusApproved.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.check_circle_outline,
+                        size: 18,
+                        color: AppTheme.statusApproved,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context.t('Advance Settled'),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.statusApproved,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${context.t('Spent')}: ${context.language.money(req.settlementAmount ?? 0)}\n${context.t('Returned via')}: ${context.t(req.settlementMethod ?? 'None')}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF065F46),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            if (req.settlementNote != null &&
+                                req.settlementNote!.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                req.settlementNote!,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF064E3B),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

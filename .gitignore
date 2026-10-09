@@ -58,5 +58,6 @@ app.*.map.json
 .env.*
 !/config/production.example.json
 /android/build/
+/android/.kotlin/
 /deployment/**/*.apk
 /deployment/**/*.zip

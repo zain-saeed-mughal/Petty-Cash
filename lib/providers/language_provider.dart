@@ -104,9 +104,8 @@ class LanguageProvider extends ChangeNotifier {
     // Only translate to Urdu when Urdu is the active language
     if (isRtl && _urdu.containsKey(clean)) return _urdu[clean]!;
     final lower = clean.toLowerCase();
-    if (RegExp(
-      r'network|connection|socket|fetch|timeout|clientexception',
-    ).hasMatch(lower)) {
+    if (RegExp(r'network|connection|socket|fetch|timeout|clientexception')
+        .hasMatch(lower)) {
       return isRtl
           ? 'رابطہ نہیں ہو سکا۔ انٹرنیٹ چیک کر کے دوبارہ کوشش کریں۔'
           : 'Couldn\'t connect. Check your internet and try again.';
@@ -121,8 +120,9 @@ class LanguageProvider extends ChangeNotifier {
           ? 'آپ کا سیشن ختم ہو گیا۔ دوبارہ لاگ ان کریں۔'
           : 'Your session ended. Sign in again.';
     }
-    if (RegExp(r'permission|not authorized|forbidden|row-level security|\b403\b')
-        .hasMatch(lower)) {
+    if (RegExp(
+      r'permission|not authorized|forbidden|row-level security|\b403\b',
+    ).hasMatch(lower)) {
       return isRtl
           ? 'آپ کو یہ کام کرنے کی اجازت نہیں۔ ایڈمن سے رابطہ کریں۔'
           : 'You can\'t do this. Ask your administrator for help.';
@@ -155,6 +155,14 @@ class LanguageProvider extends ChangeNotifier {
       'Repayment approved': 'رقم واپسی منظور',
       'Repayment rejected': 'رقم واپسی مسترد',
       'Repayment paid': 'رقم واپس ادا کر دی گئی',
+      'Payment request submitted': 'ادائیگی کی درخواست جمع ہوئی',
+      'Advance sent for approval': 'ایڈوانس منظوری کے لیے بھیجا گیا',
+      'Advance received': 'ایڈوانس وصول ہوا',
+      'Advance declined': 'ایڈوانس مسترد ہوا',
+      'Purchase submitted': 'خریداری جمع ہوئی',
+      'Purchase approved': 'خریداری منظور ہوئی',
+      'Purchase rejected': 'خریداری مسترد ہوئی',
+      'Payment updated': 'ادائیگی میں تبدیلی ہوئی',
     };
     if (coreTitles.containsKey(notification.title)) {
       return coreTitles[notification.title]!;
@@ -175,6 +183,12 @@ class LanguageProvider extends ChangeNotifier {
   String notificationBody(AppNotification notification) {
     final value = notification.message;
     if (!isRtl) return value;
+    final adminActivity = RegExp(
+      r'^(.*?): (Payment request submitted|Advance sent for approval|Advance received|Advance declined|Advance sent|Purchase submitted|Purchase approved|Purchase rejected|Repayment approved|Repayment rejected|Repayment paid|Payment updated)\. Tap to view details\.$',
+    ).firstMatch(value);
+    if (adminActivity != null) {
+      return '${adminActivity[1]}: ${notificationTitle(notification)}۔ تفصیل دیکھنے کے لیے دبائیں۔';
+    }
     final coreAdvance = RegExp(r'^(.*?) requested PKR (.+)\.$')
         .firstMatch(value);
     if (coreAdvance != null) {

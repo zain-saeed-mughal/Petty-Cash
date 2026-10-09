@@ -1,3 +1,4 @@
+// @ts-ignore: Deno npm specifier
 import { type SupabaseClient } from "npm:@supabase/supabase-js@2";
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -153,24 +154,76 @@ export const createHandler =
         (action === "create" || password) &&
         (!password || password.length < 6 || password.length > 8)
       ) return reply({ error: "Use a password with 6 to 8 characters" }, 400);
-      const attributes = {
-        email,
+      const attributes: Record<string, unknown> = {
         user_metadata: { name },
         app_metadata: {
           petty_cash_role: role,
           petty_cash_active: body.isActive !== false,
           petty_cash_office_id: assignedOfficeId,
         },
-        ...(password ? { password } : {}),
       };
-      const result = action === "create"
-        ? await db.auth.admin.createUser({ ...attributes, email_confirm: true })
-        : await db.auth.admin.updateUserById(uid, {
+      if (password) {
+        attributes.password = password;
+      }
+      if (action === "create") {
+        attributes.email = email;
+      } else if (email && target && email !== String(target.email).toLowerCase()) {
+        attributes.email = email;
+      }
+      if (action !== "create" && target && body.isActive !== target.isActive) {
+        attributes.ban_duration = body.isActive === false ? "876000h" : "none";
+      }
+
+      if (action === "create") {
+        const result = await db.auth.admin.createUser({
           ...attributes,
-          ban_duration: body.isActive === false ? "876000h" : "none",
+          email_confirm: true,
         });
-      if (result.error) return reply({ error: result.error.message }, 400);
-      return reply({ ok: true, uid: result.data.user?.id });
+        if (result.error) return reply({ error: result.error.message }, 400);
+        return reply({ ok: true, uid: result.data.user?.id });
+      }
+
+      if (action === "update") {
+        const updateData: Record<string, unknown> = {
+          name,
+          role,
+          isActive: body.isActive !== false,
+          office_id: assignedOfficeId,
+        };
+        if (email) {
+          updateData.email = email;
+        }
+
+        const { error: dbError } = await db.from("users").update(updateData).eq("uid", uid);
+        if (dbError) {
+          console.error("public.users update failed:", dbError);
+          return reply({ error: dbError.message }, 400);
+        }
+
+        try {
+          const authUpdate: Record<string, unknown> = {
+            user_metadata: { name },
+            app_metadata: {
+              petty_cash_role: role,
+              petty_cash_active: body.isActive !== false,
+              petty_cash_office_id: assignedOfficeId,
+            },
+          };
+          if (password) {
+            authUpdate.password = password;
+          }
+          if (email && target && email !== String(target.email).toLowerCase()) {
+            authUpdate.email = email;
+          }
+          await db.auth.admin.updateUserById(uid, authUpdate);
+        } catch (authErr) {
+          console.warn("auth update skipped:", authErr);
+        }
+
+        return reply({ ok: true, uid });
+      }
+
+      return reply({ error: "Invalid action" }, 400);
     } catch (error) {
       console.error(
         "manage-user request failed",

@@ -14,6 +14,8 @@ import '../../widgets/app_status_badge.dart';
 import '../../widgets/receipt_viewer_dialog.dart';
 import '../../widgets/modern_dashboard_view.dart';
 import '../../widgets/app_toast.dart';
+import '../../widgets/rejection_reason_dialog.dart';
+import '../../config/app_theme.dart';
 import 'core_entry_dialog.dart';
 
 const _blue = Color(0xFF3159E8);
@@ -22,7 +24,7 @@ const _teal = Color(0xFF087F8C);
 const _surface = Color(0xFFF5F8FC);
 
 String _label(BuildContext context, String english, String urdu) =>
-    context.watch<LanguageProvider>().isRtl ? urdu : english;
+    context.read<LanguageProvider>().isRtl ? urdu : english;
 String _readLabel(BuildContext context, String english, String urdu) =>
     context.read<LanguageProvider>().isRtl ? urdu : english;
 String _money(BuildContext context, num value) =>
@@ -51,12 +53,18 @@ class _Panel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white.withValues(alpha: .94),
+        color: isDark
+            ? const Color(0xFF1E293B)
+            : Colors.white.withValues(alpha: .94),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE1E8F0)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF334155) : const Color(0xFFE1E8F0),
+        ),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withValues(alpha: 0.25) : const Color(0x0C1C355B),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.25)
+                : const Color(0x0C1C355B),
             blurRadius: 22,
             offset: const Offset(0, 8),
           ),
@@ -83,7 +91,14 @@ class _Metric extends StatelessWidget {
   final Color color;
   final String? badge;
   final Color? badgeColor;
-  const _Metric(this.label, this.value, this.icon, this.color, {this.badge, this.badgeColor});
+  const _Metric(
+    this.label,
+    this.value,
+    this.icon,
+    this.color, {
+    this.badge,
+    this.badgeColor,
+  });
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -103,19 +118,29 @@ class _Metric extends StatelessWidget {
                 child: Icon(icon, color: color, size: 20),
               ),
               if (badge != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: (badgeColor ?? color).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: (badgeColor ?? color).withValues(alpha: 0.3)),
-                  ),
-                  child: Text(
-                    badge!,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: badgeColor ?? color,
+                Flexible(
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: (badgeColor ?? color).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: (badgeColor ?? color).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      badge!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: badgeColor ?? color,
+                      ),
                     ),
                   ),
                 ),
@@ -158,19 +183,14 @@ class _MetricGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, size) {
-      final columns = size.maxWidth >= 900 ? 4 : 2;
+      final columns = children.length == 1 ? 1 : (size.maxWidth >= 900 ? 4 : 2);
       final gap = 12.0;
       final itemWidth = (size.maxWidth - gap * (columns - 1)) / columns;
       return Wrap(
         spacing: gap,
         runSpacing: gap,
         children: children
-            .map(
-              (child) => SizedBox(
-                width: itemWidth,
-                child: child,
-              ),
-            )
+            .map((child) => SizedBox(width: itemWidth, child: child))
             .toList(),
       );
     },
@@ -204,10 +224,7 @@ class _Empty extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFF8794A6),
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: Color(0xFF8794A6), fontSize: 12),
               ),
             ],
           ],
@@ -269,11 +286,31 @@ Future<void> _openEntry(
   );
   if (res == true && context.mounted) {
     final msg = switch (mode) {
-      'advance' => _label(context, 'Advance request submitted successfully!', 'ایڈوانس کی درخواست کامیابی سے جمع ہو گئی!'),
-      'item' => _label(context, 'Purchase recorded successfully!', 'خریداری کامیابی سے درج کر دی گئی!'),
-      'reimbursement' => _label(context, 'Reimbursement claim submitted successfully!', 'رقم واپسی کا کلیم کامیابی سے جمع ہو گیا!'),
-      'direct_advance' => _label(context, 'Advance allotted to Office Boy successfully!', 'آفس بوائے کو ایڈوانس جاری کر دیا گیا!'),
-      _ => _label(context, 'Record added successfully!', 'ریکارڈ کامیابی سے شامل ہو گیا!'),
+      'advance' => _label(
+        context,
+        'Advance request submitted successfully!',
+        'ایڈوانس کی درخواست کامیابی سے جمع ہو گئی!',
+      ),
+      'item' => _label(
+        context,
+        'Purchase recorded successfully!',
+        'خریداری کامیابی سے درج کر دی گئی!',
+      ),
+      'reimbursement' => _label(
+        context,
+        'Reimbursement claim submitted successfully!',
+        'رقم واپسی کا کلیم کامیابی سے جمع ہو گیا!',
+      ),
+      'direct_advance' => _label(
+        context,
+        'Advance allotted to Office Boy successfully!',
+        'آفس بوائے کو ایڈوانس جاری کر دیا گیا!',
+      ),
+      _ => _label(
+        context,
+        'Record added successfully!',
+        'ریکارڈ کامیابی سے شامل ہو گیا!',
+      ),
     };
     showAppToast(context, message: msg, type: ToastType.success);
   }
@@ -300,7 +337,8 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
       final e = DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
       return !d.isBefore(s) && !d.isAfter(e);
     }
-    return date.year == _selectedMonth.year && date.month == _selectedMonth.month;
+    return date.year == _selectedMonth.year &&
+        date.month == _selectedMonth.month;
   }
 
   @override
@@ -312,75 +350,116 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
         final ur = context.watch<LanguageProvider>().isRtl;
 
         final myAdvances = flow.advances
-            .where((a) =>
-                a.officeBoyId == uid &&
-                (a.status == 'cleared' || a.status == 'fully_utilized') &&
-                _inRange(a.clearedAt ?? a.createdAt))
+            .where(
+              (a) =>
+                  a.officeBoyId == uid &&
+                  (a.status == 'cleared' || a.status == 'fully_utilized') &&
+                  _inRange(a.clearedAt ?? a.createdAt),
+            )
             .toList();
         final myItems = flow.items
-            .where((i) =>
-                (i.officeBoyId == uid || myAdvances.any((a) => a.id == i.advanceId)) &&
-                _inRange(i.createdAt))
+            .where(
+              (i) =>
+                  (i.officeBoyId == uid ||
+                      myAdvances.any((a) => a.id == i.advanceId)) &&
+                  _inRange(i.createdAt),
+            )
             .toList();
 
         // Only approved purchases reduce the available advance balance
-        final approvedItems = myItems.where((i) => i.status == 'approved').toList();
-        final pendingItems = myItems.where((i) => i.status == 'pending').toList();
-        final approvedSpent = approvedItems.fold<double>(0, (s, i) => s + i.amount);
-        final pendingItemAmount = pendingItems.fold<double>(0, (s, i) => s + i.amount);
-        final monthAdvanceTotal = myAdvances.fold<double>(0, (s, a) => s + a.amount);
+        final approvedItems = myItems
+            .where((i) => i.status == 'approved')
+            .toList();
+        final pendingItems = myItems
+            .where((i) => i.status == 'pending')
+            .toList();
+        final approvedSpent = approvedItems.fold<double>(
+          0,
+          (s, i) => s + i.amount,
+        );
+        final pendingItemAmount = pendingItems.fold<double>(
+          0,
+          (s, i) => s + i.amount,
+        );
+        final monthAdvanceTotal = myAdvances.fold<double>(
+          0,
+          (s, a) => s + a.amount,
+        );
 
         final pendingAdvances = flow.advances
-            .where((a) =>
-                a.officeBoyId == uid &&
-                (a.status == 'pending' || a.status == 'awaiting_office_boy_approval') &&
-                _inRange(a.createdAt))
+            .where(
+              (a) =>
+                  a.officeBoyId == uid &&
+                  (a.status == 'pending' ||
+                      a.status == 'awaiting_office_boy_approval') &&
+                  _inRange(a.createdAt),
+            )
             .toList();
         final pendingReimbursements = flow.reimbursements
-            .where((r) => r.officeBoyId == uid && r.status == 'pending' && _inRange(r.createdAt))
+            .where(
+              (r) =>
+                  r.officeBoyId == uid &&
+                  r.status == 'pending' &&
+                  _inRange(r.createdAt),
+            )
             .toList();
 
-        final pending = pendingAdvances.length + pendingReimbursements.length + pendingItems.length;
-        final onHoldAmount = pendingAdvances.fold<double>(0, (s, a) => s + a.amount) +
+        final pending =
+            pendingAdvances.length +
+            pendingReimbursements.length +
+            pendingItems.length;
+        final onHoldAmount =
+            pendingAdvances.fold<double>(0, (s, a) => s + a.amount) +
             pendingReimbursements.fold<double>(0, (s, r) => s + r.amount) +
             pendingItemAmount;
 
         final heroAmount = monthAdvanceTotal;
-        final available = (monthAdvanceTotal - approvedSpent).clamp(0.0, double.infinity);
+        final available = (monthAdvanceTotal - approvedSpent).clamp(
+          0.0,
+          double.infinity,
+        );
 
         // Deduplicate recent activities
         final recentList = <RecentActivityItem>[];
         final seenIds = <String>{};
         for (final item in myItems.take(5)) {
           if (!seenIds.add('item_${item.id}')) continue;
-          recentList.add(RecentActivityItem(
-            icon: Icons.receipt_rounded,
-            iconColor: const Color(0xFF1E60FF),
-            iconBgColor: const Color(0xFFEFF6FF),
-            title: item.description,
-            subtitle: 'PKR ${item.amount.toInt()} · ${_office(context, item.advanceId)}',
-            time: DateFormat('d MMM').format(item.createdAt),
-            statusDotColor: item.status == 'approved'
-                ? const Color(0xFF10B981)
-                : (item.status == 'rejected' ? const Color(0xFFEF4444) : const Color(0xFFF59E0B)),
-          ));
+          recentList.add(
+            RecentActivityItem(
+              icon: Icons.receipt_rounded,
+              iconColor: const Color(0xFF1E60FF),
+              iconBgColor: const Color(0xFFEFF6FF),
+              title: item.description,
+              subtitle:
+                  'PKR ${item.amount.toInt()} · ${_office(context, item.advanceId)}',
+              time: DateFormat('d MMM').format(item.createdAt),
+              statusDotColor: item.status == 'approved'
+                  ? const Color(0xFF10B981)
+                  : (item.status == 'rejected'
+                        ? const Color(0xFFEF4444)
+                        : const Color(0xFFF59E0B)),
+            ),
+          );
         }
         final allMyRecentAdvances = flow.advances
             .where((a) => a.officeBoyId == uid && _inRange(a.createdAt))
             .toList();
         for (final adv in allMyRecentAdvances.take(5)) {
           if (!seenIds.add('adv_${adv.id}')) continue;
-          recentList.add(RecentActivityItem(
-            icon: Icons.wallet_rounded,
-            iconColor: const Color(0xFF0D9488),
-            iconBgColor: const Color(0xFFF0FDFA),
-            title: adv.purpose,
-            subtitle: 'PKR ${adv.amount.toInt()} · ${adv.status}',
-            time: DateFormat('d MMM').format(adv.createdAt),
-            statusDotColor: (adv.status == 'cleared' || adv.status == 'fully_utilized')
-                ? const Color(0xFF10B981)
-                : const Color(0xFFF59E0B),
-          ));
+          recentList.add(
+            RecentActivityItem(
+              icon: Icons.wallet_rounded,
+              iconColor: const Color(0xFF0D9488),
+              iconBgColor: const Color(0xFFF0FDFA),
+              title: adv.purpose,
+              subtitle: 'PKR ${adv.amount.toInt()} · ${adv.status}',
+              time: DateFormat('d MMM').format(adv.createdAt),
+              statusDotColor:
+                  (adv.status == 'cleared' || adv.status == 'fully_utilized')
+                  ? const Color(0xFF10B981)
+                  : const Color(0xFFF59E0B),
+            ),
+          );
         }
 
         // Prominent Request Advance & Reimbursement Claim Action Buttons
@@ -391,7 +470,10 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
                 onTap: () => _openEntry(context, 'advance'),
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 10),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 13,
+                    horizontal: 10,
+                  ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
@@ -410,7 +492,11 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.add_card_rounded, color: Colors.white, size: 18),
+                      const Icon(
+                        Icons.add_card_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
@@ -435,7 +521,10 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
                 onTap: () => _openEntry(context, 'reimbursement'),
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 10),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 13,
+                    horizontal: 10,
+                  ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFF14B8A6), Color(0xFF0F766E)],
@@ -454,7 +543,11 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.receipt_long_rounded, color: Colors.white, size: 18),
+                      const Icon(
+                        Icons.receipt_long_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
@@ -557,16 +650,19 @@ class CoreAdvanceCard extends StatelessWidget {
     final role = user?.role;
     final balance = flow.balanceForAdvance(advance.id);
     final items = flow.items
-        .where((i) =>
-            i.advanceId == advance.id &&
-            (!isManager || i.taggedManagerId == user?.uid))
+        .where(
+          (i) =>
+              i.advanceId == advance.id &&
+              (!isManager || i.taggedManagerId == user?.uid),
+        )
         .toList();
     final approvedItems = items.where((i) => i.status == 'approved').toList();
     final cardSpent = approvedItems.fold<double>(0.0, (s, i) => s + i.amount);
     final displaySpent = isManager ? cardSpent : (balance?.spent ?? cardSpent);
     final displayLeft = isManager
         ? (advance.amount - cardSpent).clamp(0.0, double.infinity)
-        : (balance?.remaining ?? (advance.amount - cardSpent).clamp(0.0, double.infinity));
+        : (balance?.remaining ??
+              (advance.amount - cardSpent).clamp(0.0, double.infinity));
     return _Panel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,7 +690,9 @@ class CoreAdvanceCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    advance.purpose.isNotEmpty ? advance.purpose : _label(context, 'Advance', 'ایڈوانس'),
+                    advance.purpose.isNotEmpty
+                        ? advance.purpose
+                        : _label(context, 'Advance', 'ایڈوانس'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -628,7 +726,11 @@ class CoreAdvanceCard extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.schedule_rounded, size: 14, color: Color(0xFF64748B)),
+                  const Icon(
+                    Icons.schedule_rounded,
+                    size: 14,
+                    color: Color(0xFF64748B),
+                  ),
                   const SizedBox(width: 4),
                   Text(_date(advance.createdAt)),
                 ],
@@ -688,138 +790,29 @@ class CoreAdvanceCard extends StatelessWidget {
           ],
           if (items.isNotEmpty) ...[
             const SizedBox(height: 12),
-            ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              childrenPadding: EdgeInsets.zero,
-              title: Text(
-                _label(
-                  context,
-                  'Purchases (${items.length})',
-                  'خریداری (${items.length})',
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+                onPressed: () =>
+                    _showPurchasesDialog(context, items, flow, role),
+                icon: const Icon(Icons.shopping_bag_outlined, size: 16),
+                label: Text(
+                  _label(
+                    context,
+                    'View Purchases (${items.length})',
+                    'خریداری دیکھیں (${items.length})',
+                  ),
                 ),
               ),
-              children: items
-                  .map(
-                    (item) => ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      dense: true,
-                      title: Text(item.description),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(_date(item.createdAt)),
-                          if (item.taggedManagerId != null) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              '${_label(context, 'Manager', 'منیجر')}: ${_person(context, item.taggedManagerId!)}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF3159E8),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                          if (item.status == 'rejected' && item.rejectionReason != null && item.rejectionReason!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
-                              child: Text(
-                                '${_label(context, 'Reason:', 'وجہ:')} ${item.rejectionReason}',
-                                style: const TextStyle(color: Colors.red, fontSize: 12),
-                              ),
-                            ),
-                        ],
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: _StatusChip(item.status),
-                          ),
-                          item.billPath == null
-                              ? Text(_money(context, item.amount))
-                              : IconButton(
-                                  tooltip: _label(
-                                    context,
-                                    'View bill',
-                                    'بل دیکھیں',
-                                  ),
-                                  icon: const Icon(Icons.receipt_long),
-                                  onPressed: () => ReceiptViewerDialog.show(
-                                    context,
-                                    imageUrl: item.billPath!,
-                                  ),
-                                ),
-                          if (role == UserRole.finance && item.status == 'pending') ...[
-                            IconButton(
-                              icon: const Icon(Icons.check_circle, color: Colors.green),
-                              onPressed: flow.isBusy(item.id) ? null : () async {
-                                final ok = await flow.reviewAdvanceItem(item.id, 'approve', null);
-                                if (context.mounted) {
-                                  if (ok) {
-                                    showAppToast(
-                                      context,
-                                      message: _label(context, 'Purchase approved!', 'خریداری منظور ہو گئی!'),
-                                      type: ToastType.success,
-                                    );
-                                  } else {
-                                    _showError(context, flow.error);
-                                  }
-                                }
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.cancel, color: Colors.red),
-                              onPressed: flow.isBusy(item.id) ? null : () async {
-                                final reasonController = TextEditingController();
-                                final reason = await showDialog<String>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text(_label(context, 'Reject Reason', 'مسترد کرنے کی وجہ')),
-                                    content: TextField(
-                                      controller: reasonController,
-                                      decoration: InputDecoration(
-                                        hintText: _label(context, 'Enter reason', 'وجہ درج کریں'),
-                                      ),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text(_label(context, 'Cancel', 'منسوخ کریں')),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context, reasonController.text),
-                                        child: Text(_label(context, 'Submit', 'جمع کریں')),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                                if (reason != null && reason.trim().isNotEmpty) {
-                                  final ok = await flow.reviewAdvanceItem(item.id, 'reject', reason);
-                                  if (context.mounted) {
-                                    if (ok) {
-                                      showAppToast(
-                                        context,
-                                        message: _label(context, 'Purchase rejected', 'خریداری مسترد کر دی گئی'),
-                                        type: ToastType.warning,
-                                      );
-                                    } else {
-                                      _showError(context, flow.error);
-                                    }
-                                  }
-                                }
-                              },
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
             ),
           ],
           if (role == UserRole.officeBoy && advance.status == 'cleared') ...[
@@ -835,69 +828,107 @@ class CoreAdvanceCard extends StatelessWidget {
               ),
             ),
           ],
-          if (role == UserRole.officeBoy && advance.status == 'awaiting_office_boy_approval') ...[
+          if (role == UserRole.officeBoy &&
+              advance.status == 'awaiting_office_boy_approval') ...[
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: flow.isBusy(advance.id)
-                        ? null
-                        : () async {
-                            final ok = await flow.respondToDirectAdvance(advance.id, 'decline');
-                            if (context.mounted) {
-                              if (ok) {
-                                showAppToast(
-                                  context,
-                                  message: _label(context, 'Advance declined', 'ایڈوانس مسترد کر دیا گیا'),
-                                  type: ToastType.warning,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final narrow =
+                    constraints.maxWidth < 340 ||
+                    MediaQuery.textScalerOf(context).scale(14) > 18;
+                final buttonWidth = narrow
+                    ? constraints.maxWidth
+                    : (constraints.maxWidth - 8) / 2;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    SizedBox(
+                      width: buttonWidth,
+                      child: OutlinedButton.icon(
+                        onPressed: flow.isBusy(advance.id)
+                            ? null
+                            : () async {
+                                final ok = await flow.respondToDirectAdvance(
+                                  advance.id,
+                                  'decline',
                                 );
-                              } else {
-                                showAppToast(
-                                  context,
-                                  message: flow.error ?? _label(context, 'Failed to decline', 'مسترد کرنے میں ناکامی'),
-                                  type: ToastType.error,
-                                );
-                              }
-                            }
-                          },
-                    icon: const Icon(Icons.close, color: Colors.red),
-                    label: Text(
-                      _label(context, 'Decline', 'مسترد کریں'),
-                      style: const TextStyle(color: Colors.red),
+                                if (context.mounted) {
+                                  if (ok) {
+                                    showAppToast(
+                                      context,
+                                      message: _label(
+                                        context,
+                                        'Advance declined',
+                                        'ایڈوانس مسترد کر دیا گیا',
+                                      ),
+                                      type: ToastType.warning,
+                                    );
+                                  } else {
+                                    showAppToast(
+                                      context,
+                                      message:
+                                          flow.error ??
+                                          _label(
+                                            context,
+                                            'Failed to decline',
+                                            'مسترد کرنے میں ناکامی',
+                                          ),
+                                      type: ToastType.error,
+                                    );
+                                  }
+                                }
+                              },
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        label: Text(
+                          _label(context, 'Decline', 'مسترد کریں'),
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: flow.isBusy(advance.id)
-                        ? null
-                        : () async {
-                            final ok = await flow.respondToDirectAdvance(advance.id, 'approve');
-                            if (context.mounted) {
-                              if (ok) {
-                                showAppToast(
-                                  context,
-                                  message: _label(context, 'Advance approved and added to balance!', 'ایڈوانس منظور ہو گیا اور آپ کے بیلنس میں شامل کر دیا گیا!'),
-                                  type: ToastType.success,
+                    SizedBox(
+                      width: buttonWidth,
+                      child: FilledButton.icon(
+                        onPressed: flow.isBusy(advance.id)
+                            ? null
+                            : () async {
+                                final ok = await flow.respondToDirectAdvance(
+                                  advance.id,
+                                  'approve',
                                 );
-                              } else {
-                                showAppToast(
-                                  context,
-                                  message: flow.error ?? _label(context, 'Failed to approve', 'منظور کرنے میں ناکامی'),
-                                  type: ToastType.error,
-                                );
-                              }
-                            }
-                          },
-                    icon: const Icon(Icons.check),
-                    label: Text(
-                      _label(context, 'Approve', 'منظور کریں'),
+                                if (context.mounted) {
+                                  if (ok) {
+                                    showAppToast(
+                                      context,
+                                      message: _label(
+                                        context,
+                                        'Advance approved and added to balance!',
+                                        'ایڈوانس منظور ہو گیا اور آپ کے بیلنس میں شامل کر دیا گیا!',
+                                      ),
+                                      type: ToastType.success,
+                                    );
+                                  } else {
+                                    showAppToast(
+                                      context,
+                                      message:
+                                          flow.error ??
+                                          _label(
+                                            context,
+                                            'Failed to approve',
+                                            'منظور کرنے میں ناکامی',
+                                          ),
+                                      type: ToastType.error,
+                                    );
+                                  }
+                                }
+                              },
+                        icon: const Icon(Icons.check),
+                        label: Text(_label(context, 'Approve', 'منظور کریں')),
+                      ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
           ],
           if (role == UserRole.finance && advance.status == 'pending') ...[
@@ -917,6 +948,242 @@ class CoreAdvanceCard extends StatelessWidget {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  void _showPurchasesDialog(
+    BuildContext context,
+    List<CoreAdvanceItem> items,
+    CoreFlowProvider flow,
+    UserRole? role,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        title: Row(
+          children: [
+            const Icon(Icons.shopping_bag_outlined, color: _teal),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _label(
+                  context,
+                  'Purchases (${items.length})',
+                  'خریداری (${items.length})',
+                ),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: items.map((item) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF334155)
+                          : const Color(0xFFE2E8F0),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item.description,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.primaryNavy,
+                              ),
+                            ),
+                          ),
+                          Flexible(
+                            child: Text(
+                              _money(context, item.amount),
+                              maxLines: 2,
+                              textAlign: TextAlign.end,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                                color: isDark
+                                    ? Colors.white
+                                    : AppTheme.primaryNavy,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _date(item.createdAt),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                          _StatusChip(item.status),
+                        ],
+                      ),
+                      if (item.taggedManagerId != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          '${_label(context, 'Manager', 'منیجر')}: ${_person(context, item.taggedManagerId!)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF3159E8),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                      if (item.status == 'rejected' &&
+                          item.rejectionReason != null &&
+                          item.rejectionReason!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '${_label(context, 'Reason:', 'وجہ:')} ${item.rejectionReason!}',
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                      if (item.billPath != null ||
+                          (role == UserRole.finance &&
+                              item.status == 'pending')) ...[
+                        const Divider(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (item.billPath != null)
+                              TextButton.icon(
+                                icon: const Icon(Icons.receipt_long, size: 16),
+                                label: Text(
+                                  _label(context, 'View bill', 'بل دیکھیں'),
+                                ),
+                                onPressed: () => ReceiptViewerDialog.show(
+                                  context,
+                                  imageUrl: item.billPath!,
+                                ),
+                              ),
+                            if (role == UserRole.finance &&
+                                item.status == 'pending') ...[
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                ),
+                                onPressed: flow.isBusy(item.id)
+                                    ? null
+                                    : () async {
+                                        Navigator.pop(ctx);
+                                        final ok = await flow.reviewAdvanceItem(
+                                          item.id,
+                                          'approve',
+                                          null,
+                                        );
+                                        if (context.mounted) {
+                                          if (ok) {
+                                            showAppToast(
+                                              context,
+                                              message: _label(
+                                                context,
+                                                'Purchase approved!',
+                                                'خریداری منظور ہو گئی!',
+                                              ),
+                                              type: ToastType.success,
+                                            );
+                                          } else {
+                                            _showError(context, flow.error);
+                                          }
+                                        }
+                                      },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.cancel,
+                                  color: Colors.red,
+                                ),
+                                onPressed: flow.isBusy(item.id)
+                                    ? null
+                                    : () async {
+                                        Navigator.pop(ctx);
+                                        final reason =
+                                            await RejectionReasonDialog.show(
+                                              context,
+                                              requestTitle: item.description,
+                                              amount: item.amount,
+                                            );
+                                        if (reason != null &&
+                                            reason.isNotEmpty &&
+                                            context.mounted) {
+                                          final ok = await flow
+                                              .reviewAdvanceItem(
+                                                item.id,
+                                                'reject',
+                                                reason,
+                                              );
+                                          if (context.mounted) {
+                                            if (ok) {
+                                              showAppToast(
+                                                context,
+                                                message: _label(
+                                                  context,
+                                                  'Purchase rejected',
+                                                  'خریداری مسترد کر دی گئی',
+                                                ),
+                                                type: ToastType.info,
+                                              );
+                                            } else {
+                                              _showError(context, flow.error);
+                                            }
+                                          }
+                                        }
+                                      },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(_label(context, 'Close', 'بند کریں')),
+          ),
         ],
       ),
     );
@@ -987,16 +1254,16 @@ class _CopyAccount extends StatelessWidget {
 
 Future<void> _clearAdvance(BuildContext context, CoreAdvance advance) async {
   final flow = context.read<CoreFlowProvider>();
-  final ok = await flow.clearAdvance(
-    advance.id,
-    advance.method,
-    null,
-  );
+  final ok = await flow.clearAdvance(advance.id, advance.method, null);
   if (context.mounted) {
     if (ok) {
       showAppToast(
         context,
-        message: _label(context, 'Advance cleared and funds marked as sent!', 'ایڈوانس جاری کر دیا گیا اور رقم بھیج دی گئی!'),
+        message: _label(
+          context,
+          'Advance cleared and funds marked as sent!',
+          'ایڈوانس جاری کر دیا گیا اور رقم بھیج دی گئی!',
+        ),
         type: ToastType.success,
       );
     } else {
@@ -1058,7 +1325,9 @@ class CoreReimbursementCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    request.description.isNotEmpty ? request.description : _label(context, 'Reimbursement', 'واپسی'),
+                    request.description.isNotEmpty
+                        ? request.description
+                        : _label(context, 'Reimbursement', 'واپسی'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -1092,7 +1361,11 @@ class CoreReimbursementCard extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.schedule_rounded, size: 14, color: Color(0xFF64748B)),
+                  const Icon(
+                    Icons.schedule_rounded,
+                    size: 14,
+                    color: Color(0xFF64748B),
+                  ),
                   const SizedBox(width: 4),
                   Text(_date(request.createdAt)),
                 ],
@@ -1146,37 +1419,39 @@ class CoreReimbursementCard extends StatelessWidget {
               icon: const Icon(Icons.receipt_long),
               label: Text(_label(context, 'View bill', 'بل دیکھیں')),
             ),
-          if (timeline.isNotEmpty)
-            ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              title: Text(
-                _label(context, 'History', 'مکمل ریکارڈ'),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+          if (timeline.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () => _showTimelineDialog(context, timeline),
+                icon: const Icon(Icons.history_rounded, size: 16),
+                label: Text(
+                  _label(
+                    context,
+                    'View History (${timeline.length})',
+                    'ریکارڈ دیکھیں (${timeline.length})',
+                  ),
                 ),
               ),
-              children: timeline
-                  .map(
-                    (a) => ListTile(
-                      dense: true,
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.check_circle_outline, size: 18),
-                      title: Text(_activityLabel(context, a.action)),
-                      subtitle: Text(
-                        '${_date(a.createdAt)} · ${_person(context, a.actorId)}',
-                      ),
-                    ),
-                  )
-                  .toList(),
             ),
+          ],
           if (finance && request.status == 'pending') ...[
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                 FilledButton.icon(
+                FilledButton.icon(
                   onPressed: flow.isBusy(request.id)
                       ? null
                       : () async {
@@ -1189,7 +1464,11 @@ class CoreReimbursementCard extends StatelessWidget {
                             if (ok) {
                               showAppToast(
                                 context,
-                                message: _label(context, 'Reimbursement claim approved!', 'رقم واپسی کا کلیم منظور کر لیا گیا!'),
+                                message: _label(
+                                  context,
+                                  'Reimbursement claim approved!',
+                                  'رقم واپسی کا کلیم منظور کر لیا گیا!',
+                                ),
                                 type: ToastType.success,
                               );
                             } else {
@@ -1227,6 +1506,71 @@ class CoreReimbursementCard extends StatelessWidget {
       ),
     );
   }
+
+  void _showTimelineDialog(BuildContext context, List<CoreActivity> timeline) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        title: Row(
+          children: [
+            const Icon(Icons.history_rounded, color: _teal),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _label(context, 'History & Activity', 'مکمل ریکارڈ اور سرگرمی'),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: timeline.map((a) {
+                return ListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.check_circle_outline,
+                    size: 18,
+                    color: _teal,
+                  ),
+                  title: Text(
+                    _activityLabel(context, a.action),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : AppTheme.primaryNavy,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '${_date(a.createdAt)} · ${_person(context, a.actorId)}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(_label(context, 'Close', 'بند کریں')),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 String _activityLabel(BuildContext context, String action) => switch (action) {
@@ -1244,57 +1588,116 @@ Future<void> _reject(BuildContext context, CoreReimbursement request) async {
   final key = GlobalKey<FormState>();
   final reason = await showDialog<String>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(
-        _label(
-          context,
-          'Why reject this request?',
-          'یہ درخواست کیوں مسترد کر رہے ہیں؟',
-        ),
-      ),
-      content: Form(
-        key: key,
-        child: TextFormField(
-          controller: controller,
-          maxLines: 3,
-          maxLength: 2000,
-          decoration: InputDecoration(
-            labelText: _label(
-              context,
-              'Reason for Office Boy',
-              'آفس بوائے کے لیے وجہ',
-            ),
+    builder: (dialogContext) {
+      final isDark = Theme.of(dialogContext).brightness == Brightness.dark;
+      return AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
           ),
-          validator: (value) => value?.trim().isEmpty ?? true
-              ? _label(
-                  context,
-                  'Please write a reason.',
-                  'براہِ کرم وجہ لکھیں۔',
-                )
-              : null,
         ),
-      ),
-      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      actions: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(_label(context, 'Cancel', 'منسوخ کریں')),
-            ),
-            FilledButton(
-              onPressed: () {
-                if (key.currentState!.validate()) {
-                  Navigator.pop(dialogContext, controller.text.trim());
-                }
-              },
-              child: Text(_label(context, 'Reject', 'مسترد کریں')),
-            ),
-          ],
+        title: Text(
+          _label(
+            context,
+            'Why reject this request?',
+            'یہ درخواست کیوں مسترد کر رہے ہیں؟',
+          ),
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: isDark ? Colors.white : AppTheme.primaryNavy,
+          ),
         ),
-      ],
-    ),
+        content: Form(
+          key: key,
+          child: TextFormField(
+            controller: controller,
+            maxLines: 3,
+            maxLength: 2000,
+            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: isDark
+                  ? const Color(0xFF0F172A)
+                  : const Color(0xFFF8FAFC),
+              labelText: _label(
+                context,
+                'Reason for Office Boy',
+                'آفس بوائے کے لیے وجہ',
+              ),
+              labelStyle: TextStyle(
+                color: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFCBD5E1),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: isDark
+                      ? const Color(0xFF334155)
+                      : const Color(0xFFCBD5E1),
+                ),
+              ),
+              focusedBorder: const OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+                borderSide: BorderSide(
+                  color: AppTheme.statusRejected,
+                  width: 1.5,
+                ),
+              ),
+            ),
+            validator: (value) => value?.trim().isEmpty ?? true
+                ? _label(
+                    context,
+                    'Please write a reason.',
+                    'براہِ کرم وجہ لکھیں۔',
+                  )
+                : null,
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
+                ),
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(_label(context, 'Cancel', 'منسوخ کریں')),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppTheme.statusRejected,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () {
+                  if (key.currentState!.validate()) {
+                    Navigator.pop(dialogContext, controller.text.trim());
+                  }
+                },
+                child: Text(_label(context, 'Reject', 'مسترد کریں')),
+              ),
+            ],
+          ),
+        ],
+      );
+    },
   );
   controller.dispose();
   if (reason == null || !context.mounted) return;
@@ -1304,7 +1707,11 @@ Future<void> _reject(BuildContext context, CoreReimbursement request) async {
     if (ok) {
       showAppToast(
         context,
-        message: _label(context, 'Reimbursement claim rejected', 'رقم واپسی کا کلیم مسترد کر دیا گیا'),
+        message: _label(
+          context,
+          'Reimbursement claim rejected',
+          'رقم واپسی کا کلیم مسترد کر دیا گیا',
+        ),
         type: ToastType.warning,
       );
     } else {
@@ -1320,7 +1727,11 @@ Future<void> _markPaid(BuildContext context, CoreReimbursement request) async {
     if (ok) {
       showAppToast(
         context,
-        message: _label(context, 'Payment marked as completed!', 'ادائیگی کامیابی سے درج کر دی گئی!'),
+        message: _label(
+          context,
+          'Payment marked as completed!',
+          'ادائیگی کامیابی سے درج کر دی گئی!',
+        ),
         type: ToastType.success,
       );
     } else {
@@ -1355,7 +1766,9 @@ class CoreRecordsScreen extends StatelessWidget {
                   indicatorColor: const Color(0xFF7C3AED),
                   indicatorWeight: 3,
                   labelColor: const Color(0xFF7C3AED),
-                  unselectedLabelColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  unselectedLabelColor: isDark
+                      ? const Color(0xFF94A3B8)
+                      : const Color(0xFF64748B),
                   labelStyle: const TextStyle(fontWeight: FontWeight.w700),
                   tabs: [
                     Tab(text: _label(context, 'Advances', 'ایڈوانس')),
@@ -1444,10 +1857,12 @@ class _RecordList<T> extends StatelessWidget {
 
 class FinanceHome extends StatefulWidget {
   final VoidCallback onAdvances, onReimbursements;
+  final VoidCallback? onRecords;
   const FinanceHome({
     super.key,
     required this.onAdvances,
     required this.onReimbursements,
+    this.onRecords,
   });
 
   @override
@@ -1460,7 +1875,8 @@ class _FinanceHomeState extends State<FinanceHome> {
 
   bool _inMonth(DateTime? date) {
     if (date == null) return false;
-    return date.year == _selectedMonth.year && date.month == _selectedMonth.month;
+    return date.year == _selectedMonth.year &&
+        date.month == _selectedMonth.month;
   }
 
   @override
@@ -1470,79 +1886,136 @@ class _FinanceHomeState extends State<FinanceHome> {
         final flow = context.watch<CoreFlowProvider>();
         final ur = context.watch<LanguageProvider>().isRtl;
 
-        final monthAdvancesList = flow.advances.where((a) => 
-            (_selectedOfficeId == null || a.officeId == _selectedOfficeId) &&
-            (a.status == 'cleared' || a.status == 'fully_utilized') &&
-            _inMonth(a.clearedAt ?? a.createdAt)
-        ).toList();
-        final monthAdvances = monthAdvancesList.fold<double>(0, (s, a) => s + a.amount);
+        final monthAdvancesList = flow.advances
+            .where(
+              (a) =>
+                  (_selectedOfficeId == null ||
+                      a.officeId == _selectedOfficeId) &&
+                  (a.status == 'cleared' || a.status == 'fully_utilized') &&
+                  _inMonth(a.clearedAt ?? a.createdAt),
+            )
+            .toList();
+        final monthAdvances = monthAdvancesList.fold<double>(
+          0,
+          (s, a) => s + a.amount,
+        );
 
-        final monthItemsList = flow.items.where((i) =>
-            (_selectedOfficeId == null || i.officeId == _selectedOfficeId) &&
-            i.status != 'rejected' &&
-            _inMonth(i.createdAt)
-        ).toList();
-        final monthItemSpent = monthItemsList.fold<double>(0, (s, i) => s + i.amount);
+        final monthItemsList = flow.items
+            .where(
+              (i) =>
+                  (_selectedOfficeId == null ||
+                      i.officeId == _selectedOfficeId) &&
+                  i.status == 'approved' &&
+                  _inMonth(i.reviewedAt ?? i.createdAt),
+            )
+            .toList();
+        final monthItemSpent = monthItemsList.fold<double>(
+          0,
+          (s, i) => s + i.amount,
+        );
 
-        final monthPaidList = flow.reimbursements.where((r) =>
-            (_selectedOfficeId == null || r.officeId == _selectedOfficeId) &&
-            r.status == 'paid' &&
-            _inMonth(r.paidAt ?? r.createdAt)
-        ).toList();
+        final monthPaidList = flow.reimbursements
+            .where(
+              (r) =>
+                  (_selectedOfficeId == null ||
+                      r.officeId == _selectedOfficeId) &&
+                  r.status == 'paid' &&
+                  _inMonth(r.paidAt ?? r.createdAt),
+            )
+            .toList();
         final monthPaid = monthPaidList.fold<double>(0, (s, r) => s + r.amount);
-        final totalSpent = monthItemSpent + monthPaid;
+        // Only advance purchases overall spent (reimbursements excluded from Spent card)
+        final totalSpent = monthItemSpent;
 
-        final monthPendingAdvances = flow.advances.where((a) =>
-            (_selectedOfficeId == null || a.officeId == _selectedOfficeId) &&
-            (a.status == 'pending' || a.status == 'awaiting_office_boy_approval') &&
-            _inMonth(a.createdAt)
-        ).toList();
-        final monthPendingRepayments = flow.reimbursements.where((r) =>
-            (_selectedOfficeId == null || r.officeId == _selectedOfficeId) &&
-            (r.status == 'pending' || r.status == 'approved') &&
-            _inMonth(r.createdAt)
-        ).toList();
+        final monthPendingAdvances = flow.advances
+            .where(
+              (a) =>
+                  (_selectedOfficeId == null ||
+                      a.officeId == _selectedOfficeId) &&
+                  (a.status == 'pending' ||
+                      a.status == 'awaiting_office_boy_approval') &&
+                  _inMonth(a.createdAt),
+            )
+            .toList();
+        final monthPendingRepayments = flow.reimbursements
+            .where(
+              (r) =>
+                  (_selectedOfficeId == null ||
+                      r.officeId == _selectedOfficeId) &&
+                  (r.status == 'pending' || r.status == 'approved') &&
+                  _inMonth(r.createdAt),
+            )
+            .toList();
 
-        final onHoldAmount = monthPendingAdvances.fold<double>(0, (s, a) => s + a.amount) +
-            monthPendingRepayments.fold<double>(0, (s, r) => s + r.amount);
+        final monthPendingItems = flow.items
+            .where(
+              (i) =>
+                  (_selectedOfficeId == null ||
+                      i.officeId == _selectedOfficeId) &&
+                  i.status == 'pending' &&
+                  _inMonth(i.createdAt),
+            )
+            .toList();
+        final monthPendingItemAmount = monthPendingItems.fold<double>(
+          0,
+          (s, i) => s + i.amount,
+        );
 
-        final monthAvailable = flow.balances.where((b) {
-          return monthAdvancesList.any((a) => a.id == b.advanceId);
-        }).fold<double>(0, (s, b) => s + b.remaining);
+        final onHoldAmount =
+            monthPendingAdvances.fold<double>(0, (s, a) => s + a.amount) +
+            monthPendingRepayments.fold<double>(0, (s, r) => s + r.amount) +
+            monthPendingItemAmount;
 
-        final heroAmount = monthAdvances;
+        final monthAvailable = flow.balances
+            .where((b) {
+              return monthAdvancesList.any((a) => a.id == b.advanceId);
+            })
+            .fold<double>(0, (s, b) => s + b.remaining);
+
+        final totalGivenAmount = monthAdvances + monthPaid;
+        final heroAmount = totalGivenAmount;
         final availableAmount = monthAdvances > 0 ? monthAvailable : 0.0;
 
         final recentList = <RecentActivityItem>[];
         final seenIds = <String>{};
         for (final a in monthAdvancesList.take(5)) {
           if (!seenIds.add('adv_${a.id}')) continue;
-          recentList.add(RecentActivityItem(
-            icon: Icons.account_balance_wallet_rounded,
-            iconColor: const Color(0xFF1E60FF),
-            iconBgColor: const Color(0xFFEFF6FF),
-            title: a.purpose.isNotEmpty ? a.purpose : (ur ? 'ایڈوانس جاری' : 'Advance issued'),
-            subtitle: 'PKR ${a.amount.toInt()} · ${_person(context, a.officeBoyId)}',
-            time: DateFormat('d MMM').format(a.createdAt),
-            statusDotColor: const Color(0xFF10B981),
-          ));
+          recentList.add(
+            RecentActivityItem(
+              icon: Icons.account_balance_wallet_rounded,
+              iconColor: const Color(0xFF1E60FF),
+              iconBgColor: const Color(0xFFEFF6FF),
+              title: a.purpose.isNotEmpty
+                  ? a.purpose
+                  : (ur ? 'ایڈوانس جاری' : 'Advance issued'),
+              subtitle:
+                  'PKR ${a.amount.toInt()} · ${_person(context, a.officeBoyId)}',
+              time: DateFormat('d MMM').format(a.createdAt),
+              statusDotColor: const Color(0xFF10B981),
+            ),
+          );
         }
         for (final r in monthPendingRepayments.take(4)) {
           if (!seenIds.add('repay_${r.id}')) continue;
-          recentList.add(RecentActivityItem(
-            icon: Icons.receipt_rounded,
-            iconColor: const Color(0xFFF59E0B),
-            iconBgColor: const Color(0xFFFFFBEB),
-            title: r.description.isNotEmpty ? r.description : (ur ? 'واپسی زیر التوا' : 'Repayment pending'),
-            subtitle: 'PKR ${r.amount.toInt()} · ${_person(context, r.officeBoyId)}',
-            time: DateFormat('d MMM').format(r.createdAt),
-            statusDotColor: const Color(0xFFF59E0B),
-          ));
+          recentList.add(
+            RecentActivityItem(
+              icon: Icons.receipt_rounded,
+              iconColor: const Color(0xFFF59E0B),
+              iconBgColor: const Color(0xFFFFFBEB),
+              title: r.description.isNotEmpty
+                  ? r.description
+                  : (ur ? 'واپسی زیر التوا' : 'Repayment pending'),
+              subtitle:
+                  'PKR ${r.amount.toInt()} · ${_person(context, r.officeBoyId)}',
+              time: DateFormat('d MMM').format(r.createdAt),
+              statusDotColor: const Color(0xFFF59E0B),
+            ),
+          );
         }
 
         return ModernDashboardView(
           roleBadgeText: ur ? 'فنانس' : 'Finance Manager',
-          heroTitle: ur ? 'جاری کردہ فلوٹ' : 'Total Disbursed Float',
+          heroTitle: ur ? 'کل دی گئی رقم' : 'Total Given Out',
           heroAmount: heroAmount,
           availableAmount: availableAmount,
           onHoldAmount: onHoldAmount,
@@ -1557,8 +2030,8 @@ class _FinanceHomeState extends State<FinanceHome> {
           metric3Label: ur ? 'دفاتر' : 'Offices',
           metric3Icon: Icons.business_rounded,
           recentActivities: recentList,
-          onViewReport: widget.onAdvances,
-          onViewAllActivity: widget.onAdvances,
+          onViewReport: widget.onRecords ?? widget.onAdvances,
+          onViewAllActivity: widget.onRecords ?? widget.onAdvances,
           initialOfficeId: _selectedOfficeId,
           initialMonth: _selectedMonth,
           onOfficeChanged: (id) => setState(() => _selectedOfficeId = id),
@@ -1579,7 +2052,11 @@ class FinanceQueue extends StatelessWidget {
         final flow = context.watch<CoreFlowProvider>();
         if (advances) {
           final rows = flow.advances
-              .where((a) => a.status == 'pending' || a.status == 'awaiting_office_boy_approval')
+              .where(
+                (a) =>
+                    a.status == 'pending' ||
+                    a.status == 'awaiting_office_boy_approval',
+              )
               .toList();
           return _RecordList<CoreAdvance>(
             records: rows,
@@ -1632,9 +2109,7 @@ class FinanceBalances extends StatelessWidget {
                     ),
                     onPressed: () => _openEntry(context, 'direct_advance'),
                     icon: const Icon(Icons.add_circle_outline),
-                    label: Text(
-                      _label(context, 'Give Advance', 'ایڈوانس دیں'),
-                    ),
+                    label: Text(_label(context, 'Give Advance', 'ایڈوانس دیں')),
                   ),
                 ),
               ),
@@ -1650,8 +2125,14 @@ class FinanceBalances extends StatelessWidget {
                     final records = flow.balances
                         .where((b) => b.officeBoyId == id)
                         .toList();
-                    final total = records.fold<double>(0, (s, b) => s + b.total);
-                    final spent = records.fold<double>(0, (s, b) => s + b.spent);
+                    final total = records.fold<double>(
+                      0,
+                      (s, b) => s + b.total,
+                    );
+                    final spent = records.fold<double>(
+                      0,
+                      (s, b) => s + b.spent,
+                    );
                     return _Panel(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1668,13 +2149,17 @@ class FinanceBalances extends StatelessWidget {
                           Text(
                             '${_label(context, 'Given', 'دیا')}: ${_money(context, total)}',
                             style: TextStyle(
-                              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFF334155),
                             ),
                           ),
                           Text(
                             '${_label(context, 'Spent', 'خرچ')}: ${_money(context, spent)}',
                             style: TextStyle(
-                              color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                              color: isDark
+                                  ? const Color(0xFFCBD5E1)
+                                  : const Color(0xFF334155),
                             ),
                           ),
                           Text(
@@ -1696,21 +2181,27 @@ class FinanceBalances extends StatelessWidget {
                                 advance?.purpose ??
                                     _label(context, 'Advance', 'ایڈوانس'),
                                 style: TextStyle(
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               subtitle: Text(
                                 '${b.itemCount} ${_label(context, 'purchases', 'خریداری')}',
                                 style: TextStyle(
-                                  color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
                                 ),
                               ),
                               trailing: Text(
                                 _money(context, b.remaining),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
-                                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                  color: isDark
+                                      ? Colors.white
+                                      : const Color(0xFF0F172A),
                                 ),
                               ),
                             );
@@ -1748,7 +2239,8 @@ class _AdminCoreOverviewState extends State<AdminCoreOverview> {
 
   bool _inMonth(DateTime? date) {
     if (date == null) return false;
-    return date.year == _selectedMonth.year && date.month == _selectedMonth.month;
+    return date.year == _selectedMonth.year &&
+        date.month == _selectedMonth.month;
   }
 
   @override
@@ -1761,7 +2253,8 @@ class _AdminCoreOverviewState extends State<AdminCoreOverview> {
 
         // 1. Advances disbursed/cleared in the selected month
         final monthAdvances = flow.advances.where((a) {
-          final matchesOffice = _selectedOfficeId == null || a.officeId == _selectedOfficeId;
+          final matchesOffice =
+              _selectedOfficeId == null || a.officeId == _selectedOfficeId;
           return matchesOffice &&
               _inMonth(a.clearedAt ?? a.createdAt) &&
               (a.status == 'cleared' || a.status == 'fully_utilized');
@@ -1769,44 +2262,74 @@ class _AdminCoreOverviewState extends State<AdminCoreOverview> {
 
         // 2. Advance items spent in selected month
         final monthItems = flow.items.where((i) {
-          final matchesOffice = _selectedOfficeId == null || i.officeId == _selectedOfficeId;
-          return matchesOffice && _inMonth(i.createdAt) && i.status != 'rejected';
+          final matchesOffice =
+              _selectedOfficeId == null || i.officeId == _selectedOfficeId;
+          return matchesOffice &&
+              _inMonth(i.reviewedAt ?? i.createdAt) &&
+              i.status == 'approved';
         }).toList();
 
-        // 3. Paid reimbursements in selected month
+        // 3. Paid & approved reimbursements in selected month
         final monthPaid = flow.reimbursements.where((r) {
-          final matchesOffice = _selectedOfficeId == null || r.officeId == _selectedOfficeId;
-          return matchesOffice && _inMonth(r.paidAt ?? r.createdAt) && r.status == 'paid';
+          final matchesOffice =
+              _selectedOfficeId == null || r.officeId == _selectedOfficeId;
+          return matchesOffice &&
+              _inMonth(r.paidAt ?? (r.reviewedAt ?? r.createdAt)) &&
+              (r.status == 'paid' || r.status == 'approved');
         }).toList();
 
-        final advanceTotal = monthAdvances.fold<double>(0, (s, a) => s + a.amount);
+        final advanceTotal = monthAdvances.fold<double>(
+          0,
+          (s, a) => s + a.amount,
+        );
         final itemSpent = monthItems.fold<double>(0, (s, i) => s + i.amount);
         final reimbursed = monthPaid.fold<double>(0, (s, r) => s + r.amount);
-        final totalSpent = itemSpent + reimbursed;
+        final totalGivenAmount = advanceTotal + reimbursed;
+        final totalSpent = itemSpent;
 
         // Pending in selected month
         final monthPendingAdvances = flow.advances.where((a) {
-          final matchesOffice = _selectedOfficeId == null || a.officeId == _selectedOfficeId;
+          final matchesOffice =
+              _selectedOfficeId == null || a.officeId == _selectedOfficeId;
           return matchesOffice &&
-              (a.status == 'pending' || a.status == 'awaiting_office_boy_approval') &&
+              (a.status == 'pending' ||
+                  a.status == 'awaiting_office_boy_approval') &&
               _inMonth(a.createdAt);
         }).toList();
 
         final monthPendingReimbursements = flow.reimbursements.where((r) {
-          final matchesOffice = _selectedOfficeId == null || r.officeId == _selectedOfficeId;
-          return matchesOffice && r.status == 'pending' && _inMonth(r.createdAt);
+          final matchesOffice =
+              _selectedOfficeId == null || r.officeId == _selectedOfficeId;
+          return matchesOffice &&
+              r.status == 'pending' &&
+              _inMonth(r.createdAt);
         }).toList();
 
-        final pendingCount = monthPendingAdvances.length + monthPendingReimbursements.length;
-        final onHoldAmount = monthPendingAdvances.fold<double>(0, (s, a) => s + a.amount) +
-            monthPendingReimbursements.fold<double>(0, (s, r) => s + r.amount);
+        final monthPendingItems = flow.items.where((i) {
+          final matchesOffice =
+              _selectedOfficeId == null || i.officeId == _selectedOfficeId;
+          return matchesOffice &&
+              i.status == 'pending' &&
+              _inMonth(i.createdAt);
+        }).toList();
+
+        final pendingCount =
+            monthPendingAdvances.length +
+            monthPendingReimbursements.length +
+            monthPendingItems.length;
+        final onHoldAmount =
+            monthPendingAdvances.fold<double>(0, (s, a) => s + a.amount) +
+            monthPendingReimbursements.fold<double>(0, (s, r) => s + r.amount) +
+            monthPendingItems.fold<double>(0, (s, i) => s + i.amount);
 
         // Balances from advances belonging to this month
-        final monthAvailable = flow.balances.where((b) {
-          return monthAdvances.any((a) => a.id == b.advanceId);
-        }).fold<double>(0, (s, b) => s + b.remaining);
+        final monthAvailable = flow.balances
+            .where((b) {
+              return monthAdvances.any((a) => a.id == b.advanceId);
+            })
+            .fold<double>(0, (s, b) => s + b.remaining);
 
-        final heroAmount = advanceTotal;
+        final heroAmount = totalGivenAmount;
         final availableAmount = advanceTotal > 0 ? monthAvailable : 0.0;
 
         final recentList = <RecentActivityItem>[];
@@ -1814,33 +2337,49 @@ class _AdminCoreOverviewState extends State<AdminCoreOverview> {
         for (final a in monthAdvances.take(5)) {
           if (!seenIds.add('adv_${a.id}')) continue;
           final isDone = a.status == 'cleared' || a.status == 'approved';
-          recentList.add(RecentActivityItem(
-            icon: Icons.account_balance_wallet_rounded,
-            iconColor: const Color(0xFF1E60FF),
-            iconBgColor: const Color(0xFFEFF6FF),
-            title: a.purpose.isNotEmpty ? a.purpose : (ur ? 'ایڈوانس' : 'Advance disbursed'),
-            subtitle: 'PKR ${a.amount.toInt()} · ${_person(context, a.officeBoyId)}',
-            time: DateFormat('d MMM').format(a.createdAt),
-            statusDotColor: isDone ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-          ));
+          recentList.add(
+            RecentActivityItem(
+              icon: Icons.account_balance_wallet_rounded,
+              iconColor: const Color(0xFF1E60FF),
+              iconBgColor: const Color(0xFFEFF6FF),
+              title: a.purpose.isNotEmpty
+                  ? a.purpose
+                  : (ur ? 'ایڈوانس' : 'Advance disbursed'),
+              subtitle:
+                  'PKR ${a.amount.toInt()} · ${_person(context, a.officeBoyId)}',
+              time: DateFormat('d MMM').format(a.createdAt),
+              statusDotColor: isDone
+                  ? const Color(0xFF10B981)
+                  : const Color(0xFFF59E0B),
+            ),
+          );
         }
         for (final r in monthPaid.take(4)) {
           if (!seenIds.add('repay_${r.id}')) continue;
           final isDone = r.status == 'paid' || r.status == 'approved';
-          recentList.add(RecentActivityItem(
-            icon: Icons.receipt_long_rounded,
-            iconColor: const Color(0xFF0D9488),
-            iconBgColor: const Color(0xFFF0FDFA),
-            title: r.description.isNotEmpty ? r.description : (ur ? 'واپسی' : 'Reimbursement'),
-            subtitle: 'PKR ${r.amount.toInt()} · ${_person(context, r.officeBoyId)}',
-            time: DateFormat('d MMM').format(r.createdAt),
-            statusDotColor: isDone ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-          ));
+          recentList.add(
+            RecentActivityItem(
+              icon: Icons.receipt_long_rounded,
+              iconColor: const Color(0xFF0D9488),
+              iconBgColor: const Color(0xFFF0FDFA),
+              title: r.description.isNotEmpty
+                  ? r.description
+                  : (ur ? 'واپسی' : 'Reimbursement'),
+              subtitle:
+                  'PKR ${r.amount.toInt()} · ${_person(context, r.officeBoyId)}',
+              time: DateFormat('d MMM').format(r.createdAt),
+              statusDotColor: isDone
+                  ? const Color(0xFF10B981)
+                  : const Color(0xFFF59E0B),
+            ),
+          );
         }
 
         return ModernDashboardView(
-          roleBadgeText: widget.superAdmin ? (ur ? 'سپر ایڈمن' : 'Super Admin') : (ur ? 'ایڈمن' : 'Branch Admin'),
-          heroTitle: widget.superAdmin ? (ur ? 'کل کمپنی فلوٹ' : 'Total Company Float') : (ur ? 'برانچ فلوٹ' : 'Branch Float'),
+          roleBadgeText: widget.superAdmin
+              ? (ur ? 'سپر ایڈمن' : 'Super Admin')
+              : (ur ? 'ایڈمن' : 'Branch Admin'),
+          heroTitle: ur ? 'کل دی گئی رقم' : 'Total Given Out',
           heroAmount: heroAmount,
           availableAmount: availableAmount,
           onHoldAmount: onHoldAmount,
@@ -1884,10 +2423,19 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
   bool _inRange(DateTime? date) {
     if (date == null) return false;
     final d = DateTime(date.year, date.month, date.day);
-    final start = DateTime(_dateRange.start.year, _dateRange.start.month, _dateRange.start.day);
-    final end = DateTime(_dateRange.end.year, _dateRange.end.month, _dateRange.end.day);
+    final start = DateTime(
+      _dateRange.start.year,
+      _dateRange.start.month,
+      _dateRange.start.day,
+    );
+    final end = DateTime(
+      _dateRange.end.year,
+      _dateRange.end.month,
+      _dateRange.end.day,
+    );
     return !d.isBefore(start) && !d.isAfter(end);
   }
+
   Future<void> _pickSeparateDateRange(BuildContext context) async {
     final ur = context.read<LanguageProvider>().isRtl;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1933,11 +2481,15 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      ur ? 'الگ الگ تاریخ منتخب کریں' : 'Choose From and To dates',
+                      ur
+                          ? 'الگ الگ تاریخ منتخب کریں'
+                          : 'Choose From and To dates',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -1956,7 +2508,9 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                               if (picked != null) {
                                 setModalState(() {
                                   tempStart = picked;
-                                  if (tempEnd.isBefore(tempStart)) tempEnd = tempStart;
+                                  if (tempEnd.isBefore(tempStart)) {
+                                    tempEnd = tempStart;
+                                  }
                                 });
                               }
                             },
@@ -1964,10 +2518,13 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF0B0F19) : const Color(0xFFF8FAFC),
+                                color: isDark
+                                    ? const Color(0xFF0B0F19)
+                                    : const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: const Color(0xFF7C3AED).withValues(alpha: 0.4),
+                                  color: const Color(0xFF7C3AED)
+                                      .withValues(alpha: 0.4),
                                   width: 1.5,
                                 ),
                               ),
@@ -1976,7 +2533,11 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.event_available_rounded, size: 16, color: Color(0xFF7C3AED)),
+                                      const Icon(
+                                        Icons.event_available_rounded,
+                                        size: 16,
+                                        color: Color(0xFF7C3AED),
+                                      ),
                                       const SizedBox(width: 6),
                                       Text(
                                         ur ? 'شروع (From)' : 'From Date',
@@ -1994,7 +2555,9 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
                                     ),
                                   ),
                                 ],
@@ -2008,7 +2571,9 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                             onTap: () async {
                               final picked = await showDatePicker(
                                 context: context,
-                                initialDate: tempEnd.isBefore(tempStart) ? tempStart : tempEnd,
+                                initialDate: tempEnd.isBefore(tempStart)
+                                    ? tempStart
+                                    : tempEnd,
                                 firstDate: DateTime(2020),
                                 lastDate: DateTime(2100),
                                 helpText: ur ? 'اختتام کی تاریخ' : 'To Date',
@@ -2016,7 +2581,9 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                               if (picked != null) {
                                 setModalState(() {
                                   tempEnd = picked;
-                                  if (tempEnd.isBefore(tempStart)) tempStart = tempEnd;
+                                  if (tempEnd.isBefore(tempStart)) {
+                                    tempStart = tempEnd;
+                                  }
                                 });
                               }
                             },
@@ -2024,10 +2591,13 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: isDark ? const Color(0xFF0B0F19) : const Color(0xFFF8FAFC),
+                                color: isDark
+                                    ? const Color(0xFF0B0F19)
+                                    : const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: const Color(0xFF0D9488).withValues(alpha: 0.4),
+                                  color: const Color(0xFF0D9488)
+                                      .withValues(alpha: 0.4),
                                   width: 1.5,
                                 ),
                               ),
@@ -2036,7 +2606,11 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.event_busy_rounded, size: 16, color: Color(0xFF0D9488)),
+                                      const Icon(
+                                        Icons.event_busy_rounded,
+                                        size: 16,
+                                        color: Color(0xFF0D9488),
+                                      ),
                                       const SizedBox(width: 6),
                                       Text(
                                         ur ? 'اختتام (To)' : 'To Date',
@@ -2054,7 +2628,9 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                      color: isDark
+                                          ? Colors.white
+                                          : const Color(0xFF0F172A),
                                     ),
                                   ),
                                 ],
@@ -2075,13 +2651,19 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                       ),
                       onPressed: () {
                         setState(() {
-                          _dateRange = DateTimeRange(start: tempStart, end: tempEnd);
+                          _dateRange = DateTimeRange(
+                            start: tempStart,
+                            end: tempEnd,
+                          );
                         });
                         Navigator.pop(ctx);
                       },
                       child: Text(
                         ur ? 'لاگو کریں' : 'Apply Range',
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
                   ],
@@ -2104,15 +2686,16 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
         final effectiveManagerId = isManager ? currentUser?.uid : _managerId;
 
         // For manager, only show office boys tagged to this manager
-        final taggedOfficeBoyIds = flow.items
-            .where((i) => i.taggedManagerId == effectiveManagerId)
-            .map((i) => i.officeBoyId)
-            .toSet()
-          ..addAll(
-            flow.reimbursements
-                .where((r) => r.taggedManagerId == effectiveManagerId)
-                .map((r) => r.officeBoyId),
-          );
+        final taggedOfficeBoyIds =
+            flow.items
+                .where((i) => i.taggedManagerId == effectiveManagerId)
+                .map((i) => i.officeBoyId)
+                .toSet()
+              ..addAll(
+                flow.reimbursements
+                    .where((r) => r.taggedManagerId == effectiveManagerId)
+                    .map((r) => r.officeBoyId),
+              );
 
         final people = context
             .watch<UserProvider>()
@@ -2124,7 +2707,11 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                   (isManager || _officeId == null || u.officeId == _officeId),
             )
             .toList();
-        final managers = context.watch<UserProvider>().allUsers.where((u) => u.isManager).toList();
+        final managers = context
+            .watch<UserProvider>()
+            .allUsers
+            .where((u) => u.isManager)
+            .toList();
 
         final allAdvances = flow.advances
             .where(
@@ -2132,9 +2719,17 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                   (isManager || _officeId == null || a.officeId == _officeId) &&
                   (_personId == null || a.officeBoyId == _personId) &&
                   (isManager
-                      ? flow.items.any((i) => i.advanceId == a.id && i.taggedManagerId == effectiveManagerId)
+                      ? flow.items.any(
+                          (i) =>
+                              i.advanceId == a.id &&
+                              i.taggedManagerId == effectiveManagerId,
+                        )
                       : (_managerId == null ||
-                          flow.items.any((i) => i.advanceId == a.id && i.taggedManagerId == _managerId))),
+                            flow.items.any(
+                              (i) =>
+                                  i.advanceId == a.id &&
+                                  i.taggedManagerId == _managerId,
+                            ))),
             )
             .toList();
         final allRepayments = flow.reimbursements
@@ -2144,7 +2739,8 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                   (_personId == null || r.officeBoyId == _personId) &&
                   (isManager
                       ? r.taggedManagerId == effectiveManagerId
-                      : (_managerId == null || r.taggedManagerId == _managerId)),
+                      : (_managerId == null ||
+                            r.taggedManagerId == _managerId)),
             )
             .toList();
         final advances = allAdvances
@@ -2153,10 +2749,12 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                   flow.items.any(
                     (item) =>
                         item.advanceId == a.id &&
-                        (!isManager || item.taggedManagerId == effectiveManagerId) &&
+                        (!isManager ||
+                            item.taggedManagerId == effectiveManagerId) &&
                         _inRange(item.createdAt),
                   ) ||
-                  (!isManager && (_inRange(a.createdAt) || _inRange(a.clearedAt))),
+                  (!isManager &&
+                      (_inRange(a.createdAt) || _inRange(a.clearedAt))),
             )
             .toList();
         final repayments = allRepayments
@@ -2170,9 +2768,11 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
         final shownAdvances = _type != 'reimbursement';
         final shownRepayments = _type != 'advance';
         final totalAdvance = allAdvances
-            .where((a) =>
-                (a.status == 'cleared' || a.status == 'fully_utilized') &&
-                _inRange(a.clearedAt ?? a.createdAt))
+            .where(
+              (a) =>
+                  (a.status == 'cleared' || a.status == 'fully_utilized') &&
+                  _inRange(a.clearedAt ?? a.createdAt),
+            )
             .fold<double>(0, (s, a) => s + a.amount);
         final eligibleAdvanceIds = allAdvances
             .where((a) => a.status == 'cleared' || a.status == 'fully_utilized')
@@ -2188,13 +2788,18 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
             )
             .fold<double>(0, (s, item) => s + item.amount);
         final reimbursed = allRepayments
-            .where((r) => r.status == 'paid' && _inRange(r.paidAt ?? r.createdAt))
+            .where(
+              (r) => r.status == 'paid' && _inRange(r.paidAt ?? r.createdAt),
+            )
             .fold<double>(0, (s, r) => s + r.amount);
         final pending =
             (shownAdvances ? allAdvances : <CoreAdvance>[])
-                .where((a) =>
-                    (a.status == 'pending' || a.status == 'awaiting_office_boy_approval') &&
-                    _inRange(a.createdAt))
+                .where(
+                  (a) =>
+                      (a.status == 'pending' ||
+                          a.status == 'awaiting_office_boy_approval') &&
+                      _inRange(a.createdAt),
+                )
                 .fold<double>(0, (s, a) => s + a.amount) +
             (shownRepayments ? allRepayments : <CoreReimbursement>[])
                 .where(
@@ -2203,6 +2808,45 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                       _inRange(r.createdAt),
                 )
                 .fold<double>(0, (s, r) => s + r.amount);
+
+        final managerApprovedPurchases = flow.items
+            .where(
+              (item) =>
+                  item.taggedManagerId == effectiveManagerId &&
+                  (_personId == null || item.officeBoyId == _personId) &&
+                  item.status == 'approved' &&
+                  _inRange(item.reviewedAt ?? item.createdAt),
+            )
+            .fold<double>(0, (s, item) => s + item.amount);
+        final managerApprovedReimbursements = allRepayments
+            .where(
+              (r) =>
+                  (r.status == 'paid' || r.status == 'approved') &&
+                  _inRange(r.paidAt ?? (r.reviewedAt ?? r.createdAt)),
+            )
+            .fold<double>(0, (s, r) => s + r.amount);
+        final totalGivenOut = isManager
+            ? ((shownAdvances ? managerApprovedPurchases : 0.0) +
+                  (shownRepayments ? managerApprovedReimbursements : 0.0))
+            : ((shownAdvances ? totalAdvance : 0.0) +
+                  (shownRepayments ? reimbursed : 0.0));
+        final managerPendingPurchases = flow.items
+            .where(
+              (i) =>
+                  i.taggedManagerId == effectiveManagerId &&
+                  (_personId == null || i.officeBoyId == _personId) &&
+                  i.status == 'pending' &&
+                  _inRange(i.createdAt),
+            )
+            .fold<double>(0, (s, i) => s + i.amount);
+        final managerPendingReimbursements = allRepayments
+            .where((r) => r.status == 'pending' && _inRange(r.createdAt))
+            .fold<double>(0, (s, r) => s + r.amount);
+        final displayPending = isManager
+            ? ((shownAdvances ? managerPendingPurchases : 0.0) +
+                  (shownRepayments ? managerPendingReimbursements : 0.0))
+            : pending;
+
         final rows = <Object>[
           if (shownAdvances) ...advances,
           if (shownRepayments) ...repayments,
@@ -2211,158 +2855,129 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return ColoredBox(
           color: isDark ? const Color(0xFF0B0F19) : _surface,
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: rows.length + 1,
-            itemBuilder: (context, index) {
-              if (index > 0) {
-                final item = rows[index - 1];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: item is CoreAdvance
-                      ? CoreAdvanceCard(advance: item)
-                      : CoreReimbursementCard(
-                          request: item as CoreReimbursement,
-                        ),
-                );
+          child: RefreshIndicator(
+            onRefresh: () async {
+              flow.refresh();
+              if (context.mounted) {
+                try {
+                  context.read<UserProvider>().refresh();
+                } catch (_) {}
               }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _Panel(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final fieldWidth = constraints.maxWidth < 220
-                            ? constraints.maxWidth
-                            : ((constraints.maxWidth - 10) / 2).clamp(
-                                0.0,
-                                420.0,
-                              );
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            OutlinedButton.icon(
-                              onPressed: () => _pickSeparateDateRange(context),
-                              icon: const Icon(Icons.calendar_month),
-                              label: Text(
-                                _dateRange.start.day == 1 &&
-                                        _dateRange.start.month ==
-                                            _dateRange.end.month &&
-                                        _dateRange.start.year ==
-                                            _dateRange.end.year &&
-                                        _dateRange.end.day ==
-                                            DateTime(
-                                              _dateRange.start.year,
-                                              _dateRange.start.month + 1,
-                                              0,
-                                            ).day
-                                    ? DateFormat('MMMM yyyy')
-                                          .format(_dateRange.start)
-                                    : '${DateFormat('d MMM yy').format(_dateRange.start)} - ${DateFormat('d MMM yy').format(_dateRange.end)}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: rows.length + 1,
+              itemBuilder: (context, index) {
+                if (index > 0) {
+                  final item = rows[index - 1];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: item is CoreAdvance
+                        ? CoreAdvanceCard(advance: item)
+                        : CoreReimbursementCard(
+                            request: item as CoreReimbursement,
+                          ),
+                  );
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _Panel(
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final fieldWidth = constraints.maxWidth < 220
+                              ? constraints.maxWidth
+                              : ((constraints.maxWidth - 10) / 2).clamp(
+                                  0.0,
+                                  420.0,
+                                );
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              OutlinedButton.icon(
+                                onPressed: () =>
+                                    _pickSeparateDateRange(context),
+                                icon: const Icon(Icons.calendar_month),
+                                label: Text(
+                                  _dateRange.start.day == 1 &&
+                                          _dateRange.start.month ==
+                                              _dateRange.end.month &&
+                                          _dateRange.start.year ==
+                                              _dateRange.end.year &&
+                                          _dateRange.end.day ==
+                                              DateTime(
+                                                _dateRange.start.year,
+                                                _dateRange.start.month + 1,
+                                                0,
+                                              ).day
+                                      ? DateFormat('MMMM yyyy')
+                                            .format(_dateRange.start)
+                                      : '${DateFormat('d MMM yy').format(_dateRange.start)} - ${DateFormat('d MMM yy').format(_dateRange.end)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Wrap(
-                              spacing: 10,
-                              runSpacing: 10,
-                              children: [
-                                if (!isManager)
-                                  SizedBox(
-                                    width: fieldWidth,
-                                    child: DropdownButtonFormField<String?>(
-                                      initialValue: _officeId,
-                                      isExpanded: true,
-                                      decoration: InputDecoration(
-                                        labelText: _label(
-                                          context,
-                                          'Office',
-                                          'دفتر',
-                                        ),
-                                      ),
-                                      items: [
-                                        DropdownMenuItem<String?>(
-                                          value: null,
-                                          child: Text(
-                                            _label(
-                                              context,
-                                              'All offices',
-                                              'تمام دفاتر',
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 10,
+                                runSpacing: 10,
+                                children: [
+                                  if (!isManager)
+                                    SizedBox(
+                                      width: fieldWidth,
+                                      child: DropdownButtonFormField<String?>(
+                                        initialValue: _officeId,
+                                        isExpanded: true,
+                                        decoration: InputDecoration(
+                                          labelText: _label(
+                                            context,
+                                            'Office',
+                                            'دفتر',
                                           ),
                                         ),
-                                        ...flow.offices.map(
-                                          (o) => DropdownMenuItem<String?>(
-                                            value: o.id,
+                                        items: [
+                                          DropdownMenuItem<String?>(
+                                            value: null,
                                             child: Text(
-                                              o.name,
+                                              _label(
+                                                context,
+                                                'All offices',
+                                                'تمام دفاتر',
+                                              ),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                      onChanged: (v) => setState(() {
-                                        _officeId = v;
-                                        _personId = null;
-                                      }),
-                                    ),
-                                  ),
-                                SizedBox(
-                                  width: fieldWidth,
-                                  child: DropdownButtonFormField<String?>(
-                                    initialValue: _personId,
-                                    isExpanded: true,
-                                    decoration: InputDecoration(
-                                      labelText: _label(
-                                        context,
-                                        'Office Boy',
-                                        'آفس بوائے',
+                                          ...flow.offices.map(
+                                            (o) => DropdownMenuItem<String?>(
+                                              value: o.id,
+                                              child: Text(
+                                                o.name,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        onChanged: (v) => setState(() {
+                                          _officeId = v;
+                                          _personId = null;
+                                        }),
                                       ),
                                     ),
-                                    items: [
-                                      DropdownMenuItem<String?>(
-                                        value: null,
-                                        child: Text(
-                                          _label(
-                                            context,
-                                            'All people',
-                                            'تمام لوگ',
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      ...people.map(
-                                        (u) => DropdownMenuItem<String?>(
-                                          value: u.uid,
-                                          child: Text(
-                                            u.name,
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                    onChanged: (v) =>
-                                        setState(() => _personId = v),
-                                  ),
-                                ),
-                                if (!isManager)
                                   SizedBox(
                                     width: fieldWidth,
                                     child: DropdownButtonFormField<String?>(
-                                      initialValue: _managerId,
+                                      initialValue: _personId,
                                       isExpanded: true,
                                       decoration: InputDecoration(
                                         labelText: _label(
                                           context,
-                                          'Manager',
-                                          'مینیجر',
+                                          'Office Boy',
+                                          'آفس بوائے',
                                         ),
                                       ),
                                       items: [
@@ -2371,18 +2986,18 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                           child: Text(
                                             _label(
                                               context,
-                                              'All Managers',
-                                              'تمام مینیجرز',
+                                              'All people',
+                                              'تمام لوگ',
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                        ...managers.map(
-                                          (m) => DropdownMenuItem<String?>(
-                                            value: m.uid,
+                                        ...people.map(
+                                          (u) => DropdownMenuItem<String?>(
+                                            value: u.uid,
                                             child: Text(
-                                              m.name,
+                                              u.name,
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
@@ -2390,136 +3005,188 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                         ),
                                       ],
                                       onChanged: (v) =>
-                                          setState(() => _managerId = v),
+                                          setState(() => _personId = v),
                                     ),
                                   ),
-                                SizedBox(
-                                  width: fieldWidth,
-                                  child: DropdownButtonFormField<String>(
-                                    initialValue: _type,
-                                    isExpanded: true,
-                                    decoration: InputDecoration(
-                                      labelText: _label(context, 'Type', 'قسم'),
+                                  if (!isManager)
+                                    SizedBox(
+                                      width: fieldWidth,
+                                      child: DropdownButtonFormField<String?>(
+                                        initialValue: _managerId,
+                                        isExpanded: true,
+                                        decoration: InputDecoration(
+                                          labelText: _label(
+                                            context,
+                                            'Manager',
+                                            'مینیجر',
+                                          ),
+                                        ),
+                                        items: [
+                                          DropdownMenuItem<String?>(
+                                            value: null,
+                                            child: Text(
+                                              _label(
+                                                context,
+                                                'All Managers',
+                                                'تمام مینیجرز',
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          ...managers.map(
+                                            (m) => DropdownMenuItem<String?>(
+                                              value: m.uid,
+                                              child: Text(
+                                                m.name,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                        onChanged: (v) =>
+                                            setState(() => _managerId = v),
+                                      ),
                                     ),
-                                    items: [
-                                      DropdownMenuItem(
-                                        value: 'all',
-                                        child: Text(
-                                          _label(
-                                            context,
-                                            'All payments',
-                                            'تمام ادائیگیاں',
+                                  SizedBox(
+                                    width: fieldWidth,
+                                    child: DropdownButtonFormField<String>(
+                                      initialValue: _type,
+                                      isExpanded: true,
+                                      decoration: InputDecoration(
+                                        labelText: _label(
+                                          context,
+                                          'Type',
+                                          'قسم',
+                                        ),
+                                      ),
+                                      items: [
+                                        DropdownMenuItem(
+                                          value: 'all',
+                                          child: Text(
+                                            _label(
+                                              context,
+                                              'All payments',
+                                              'تمام ادائیگیاں',
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'advance',
-                                        child: Text(
-                                          _label(context, 'Advance', 'ایڈوانس'),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      DropdownMenuItem(
-                                        value: 'reimbursement',
-                                        child: Text(
-                                          _label(
-                                            context,
-                                            'Own money',
-                                            'اپنی رقم',
+                                        DropdownMenuItem(
+                                          value: 'advance',
+                                          child: Text(
+                                            _label(
+                                              context,
+                                              'Advance',
+                                              'ایڈوانس',
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                      ),
-                                    ],
-                                    onChanged: (v) =>
-                                        setState(() => _type = v ?? 'all'),
+                                        DropdownMenuItem(
+                                          value: 'reimbursement',
+                                          child: Text(
+                                            _label(
+                                              context,
+                                              'Own money',
+                                              'اپنی رقم',
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (v) =>
+                                          setState(() => _type = v ?? 'all'),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        );
-                      },
+                                ],
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  _MetricGrid([
-                    _Metric(
-                      _label(context, 'Total given out', 'کل دی گئی رقم'),
-                      _money(context, (shownAdvances ? totalAdvance : 0) + (shownRepayments ? reimbursed : 0)),
-                      Icons.account_balance_wallet,
-                      const Color(0xFF7C3AED),
-                      badge: _label(context, 'Total Out', 'کل جاری'),
-                      badgeColor: const Color(0xFF7C3AED),
-                    ),
-                    _Metric(
-                      _label(context, 'Advances given', 'دیے گئے ایڈوانس'),
-                      _money(context, shownAdvances ? totalAdvance : 0),
-                      Icons.wallet,
-                      const Color(0xFF2563EB),
-                      badge: _label(context, 'Advance', 'ایڈوانس'),
-                      badgeColor: const Color(0xFF2563EB),
-                    ),
-                    _Metric(
-                      _label(context, 'Advance used', 'ایڈوانس سے خرچ'),
-                      _money(context, shownAdvances ? utilized : 0),
-                      Icons.receipt_long,
-                      const Color(0xFF0D9488),
-                      badge: _label(context, 'Used', 'استعمال شدہ'),
-                      badgeColor: const Color(0xFF0D9488),
-                    ),
-                    _Metric(
-                      _label(context, 'Paid back', 'واپس ادا کیا'),
-                      _money(context, shownRepayments ? reimbursed : 0),
-                      Icons.payments,
-                      const Color(0xFF10B981),
-                      badge: _label(context, 'Settled', 'ادا شدہ'),
-                      badgeColor: const Color(0xFF10B981),
-                    ),
-                    _Metric(
-                      _label(context, 'Waiting / due', 'انتظار / باقی'),
-                      _money(context, pending),
-                      Icons.pending_actions,
-                      const Color(0xFFF59E0B),
-                      badge: _label(context, 'Pending', 'زیر التوا'),
-                      badgeColor: const Color(0xFFF59E0B),
-                    ),
-                  ]),
-                  const SizedBox(height: 18),
-                  Text(
-                    _label(
-                      context,
-                      'Transactions (${rows.length})',
-                      'لین دین (${rows.length})',
-                    ),
-                    style: TextStyle(
-                      fontSize: 19,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? Colors.white : _navy,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  if (rows.isEmpty)
-                    _Empty(
+                    const SizedBox(height: 14),
+                    _MetricGrid([
+                      _Metric(
+                        _label(context, 'Total given out', 'کل دی گئی رقم'),
+                        _money(context, totalGivenOut),
+                        Icons.account_balance_wallet,
+                        const Color(0xFF7C3AED),
+                        badge: _label(context, 'Total Out', 'کل جاری'),
+                        badgeColor: const Color(0xFF7C3AED),
+                      ),
+                      if (!isManager) ...[
+                        _Metric(
+                          _label(context, 'Advances given', 'دیے گئے ایڈوانس'),
+                          _money(context, shownAdvances ? totalAdvance : 0),
+                          Icons.wallet,
+                          const Color(0xFF2563EB),
+                          badge: _label(context, 'Advance', 'ایڈوانس'),
+                          badgeColor: const Color(0xFF2563EB),
+                        ),
+                        _Metric(
+                          _label(context, 'Advance used', 'ایڈوانس سے خرچ'),
+                          _money(context, shownAdvances ? utilized : 0),
+                          Icons.receipt_long,
+                          const Color(0xFF0D9488),
+                          badge: _label(context, 'Used', 'استعمال شدہ'),
+                          badgeColor: const Color(0xFF0D9488),
+                        ),
+                        _Metric(
+                          _label(context, 'Paid back', 'واپس ادا کیا'),
+                          _money(context, shownRepayments ? reimbursed : 0),
+                          Icons.payments,
+                          const Color(0xFF10B981),
+                          badge: _label(context, 'Settled', 'ادا شدہ'),
+                          badgeColor: const Color(0xFF10B981),
+                        ),
+                        _Metric(
+                          _label(context, 'Waiting / due', 'انتظار / باقی'),
+                          _money(context, displayPending),
+                          Icons.pending_actions,
+                          const Color(0xFFF59E0B),
+                          badge: _label(context, 'Pending', 'زیر التوا'),
+                          badgeColor: const Color(0xFFF59E0B),
+                        ),
+                      ],
+                    ]),
+                    const SizedBox(height: 18),
+                    Text(
                       _label(
                         context,
-                        'No records for these filters',
-                        'ان فلٹرز کے لیے کوئی ریکارڈ نہیں',
+                        'Transactions (${rows.length})',
+                        'لین دین (${rows.length})',
                       ),
-                      Icons.search_off,
-                      subtitle: _label(
-                        context,
-                        'Change your filters to see more.',
-                        'مزید دیکھنے کے لیے فلٹر بدلیں۔',
+                      style: TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white : _navy,
                       ),
                     ),
-                ],
-              );
-            },
+                    const SizedBox(height: 10),
+                    if (rows.isEmpty)
+                      _Empty(
+                        _label(
+                          context,
+                          'No records for these filters',
+                          'ان فلٹرز کے لیے کوئی ریکارڈ نہیں',
+                        ),
+                        Icons.search_off,
+                        subtitle: _label(
+                          context,
+                          'Change your filters to see more.',
+                          'مزید دیکھنے کے لیے فلٹر بدلیں۔',
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         );
       },
@@ -2572,21 +3239,28 @@ class CoreOfficesScreen extends StatelessWidget {
                   child: _Panel(
                     child: Row(
                       children: [
-                        const Icon(Icons.business_outlined, color: Color(0xFF7C3AED)),
+                        const Icon(
+                          Icons.business_outlined,
+                          color: Color(0xFF7C3AED),
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             o.name,
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
-                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
                             ),
                           ),
                         ),
                         Text(
                           '${context.watch<UserProvider>().allUsers.where((u) => u.officeId == o.id).length} ${_label(context, 'people', 'لوگ')}',
                           style: TextStyle(
-                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
                             fontSize: 12,
                           ),
                         ),
@@ -2619,7 +3293,11 @@ Future<void> _createOffice(BuildContext context) async {
             labelText: _label(dialogContext, 'Office name', 'دفتر کا نام'),
           ),
           validator: (v) => v?.trim().isEmpty ?? true
-              ? _readLabel(dialogContext, 'Enter an office name.', 'دفتر کا نام لکھیں۔')
+              ? _readLabel(
+                  dialogContext,
+                  'Enter an office name.',
+                  'دفتر کا نام لکھیں۔',
+                )
               : null,
         ),
       ),
@@ -2657,7 +3335,11 @@ Future<void> _createOffice(BuildContext context) async {
       context.read<CoreFlowProvider>().refresh();
       showAppToast(
         context,
-        message: _label(context, 'Office added successfully!', 'دفتر کامیابی سے شامل کر دیا گیا!'),
+        message: _label(
+          context,
+          'Office added successfully!',
+          'دفتر کامیابی سے شامل کر دیا گیا!',
+        ),
         type: ToastType.success,
       );
     }

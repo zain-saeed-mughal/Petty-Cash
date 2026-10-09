@@ -210,8 +210,10 @@ class _SettleAdvanceDialogState extends State<SettleAdvanceDialog> {
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 8,
+            runSpacing: 8,
             children: [
               TextButton(
                 onPressed: _busy ? null : () => Navigator.pop(context),

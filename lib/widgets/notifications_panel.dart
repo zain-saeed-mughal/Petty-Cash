@@ -6,6 +6,7 @@ import '../providers/notification_provider.dart';
 import '../services/push_notification_service.dart';
 import '../screens/core/core_dashboard_screens.dart';
 import '../providers/core_flow_provider.dart';
+import '../services/database_service.dart';
 import '../config/app_theme.dart';
 
 class NotificationsPanel extends StatelessWidget {
@@ -46,7 +47,10 @@ class NotificationsPanel extends StatelessWidget {
                     IconButton(
                       tooltip: context.t('Close'),
                       onPressed: () => Navigator.maybePop(context),
-                      icon: Icon(Icons.close, color: isDark ? Colors.white70 : null),
+                      icon: Icon(
+                        Icons.close,
+                        color: isDark ? Colors.white70 : null,
+                      ),
                     ),
                   ],
                 ),
@@ -127,7 +131,10 @@ class NotificationsPanel extends StatelessWidget {
                         child: ListView.separated(
                           physics: const AlwaysScrollableScrollPhysics(),
                           itemCount: provider.notifications.length,
-                          separatorBuilder: (_, _) => Divider(height: 1, color: isDark ? Colors.white12 : null),
+                          separatorBuilder: (_, _) => Divider(
+                            height: 1,
+                            color: isDark ? Colors.white12 : null,
+                          ),
                           itemBuilder: (context, index) {
                             final n = provider.notifications[index];
                             return Dismissible(
@@ -153,15 +160,17 @@ class NotificationsPanel extends StatelessWidget {
                                 tileColor: n.isRead
                                     ? null
                                     : (isDark
-                                        ? const Color(0xFF334155)
-                                        : const Color(0xffeff6ff)),
+                                          ? const Color(0xFF334155)
+                                          : const Color(0xffeff6ff)),
                                 title: Text(
                                   context.language.notificationTitle(n),
                                   style: TextStyle(
                                     fontWeight: n.isRead
                                         ? FontWeight.w500
                                         : FontWeight.w700,
-                                    color: isDark ? Colors.white : Colors.black87,
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black87,
                                   ),
                                 ),
                                 subtitle: Column(
@@ -171,7 +180,9 @@ class NotificationsPanel extends StatelessWidget {
                                     Text(
                                       context.language.notificationBody(n),
                                       style: TextStyle(
-                                        color: isDark ? Colors.white70 : Colors.black87,
+                                        color: isDark
+                                            ? Colors.white70
+                                            : Colors.black87,
                                       ),
                                     ),
                                     const SizedBox(height: 6),
@@ -182,7 +193,9 @@ class NotificationsPanel extends StatelessWidget {
                                       ),
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: isDark ? Colors.white38 : Colors.grey,
+                                        color: isDark
+                                            ? Colors.white38
+                                            : Colors.grey,
                                       ),
                                     ),
                                   ],
@@ -196,17 +209,36 @@ class NotificationsPanel extends StatelessWidget {
                                     if (!context.mounted) return;
                                     final flows = context
                                         .read<CoreFlowProvider>();
-                                    final advance = flows.advances
+                                    var advance = flows.advances
                                         .where(
                                           (a) => a.id == n.relatedCoreAdvanceId,
                                         )
                                         .firstOrNull;
-                                    final repayment = flows.reimbursements
+                                    var repayment = flows.reimbursements
                                         .where(
                                           (r) =>
                                               r.id == n.relatedReimbursementId,
                                         )
                                         .firstOrNull;
+                                    if (advance == null &&
+                                        n.relatedCoreAdvanceId != null) {
+                                      try {
+                                        advance = await DatabaseService()
+                                            .getCoreAdvance(
+                                              n.relatedCoreAdvanceId!,
+                                            );
+                                      } catch (_) {}
+                                    }
+                                    if (repayment == null &&
+                                        n.relatedReimbursementId != null) {
+                                      try {
+                                        repayment = await DatabaseService()
+                                            .getCoreReimbursement(
+                                              n.relatedReimbursementId!,
+                                            );
+                                      } catch (_) {}
+                                    }
+                                    if (!context.mounted) return;
                                     if (advance == null && repayment == null) {
                                       ScaffoldMessenger.of(
                                         context,
@@ -225,43 +257,69 @@ class NotificationsPanel extends StatelessWidget {
                                     nav.pop(); // Close notifications bottom sheet first
                                     await nav.push(
                                       MaterialPageRoute<void>(
-                                        builder: (_) => Scaffold(
+                                        builder: (routeContext) => Scaffold(
                                           appBar: AppBar(
-                                            title: Text(context.t('Details')),
+                                            title: Text(
+                                              routeContext.t('Details'),
+                                            ),
                                           ),
                                           body: Consumer<CoreFlowProvider>(
                                             builder: (ctx, liveFlow, _) {
-                                              final liveAdvance = n.relatedCoreAdvanceId != null
+                                              final liveAdvance =
+                                                  n.relatedCoreAdvanceId != null
                                                   ? liveFlow.advances
-                                                      .where((a) => a.id == n.relatedCoreAdvanceId)
-                                                      .firstOrNull
+                                                        .where(
+                                                          (a) =>
+                                                              a.id ==
+                                                              n.relatedCoreAdvanceId,
+                                                        )
+                                                        .firstOrNull
                                                   : null;
-                                              final liveRepayment = n.relatedReimbursementId != null
+                                              final liveRepayment =
+                                                  n.relatedReimbursementId !=
+                                                      null
                                                   ? liveFlow.reimbursements
-                                                      .where((r) => r.id == n.relatedReimbursementId)
-                                                      .firstOrNull
+                                                        .where(
+                                                          (r) =>
+                                                              r.id ==
+                                                              n.relatedReimbursementId,
+                                                        )
+                                                        .firstOrNull
                                                   : null;
-                                              if (liveAdvance == null && liveRepayment == null) {
+                                              final currentAdvance =
+                                                  liveAdvance ?? advance;
+                                              final currentRepayment =
+                                                  liveRepayment ?? repayment;
+                                              if (currentAdvance == null &&
+                                                  currentRepayment == null) {
                                                 return Center(
                                                   child: Padding(
-                                                    padding: const EdgeInsets.all(24.0),
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          24.0,
+                                                        ),
                                                     child: Text(
-                                                      context.t('This request is no longer available.'),
-                                                      textAlign: TextAlign.center,
+                                                      ctx.t(
+                                                        'This request is no longer available.',
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
                                                     ),
                                                   ),
                                                 );
                                               }
                                               return ListView(
-                                                padding: const EdgeInsets.all(16),
+                                                padding: const EdgeInsets.all(
+                                                  16,
+                                                ),
                                                 children: [
-                                                  if (liveAdvance != null)
+                                                  if (currentAdvance != null)
                                                     CoreAdvanceCard(
-                                                      advance: liveAdvance,
+                                                      advance: currentAdvance,
                                                     ),
-                                                  if (liveRepayment != null)
+                                                  if (currentRepayment != null)
                                                     CoreReimbursementCard(
-                                                      request: liveRepayment,
+                                                      request: currentRepayment,
                                                     ),
                                                 ],
                                               );

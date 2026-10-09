@@ -44,6 +44,7 @@ class AdaptiveScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 768;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (isDesktop) {
       return Scaffold(
         appBar: const AccountAppBar(),
@@ -54,7 +55,7 @@ class AdaptiveScaffold extends StatelessWidget {
               onDestinationSelected: onNavigationIndexChanged,
               extended: screenWidth >= 1024,
               minExtendedWidth: 200,
-              backgroundColor: Colors.white,
+              backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
               selectedIconTheme: const IconThemeData(
                 color: AppTheme.primaryBlue,
               ),
