@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { deliverToDevices } from "./delivery.ts";
 type ServiceAccount={client_email:string;private_key:string;project_id:string};
 const bytes=(s:string)=>new TextEncoder().encode(s);
 const b64=(b:Uint8Array)=>btoa(String.fromCharCode(...b)).replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_");
@@ -35,8 +36,12 @@ Deno.serve(async(req)=>{
     if(userError)throw userError;
     const {data:devices,error:deviceError}=await db.from("device_tokens").select("token,language_code").eq("user_id",job.user_id);
     if(deviceError)throw deviceError;
+    const {data:delivered,error:deliveredError}=await db.from("push_device_deliveries")
+      .select("device_token").eq("notification_id",job.id);
+    if(deliveredError)throw deliveredError;
+    const sentTokens=new Set((delivered??[]).map((row:{device_token:string})=>row.device_token));
     if(user?.isActive){
-     for(const device of devices??[]){
+     await deliverToDevices(devices??[],sentTokens,async(device)=>{
       const response=await fetch("https://fcm.googleapis.com/v1/projects/"+encodeURIComponent(account.project_id)+"/messages:send",{
        method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},
        body:JSON.stringify({message:{
@@ -45,16 +50,25 @@ Deno.serve(async(req)=>{
         notification:device.language_code === "ur" ? {title:"پیٹی کیش کی نئی اطلاع",body:"اپنی اطلاع دیکھنے کے لیے پیٹی کیش کھولیں۔"} : {title:"Petty Cash update",body:"Open Petty Cash to view your notification."},
         data:{request_id:job.request_id??"",core_advance_id:job.core_advance_id??"",
           reimbursement_id:job.reimbursement_id??"",user_id:job.user_id},
-        android:{priority:"high",notification:{channel_id:"petty_cash_updates",notification_priority:"PRIORITY_HIGH"}},
-        apns:{headers:{"apns-priority":"10"},payload:{aps:{sound:"default"}}},
+        android:{priority:"high",notification:{channel_id:"petty_cash_updates",notification_priority:"PRIORITY_HIGH",tag:job.id}},
+        apns:{headers:{"apns-priority":"10","apns-collapse-id":job.id},payload:{aps:{sound:"default"}}},
        }}),signal:AbortSignal.timeout(15000)});
-      if(!response.ok){
+       if(!response.ok){
        const result=await response.json();
        const unregistered=result.error?.details?.some((d:{errorCode?:string})=>d.errorCode==="UNREGISTERED");
-       if(unregistered)await db.from("device_tokens").delete().eq("token",device.token).eq("user_id",job.user_id);
+        if(unregistered){
+         const {error:removeError}=await db.from("device_tokens").delete().eq("token",device.token).eq("user_id",job.user_id);
+         if(removeError)throw removeError;
+         return false;
+        }
        else throw new Error("FCM delivery failed: "+response.status);
-      }
-     }
+       }
+       return true;
+      },async(token)=>{
+        const {error:deliveryError}=await db.from("push_device_deliveries")
+          .upsert({notification_id:job.id,device_token:token},{onConflict:"notification_id,device_token"});
+        if(deliveryError)throw deliveryError;
+      });
     }
     const {error:saveError}=await db.from("push_outbox").update({sent_at:new Date().toISOString(),last_error:null}).eq("id",job.id);
     if(saveError)throw saveError;

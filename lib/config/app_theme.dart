@@ -206,6 +206,20 @@ class AppTheme {
         elevation: 24,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: surfaceDark,
+        contentTextStyle: TextStyle(
+          color: Colors.white,
+          fontFamily: family,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: borderDark, width: 1),
+        ),
+      ),
       dividerTheme: const DividerThemeData(
         color: borderDark,
         thickness: 1,
@@ -372,6 +386,19 @@ class AppTheme {
         backgroundColor: surfaceLight,
         elevation: 24,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: primaryNavy,
+        contentTextStyle: TextStyle(
+          color: Colors.white,
+          fontFamily: family,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
       ),
       dividerTheme: const DividerThemeData(
         color: borderLight,

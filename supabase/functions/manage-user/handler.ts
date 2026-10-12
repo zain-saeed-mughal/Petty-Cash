@@ -64,13 +64,16 @@ export const createHandler =
       ) return reply({ error: "Not authorized" }, 403);
       const body = await req.json();
       const { action, uid } = body;
+      if (body.isActive !== undefined && typeof body.isActive !== "boolean") {
+        return reply({ error: "Account active state must be true or false" }, 400);
+      }
       if (!["create", "update", "deactivate", "delete"].includes(action)) {
         return reply({ error: "Invalid action" }, 400);
       }
       let target: Record<string, unknown> | null = null;
       if (action !== "create") {
         const { data, error } = await db.from("users").select(
-          "uid,role,isActive,office_id",
+          "uid,name,email,role,isActive,office_id",
         ).eq("uid", uid).single();
         if (error || !data) return reply({ error: "User not found" }, 404);
         target = data;
@@ -108,13 +111,29 @@ export const createHandler =
             error: "Only Office Boy accounts can be permanently deleted",
           }, 400);
         }
+        // Disable sign-in before any irreversible cleanup. Every following step
+        // can be retried with the same uid if storage, SQL, or Auth fails.
+        const { error: banError } = await db.auth.admin.updateUserById(uid, {
+          ban_duration: "876000h",
+          app_metadata: {
+            petty_cash_role: target!.role,
+            petty_cash_active: false,
+            petty_cash_office_id: target!.office_id,
+          },
+        });
+        if (banError) return reply({ error: banError.message }, 400);
         const { error } = await db.rpc("delete_office_boy_data", {
           p_uid: uid,
         });
-        if (error) return reply({ error: error.message }, 500);
-        await removeUserReceipts(db, uid);
+        if (error) return reply({ error: `Account disabled. Delete incomplete: ${error.message}. Retry deletion.` }, 500);
+        try {
+          await removeUserReceipts(db, uid);
+        } catch (storageError) {
+          console.error("Receipt cleanup failed:", storageError);
+          return reply({ error: "Account disabled and financial data removed. Receipt cleanup is incomplete; retry deletion." }, 500);
+        }
         const { error: deleteError } = await db.auth.admin.deleteUser(uid);
-        if (deleteError) return reply({ error: deleteError.message }, 500);
+        if (deleteError) return reply({ error: `Account disabled and data removed. Retry deletion: ${deleteError.message}` }, 500);
         return reply({ ok: true });
       }
       const name = String(body.name ?? "").trim(),
@@ -122,6 +141,9 @@ export const createHandler =
       const role = String(body.role ?? ""),
         password = body.password == null ? null : String(body.password);
       const officeId = body.officeId == null ? null : String(body.officeId);
+      const nextActive = body.isActive === undefined
+        ? (action === "create" ? true : target!.isActive === true)
+        : body.isActive;
       const assignedOfficeId = officeId ??
         (action === "create" ? String(actor.office_id) : String(target?.office_id));
       if (actor.role === "admin" && assignedOfficeId !== actor.office_id) {
@@ -143,7 +165,7 @@ export const createHandler =
         (actor.role === "admin" && !["office_boy", "finance"].includes(role))
       ) return reply({ error: "Role is not allowed" }, 403);
       if (
-        uid === actor.uid && (role !== actor.role || body.isActive === false)
+        uid === actor.uid && (role !== actor.role || nextActive === false)
       ) {
         return reply(
           { error: "Ask another super-admin to change your access" },
@@ -158,7 +180,7 @@ export const createHandler =
         user_metadata: { name },
         app_metadata: {
           petty_cash_role: role,
-          petty_cash_active: body.isActive !== false,
+          petty_cash_active: nextActive,
           petty_cash_office_id: assignedOfficeId,
         },
       };
@@ -170,10 +192,6 @@ export const createHandler =
       } else if (email && target && email !== String(target.email).toLowerCase()) {
         attributes.email = email;
       }
-      if (action !== "create" && target && body.isActive !== target.isActive) {
-        attributes.ban_duration = body.isActive === false ? "876000h" : "none";
-      }
-
       if (action === "create") {
         const result = await db.auth.admin.createUser({
           ...attributes,
@@ -184,42 +202,30 @@ export const createHandler =
       }
 
       if (action === "update") {
-        const updateData: Record<string, unknown> = {
-          name,
-          role,
-          isActive: body.isActive !== false,
-          office_id: assignedOfficeId,
+        // sync_auth_profile updates public.users in the same Auth transaction.
+        // Never report success after a failed or skipped Auth update.
+        const authUpdate: Record<string, unknown> = {
+          user_metadata: { name },
+          app_metadata: {
+            petty_cash_role: role,
+            petty_cash_active: nextActive,
+            petty_cash_office_id: assignedOfficeId,
+          },
         };
-        if (email) {
-          updateData.email = email;
+        if (password) authUpdate.password = password;
+        if (email !== String(target!.email).toLowerCase()) authUpdate.email = email;
+        if (nextActive !== target!.isActive) {
+          authUpdate.ban_duration = nextActive === false ? "876000h" : "none";
         }
-
-        const { error: dbError } = await db.from("users").update(updateData).eq("uid", uid);
-        if (dbError) {
-          console.error("public.users update failed:", dbError);
-          return reply({ error: dbError.message }, 400);
+        const { error: authUpdateError } = await db.auth.admin.updateUserById(uid, authUpdate);
+        if (authUpdateError) return reply({ error: authUpdateError.message }, 400);
+        const { data: saved, error: profileError } = await db.from("users")
+          .select("name,email,role,isActive,office_id").eq("uid", uid).single();
+        if (profileError || !saved || saved.name !== name || saved.email !== email ||
+          saved.role !== role || saved.isActive !== nextActive ||
+          saved.office_id !== assignedOfficeId) {
+          return reply({ error: "Account update could not be verified. Please retry." }, 500);
         }
-
-        try {
-          const authUpdate: Record<string, unknown> = {
-            user_metadata: { name },
-            app_metadata: {
-              petty_cash_role: role,
-              petty_cash_active: body.isActive !== false,
-              petty_cash_office_id: assignedOfficeId,
-            },
-          };
-          if (password) {
-            authUpdate.password = password;
-          }
-          if (email && target && email !== String(target.email).toLowerCase()) {
-            authUpdate.email = email;
-          }
-          await db.auth.admin.updateUserById(uid, authUpdate);
-        } catch (authErr) {
-          console.warn("auth update skipped:", authErr);
-        }
-
         return reply({ ok: true, uid });
       }
 

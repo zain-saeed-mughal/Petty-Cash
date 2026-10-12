@@ -39,11 +39,13 @@ class AuthService {
     if (client == null) {
       throw StateError('Connection unavailable. Restart and try again.');
     }
+    var authenticated = false;
     try {
       await client.auth.signInWithPassword(
         email: email.trim().toLowerCase(),
         password: password,
       );
+      authenticated = true;
       final user = await restoreSession();
       if (user == null) {
         throw StateError(
@@ -52,8 +54,12 @@ class AuthService {
       }
       return user;
     } catch (_) {
+      // A rejected password did not establish a session. Signing out here can
+      // race the next attempt and make a correct password appear to fail too.
       _currentActiveUser = null;
-      await client.auth.signOut(scope: SignOutScope.local);
+      if (authenticated) {
+        await client.auth.signOut(scope: SignOutScope.local);
+      }
       rethrow;
     }
   }

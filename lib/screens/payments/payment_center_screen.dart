@@ -300,6 +300,9 @@ class PaymentCenterScreen extends StatelessWidget {
               (entry['entry_type'] == 'hold_release' ? -1 : 1) *
                   paymentAmount(entry['amount']),
         );
+    final stackHeading =
+        MediaQuery.sizeOf(context).width < 400 &&
+        MediaQuery.textScalerOf(context).scale(1) > 1.2;
     return RefreshIndicator(
       onRefresh: () async {
         payments.refresh();
@@ -316,21 +319,44 @@ class PaymentCenterScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (stackHeading) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          paymentText(
+                            context,
+                            'Money & Expenses',
+                            'رقم اور خرچ',
+                          ),
+                          softWrap: true,
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     Wrap(
                       alignment: WrapAlignment.spaceBetween,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       spacing: 12,
                       runSpacing: 12,
                       children: [
-                        Text(
-                          paymentText(
-                            context,
-                            'Money & Expenses',
-                            'رقم اور خرچ',
+                        if (!stackHeading)
+                          ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: MediaQuery.sizeOf(context).width - 36,
+                            ),
+                            child: Text(
+                              paymentText(
+                                context,
+                                'Money & Expenses',
+                                'رقم اور خرچ',
+                              ),
+                              softWrap: true,
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
                           ),
-                          style: Theme.of(context).textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w800),
-                        ),
                         if (actor.isFinance)
                           FilledButton.icon(
                             onPressed: payments.isBusy('give-advance')

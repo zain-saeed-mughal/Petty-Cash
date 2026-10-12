@@ -28,41 +28,12 @@ class CoreFlowProvider extends ChangeNotifier {
       _identity != null && _ready.length < 6 && _errors.isEmpty;
   String? get error => _errors.values.firstOrNull;
   bool isBusy(String key) => _busy.contains(key);
-  double balanceFor(String uid) {
-    final myAdvances = advances
-        .where((a) =>
-            a.officeBoyId == uid &&
-            (a.status == 'cleared' || a.status == 'fully_utilized'))
-        .toList();
-    if (myAdvances.isNotEmpty) {
-      return myAdvances.fold(
-          0.0, (sum, a) => sum + (balanceForAdvance(a.id)?.remaining ?? 0.0));
-    }
-    return balances
-        .where((row) => row.officeBoyId == uid)
-        .fold(0, (sum, row) => sum + row.remaining);
-  }
+  double balanceFor(String uid) => balances
+      .where((row) => row.officeBoyId == uid)
+      .fold(0, (sum, row) => sum + row.remaining);
 
-  CoreBalance? balanceForAdvance(String id) {
-    final adv = advances.where((a) => a.id == id).firstOrNull;
-    if (adv != null) {
-      final advItems = items
-          .where((i) => i.advanceId == id && i.status == 'approved')
-          .toList();
-      final spent = advItems.fold<double>(0, (sum, i) => sum + i.amount);
-      final remaining = (adv.amount - spent).clamp(0.0, double.infinity);
-      return CoreBalance(
-        advanceId: id,
-        officeBoyId: adv.officeBoyId,
-        officeId: adv.officeId,
-        total: adv.amount,
-        spent: spent,
-        remaining: remaining,
-        itemCount: advItems.length,
-      );
-    }
-    return balances.where((row) => row.advanceId == id).firstOrNull;
-  }
+  CoreBalance? balanceForAdvance(String id) =>
+      balances.where((row) => row.advanceId == id).firstOrNull;
 
   void updateUser(AppUser? user) {
     final identity = user == null
@@ -198,6 +169,12 @@ class CoreFlowProvider extends ChangeNotifier {
         advances = [row, ...advances.where((entry) => entry.id != row.id)];
       });
 
+  Future<bool> createOffice(String name) => _run('create-office', () async {
+    final row = await _db.createOffice(name);
+    offices = [...offices.where((entry) => entry.id != row.id), row]
+      ..sort((a, b) => a.name.compareTo(b.name));
+  });
+
   Future<bool> addItem({
     String? id,
     required String advanceId,
@@ -217,14 +194,11 @@ class CoreFlowProvider extends ChangeNotifier {
     items = [row, ...items.where((entry) => entry.id != row.id)];
   });
 
-  Future<bool> reviewAdvanceItem(
-    String id,
-    String decision,
-    String? reason,
-  ) => _run(id, () async {
-    final row = await _db.reviewCoreAdvanceItem(id, decision, reason);
-    items = [row, ...items.where((entry) => entry.id != row.id)];
-  });
+  Future<bool> reviewAdvanceItem(String id, String decision, String? reason) =>
+      _run(id, () async {
+        final row = await _db.reviewCoreAdvanceItem(id, decision, reason);
+        items = [row, ...items.where((entry) => entry.id != row.id)];
+      });
 
   Future<bool> directAllotAdvance({
     String? id,
@@ -249,21 +223,22 @@ class CoreFlowProvider extends ChangeNotifier {
         final index = advances.indexWhere((a) => a.id == id);
         if (index != -1) {
           final old = advances[index];
-          advances = List.from(advances)..[index] = CoreAdvance(
-            id: old.id,
-            officeBoyId: old.officeBoyId,
-            officeId: old.officeId,
-            purpose: old.purpose,
-            method: old.method,
-            status: decision == 'approve' ? 'cleared' : 'declined',
-            accountName: old.accountName,
-            accountDetails: old.accountDetails,
-            clearedMethod: old.clearedMethod,
-            financeNote: old.financeNote,
-            amount: old.amount,
-            createdAt: old.createdAt,
-            clearedAt: old.clearedAt,
-          );
+          advances = List.from(advances)
+            ..[index] = CoreAdvance(
+              id: old.id,
+              officeBoyId: old.officeBoyId,
+              officeId: old.officeId,
+              purpose: old.purpose,
+              method: old.method,
+              status: decision == 'approve' ? 'cleared' : 'declined',
+              accountName: old.accountName,
+              accountDetails: old.accountDetails,
+              clearedMethod: old.clearedMethod,
+              financeNote: old.financeNote,
+              amount: old.amount,
+              createdAt: old.createdAt,
+              clearedAt: old.clearedAt,
+            );
         }
       });
 

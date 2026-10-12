@@ -100,6 +100,7 @@ class _PettyCashAppState extends State<PettyCashApp> {
         message,
       ) {
         if (!mounted || !auth.isAuthenticated) return;
+        context.read<NotificationProvider>().refresh();
         final ctx = _navigatorKey.currentContext;
         if (ctx != null && ctx.mounted) {
           ScaffoldMessenger.of(ctx).showSnackBar(
@@ -220,7 +221,15 @@ class _PettyCashAppState extends State<PettyCashApp> {
           SnackBar(content: Text(context.t('This request is archived.'))),
         );
       }
-    } catch (_) {}
+    } catch (error) {
+      if (!mounted || auth.currentUser?.uid != uid) return;
+      final navContext = _navigatorKey.currentContext;
+      if (navContext != null && navContext.mounted) {
+        ScaffoldMessenger.of(navContext).showSnackBar(
+          SnackBar(content: Text(navContext.language.error(error.toString()))),
+        );
+      }
+    }
   }
 
   @override

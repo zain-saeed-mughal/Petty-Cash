@@ -27,9 +27,12 @@ class CoreFlowTestProvider extends ChangeNotifier implements CoreFlowProvider {
   @override
   String? get error => _error;
   @override
-  double balanceFor(String uid) => 0;
+  double balanceFor(String uid) => balances
+      .where((row) => row.officeBoyId == uid)
+      .fold(0, (sum, row) => sum + row.remaining);
   @override
-  CoreBalance? balanceForAdvance(String id) => null;
+  CoreBalance? balanceForAdvance(String id) =>
+      balances.where((row) => row.advanceId == id).firstOrNull;
   @override
   bool isBusy(String key) => false;
   @override

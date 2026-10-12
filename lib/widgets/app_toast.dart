@@ -12,6 +12,8 @@ void showAppToast(
   if (messenger == null) return;
   messenger.hideCurrentSnackBar();
 
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+
   final Color bg;
   final Color fg;
   final IconData defaultIcon;
@@ -33,7 +35,7 @@ void showAppToast(
       defaultIcon = Icons.warning_rounded;
       break;
     case ToastType.info:
-      bg = const Color(0xFF7C3AED); // Vibrant Purple
+      bg = isDark ? const Color(0xFF7C3AED) : const Color(0xFF1E293B); // Purple in dark, Slate 800 in light
       fg = Colors.white;
       defaultIcon = Icons.info_rounded;
       break;
@@ -46,7 +48,15 @@ void showAppToast(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       backgroundColor: bg,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: isDark
+            ? BorderSide(
+                color: Colors.white.withValues(alpha: 0.15),
+                width: 1,
+              )
+            : BorderSide.none,
+      ),
       content: Row(
         children: [
           Icon(icon ?? defaultIcon, color: fg, size: 22),
@@ -56,7 +66,7 @@ void showAppToast(
               message,
               style: TextStyle(
                 color: fg,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
                 fontSize: 14,
               ),
             ),

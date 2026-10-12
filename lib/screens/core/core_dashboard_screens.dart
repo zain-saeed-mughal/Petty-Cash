@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/core_flow_models.dart';
@@ -9,7 +8,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/core_flow_provider.dart';
 import '../../providers/language_provider.dart';
 import '../../providers/user_provider.dart';
-import '../../services/database_service.dart';
 import '../../widgets/app_status_badge.dart';
 import '../../widgets/receipt_viewer_dialog.dart';
 import '../../widgets/modern_dashboard_view.dart';
@@ -29,7 +27,20 @@ String _readLabel(BuildContext context, String english, String urdu) =>
     context.read<LanguageProvider>().isRtl ? urdu : english;
 String _money(BuildContext context, num value) =>
     context.read<LanguageProvider>().money(value.toDouble());
-String _date(DateTime value) => DateFormat('d MMM yyyy').format(value);
+String _date(BuildContext context, DateTime value) =>
+    context.read<LanguageProvider>().date(value, pattern: 'd MMM yyyy');
+String _advanceStatus(BuildContext context, String status) => switch (status) {
+  'cleared' => _label(context, 'Received', 'پیسے مل گئے'),
+  'fully_utilized' => _label(context, 'All done', 'مکمل'),
+  'awaiting_office_boy_approval' => _label(
+    context,
+    'Confirm receipt',
+    'وصولی بتائیں',
+  ),
+  'pending' => _label(context, 'Waiting', 'انتظار میں'),
+  'declined' => _label(context, 'Not accepted', 'منظور نہیں'),
+  _ => _label(context, 'In progress', 'جاری ہے'),
+};
 String _person(BuildContext context, String id) {
   for (final user in context.watch<UserProvider>().allUsers) {
     if (user.uid == id) return user.name;
@@ -414,10 +425,8 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
             pendingItemAmount;
 
         final heroAmount = monthAdvanceTotal;
-        final available = (monthAdvanceTotal - approvedSpent).clamp(
-          0.0,
-          double.infinity,
-        );
+        // Available float is the ledger-backed total across all months.
+        final available = flow.balanceFor(uid);
 
         // Deduplicate recent activities
         final recentList = <RecentActivityItem>[];
@@ -432,7 +441,10 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
               title: item.description,
               subtitle:
                   'PKR ${item.amount.toInt()} · ${_office(context, item.advanceId)}',
-              time: DateFormat('d MMM').format(item.createdAt),
+              time: context.read<LanguageProvider>().date(
+                item.createdAt,
+                pattern: 'd MMM',
+              ),
               statusDotColor: item.status == 'approved'
                   ? const Color(0xFF10B981)
                   : (item.status == 'rejected'
@@ -452,8 +464,12 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
               iconColor: const Color(0xFF0D9488),
               iconBgColor: const Color(0xFFF0FDFA),
               title: adv.purpose,
-              subtitle: 'PKR ${adv.amount.toInt()} · ${adv.status}',
-              time: DateFormat('d MMM').format(adv.createdAt),
+              subtitle:
+                  'PKR ${adv.amount.toInt()} · ${_advanceStatus(context, adv.status)}',
+              time: context.read<LanguageProvider>().date(
+                adv.createdAt,
+                pattern: 'd MMM',
+              ),
               statusDotColor:
                   (adv.status == 'cleared' || adv.status == 'fully_utilized')
                   ? const Color(0xFF10B981)
@@ -658,11 +674,8 @@ class CoreAdvanceCard extends StatelessWidget {
         .toList();
     final approvedItems = items.where((i) => i.status == 'approved').toList();
     final cardSpent = approvedItems.fold<double>(0.0, (s, i) => s + i.amount);
-    final displaySpent = isManager ? cardSpent : (balance?.spent ?? cardSpent);
-    final displayLeft = isManager
-        ? (advance.amount - cardSpent).clamp(0.0, double.infinity)
-        : (balance?.remaining ??
-              (advance.amount - cardSpent).clamp(0.0, double.infinity));
+    final displaySpent = isManager ? cardSpent : balance?.spent ?? 0;
+    final displayLeft = balance?.remaining ?? 0;
     return _Panel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,7 +745,7 @@ class CoreAdvanceCard extends StatelessWidget {
                     color: Color(0xFF64748B),
                   ),
                   const SizedBox(width: 4),
-                  Text(_date(advance.createdAt)),
+                  Text(_date(context, advance.createdAt)),
                 ],
               ),
             ],
@@ -762,31 +775,34 @@ class CoreAdvanceCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '${_label(context, 'Spent', 'خرچ')}: ${_money(context, displaySpent)}',
+                    '${isManager ? _label(context, 'Tagged approved', 'منسلک منظور شدہ') : _label(context, 'Spent', 'خرچ')}: ${_money(context, displaySpent)}',
                   ),
                 ),
-                Flexible(
-                  child: Text(
-                    '${_label(context, 'Left', 'باقی')}: ${_money(context, displayLeft)}',
-                    textAlign: TextAlign.end,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      color: _teal,
+                if (!isManager)
+                  Flexible(
+                    child: Text(
+                      '${_label(context, 'Left', 'باقی')}: ${_money(context, displayLeft)}',
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: _teal,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
-            const SizedBox(height: 6),
-            LinearProgressIndicator(
-              value: advance.amount > 0
-                  ? (displaySpent / advance.amount).clamp(0, 1)
-                  : 0,
-              minHeight: 6,
-              borderRadius: BorderRadius.circular(8),
-              color: _teal,
-              backgroundColor: const Color(0xFFE5EBF3),
-            ),
+            if (!isManager) ...[
+              const SizedBox(height: 6),
+              LinearProgressIndicator(
+                value: advance.amount > 0
+                    ? (displaySpent / advance.amount).clamp(0, 1)
+                    : 0,
+                minHeight: 6,
+                borderRadius: BorderRadius.circular(8),
+                color: _teal,
+                backgroundColor: const Color(0xFFE5EBF3),
+              ),
+            ],
           ],
           if (items.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -1043,7 +1059,7 @@ class CoreAdvanceCard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            _date(item.createdAt),
+                            _date(context, item.createdAt),
                             style: const TextStyle(
                               fontSize: 11,
                               color: Color(0xFF94A3B8),
@@ -1367,7 +1383,7 @@ class CoreReimbursementCard extends StatelessWidget {
                     color: Color(0xFF64748B),
                   ),
                   const SizedBox(width: 4),
-                  Text(_date(request.createdAt)),
+                  Text(_date(context, request.createdAt)),
                 ],
               ),
             ],
@@ -1551,7 +1567,7 @@ class CoreReimbursementCard extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    '${_date(a.createdAt)} · ${_person(context, a.actorId)}',
+                    '${_date(context, a.createdAt)} · ${_person(context, a.actorId)}',
                     style: const TextStyle(
                       fontSize: 11,
                       color: Color(0xFF94A3B8),
@@ -1990,7 +2006,10 @@ class _FinanceHomeState extends State<FinanceHome> {
                   : (ur ? 'ایڈوانس جاری' : 'Advance issued'),
               subtitle:
                   'PKR ${a.amount.toInt()} · ${_person(context, a.officeBoyId)}',
-              time: DateFormat('d MMM').format(a.createdAt),
+              time: context.read<LanguageProvider>().date(
+                a.createdAt,
+                pattern: 'd MMM',
+              ),
               statusDotColor: const Color(0xFF10B981),
             ),
           );
@@ -2007,7 +2026,10 @@ class _FinanceHomeState extends State<FinanceHome> {
                   : (ur ? 'واپسی زیر التوا' : 'Repayment pending'),
               subtitle:
                   'PKR ${r.amount.toInt()} · ${_person(context, r.officeBoyId)}',
-              time: DateFormat('d MMM').format(r.createdAt),
+              time: context.read<LanguageProvider>().date(
+                r.createdAt,
+                pattern: 'd MMM',
+              ),
               statusDotColor: const Color(0xFFF59E0B),
             ),
           );
@@ -2347,7 +2369,10 @@ class _AdminCoreOverviewState extends State<AdminCoreOverview> {
                   : (ur ? 'ایڈوانس' : 'Advance disbursed'),
               subtitle:
                   'PKR ${a.amount.toInt()} · ${_person(context, a.officeBoyId)}',
-              time: DateFormat('d MMM').format(a.createdAt),
+              time: context.read<LanguageProvider>().date(
+                a.createdAt,
+                pattern: 'd MMM',
+              ),
               statusDotColor: isDone
                   ? const Color(0xFF10B981)
                   : const Color(0xFFF59E0B),
@@ -2367,7 +2392,10 @@ class _AdminCoreOverviewState extends State<AdminCoreOverview> {
                   : (ur ? 'واپسی' : 'Reimbursement'),
               subtitle:
                   'PKR ${r.amount.toInt()} · ${_person(context, r.officeBoyId)}',
-              time: DateFormat('d MMM').format(r.createdAt),
+              time: context.read<LanguageProvider>().date(
+                r.createdAt,
+                pattern: 'd MMM',
+              ),
               statusDotColor: isDone
                   ? const Color(0xFF10B981)
                   : const Color(0xFFF59E0B),
@@ -2551,7 +2579,10 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    DateFormat('dd MMM yyyy').format(tempStart),
+                                    context.read<LanguageProvider>().date(
+                                      tempStart,
+                                      pattern: 'dd MMM yyyy',
+                                    ),
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
@@ -2624,7 +2655,10 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    DateFormat('dd MMM yyyy').format(tempEnd),
+                                    context.read<LanguageProvider>().date(
+                                      tempEnd,
+                                      pattern: 'dd MMM yyyy',
+                                    ),
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
@@ -2912,9 +2946,11 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                                 _dateRange.start.month + 1,
                                                 0,
                                               ).day
-                                      ? DateFormat('MMMM yyyy')
-                                            .format(_dateRange.start)
-                                      : '${DateFormat('d MMM yy').format(_dateRange.start)} - ${DateFormat('d MMM yy').format(_dateRange.end)}',
+                                      ? context.read<LanguageProvider>().date(
+                                          _dateRange.start,
+                                          pattern: 'MMMM yyyy',
+                                        )
+                                      : '${context.read<LanguageProvider>().date(_dateRange.start, pattern: 'd MMM yy')} - ${context.read<LanguageProvider>().date(_dateRange.end, pattern: 'd MMM yy')}',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -3201,6 +3237,7 @@ class CoreOfficesScreen extends StatelessWidget {
     child: Builder(
       builder: (context) {
         final flow = context.watch<CoreFlowProvider>();
+        final allUsers = context.watch<UserProvider>().allUsers;
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return ColoredBox(
           color: isDark ? const Color(0xFF0B0F19) : _surface,
@@ -3233,8 +3270,11 @@ class CoreOfficesScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              ...flow.offices.map(
-                (o) => Padding(
+              ...flow.offices.map((o) {
+                final peopleCount = allUsers
+                    .where((u) => u.officeId == o.id)
+                    .length;
+                return Padding(
                   padding: const EdgeInsets.only(bottom: 9),
                   child: _Panel(
                     child: Row(
@@ -3256,7 +3296,7 @@ class CoreOfficesScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${context.watch<UserProvider>().allUsers.where((u) => u.officeId == o.id).length} ${_label(context, 'people', 'لوگ')}',
+                          '$peopleCount ${_label(context, 'people', 'لوگ')}',
                           style: TextStyle(
                             color: isDark
                                 ? const Color(0xFF94A3B8)
@@ -3267,8 +3307,8 @@ class CoreOfficesScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),
-              ),
+                );
+              }),
             ],
           ),
         );
@@ -3278,72 +3318,176 @@ class CoreOfficesScreen extends StatelessWidget {
 }
 
 Future<void> _createOffice(BuildContext context) async {
-  final controller = TextEditingController();
-  final key = GlobalKey<FormState>();
-  final name = await showDialog<String>(
+  final created = await showDialog<bool>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(_label(dialogContext, 'Add office', 'دفتر شامل کریں')),
-      content: Form(
-        key: key,
-        child: TextFormField(
-          controller: controller,
-          maxLength: 120,
-          decoration: InputDecoration(
-            labelText: _label(dialogContext, 'Office name', 'دفتر کا نام'),
-          ),
-          validator: (v) => v?.trim().isEmpty ?? true
-              ? _readLabel(
-                  dialogContext,
-                  'Enter an office name.',
-                  'دفتر کا نام لکھیں۔',
-                )
-              : null,
+    builder: (_) => const _AddOfficeDialog(),
+  );
+
+  if (created == true && context.mounted) {
+    showAppToast(
+      context,
+      message: _label(
+        context,
+        'Office added successfully!',
+        'دفتر کامیابی سے شامل کر دیا گیا!',
+      ),
+      type: ToastType.success,
+    );
+  }
+}
+
+class _AddOfficeDialog extends StatefulWidget {
+  const _AddOfficeDialog();
+
+  @override
+  State<_AddOfficeDialog> createState() => _AddOfficeDialogState();
+}
+
+class _AddOfficeDialogState extends State<_AddOfficeDialog> {
+  final _controller = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _isSaving = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _isSaving = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final name = _controller.text.trim();
+      final success = await context.read<CoreFlowProvider>().createOffice(name);
+      if (!mounted) return;
+      if (success) {
+        Navigator.of(context).pop(true);
+      } else {
+        final err = context.read<CoreFlowProvider>().error;
+        setState(() {
+          _isSaving = false;
+          _errorMessage = err ?? 'Could not create office.';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+          _errorMessage = e.toString();
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return AlertDialog(
+      backgroundColor: isDark ? AppTheme.surfaceDark : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: isDark
+            ? const BorderSide(color: AppTheme.borderDark, width: 1)
+            : BorderSide.none,
+      ),
+      title: Text(
+        _label(context, 'Add office', 'دفتر شامل کریں'),
+        style: TextStyle(
+          color: isDark ? Colors.white : AppTheme.primaryNavy,
+          fontWeight: FontWeight.w700,
         ),
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: _controller,
+              maxLength: 120,
+              enabled: !_isSaving,
+              autofocus: true,
+              style: TextStyle(
+                color: isDark ? Colors.white : AppTheme.primaryNavy,
+              ),
+              decoration: InputDecoration(
+                labelText: _label(context, 'Office name', 'دفتر کا نام'),
+                hintText: _label(
+                  context,
+                  'e.g. Lahore Branch',
+                  'مثال: لاہور برانچ',
+                ),
+              ),
+              validator: (v) => v?.trim().isEmpty ?? true
+                  ? _readLabel(
+                      context,
+                      'Enter an office name.',
+                      'دفتر کا نام لکھیں۔',
+                    )
+                  : null,
+              onFieldSubmitted: (_) => _submit(),
+            ),
+            if (_errorMessage != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _errorMessage!,
+                style: const TextStyle(
+                  color: Color(0xFFEF4444),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       actions: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(_label(dialogContext, 'Cancel', 'منسوخ کریں')),
+              onPressed: _isSaving
+                  ? null
+                  : () => Navigator.of(context).pop(false),
+              style: TextButton.styleFrom(
+                foregroundColor: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
+              ),
+              child: Text(_label(context, 'Cancel', 'منسوخ کریں')),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF7C3AED),
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              onPressed: () {
-                if (key.currentState!.validate()) {
-                  Navigator.pop(dialogContext, controller.text.trim());
-                }
-              },
-              child: Text(_label(dialogContext, 'Save', 'محفوظ کریں')),
+              onPressed: _isSaving ? null : _submit,
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(_label(context, 'Save', 'محفوظ کریں')),
             ),
           ],
         ),
       ],
-    ),
-  );
-  controller.dispose();
-  if (name == null || !context.mounted) return;
-  try {
-    await DatabaseService().createOffice(name);
-    if (context.mounted) {
-      context.read<CoreFlowProvider>().refresh();
-      showAppToast(
-        context,
-        message: _label(
-          context,
-          'Office added successfully!',
-          'دفتر کامیابی سے شامل کر دیا گیا!',
-        ),
-        type: ToastType.success,
-      );
-    }
-  } catch (e) {
-    if (context.mounted) _showError(context, e.toString());
+    );
   }
 }

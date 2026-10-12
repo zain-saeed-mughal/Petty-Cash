@@ -76,7 +76,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
         _error = null;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString());
+      if (mounted) {
+        setState(
+          () => _error = context.read<LanguageProvider>().error(e.toString()),
+        );
+      }
     }
   }
 
@@ -193,7 +197,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
     final isItem = widget.mode == 'item';
     final isReimbursement = widget.mode == 'reimbursement';
     final showAccount = !isItem && _method == 'card' && !isDirectAdvance;
-    final managers = context.watch<UserProvider>().allUsers.where((u) => u.isManager).toList();
+    final managers = context
+        .watch<UserProvider>()
+        .allUsers
+        .where((u) => u.isManager)
+        .toList();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return AlertDialog(
       backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
@@ -230,7 +238,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                   DropdownButtonFormField<String>(
                     initialValue: _officeBoyId,
                     decoration: InputDecoration(
-                      labelText: coreText(context, 'Select Office Boy', 'آفس بوائے منتخب کریں'),
+                      labelText: coreText(
+                        context,
+                        'Select Office Boy',
+                        'آفس بوائے منتخب کریں',
+                      ),
                       helperText: coreText(
                         context,
                         'Choose who will receive the money',
@@ -241,10 +253,21 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                         .read<UserProvider>()
                         .allUsers
                         .where((u) => u.role.name == 'officeBoy')
-                        .map((u) => DropdownMenuItem(value: u.uid, child: Text(u.name)))
+                        .map(
+                          (u) => DropdownMenuItem(
+                            value: u.uid,
+                            child: Text(u.name),
+                          ),
+                        )
                         .toList(),
                     onChanged: (val) => setState(() => _officeBoyId = val),
-                    validator: (value) => value == null ? coreText(context, 'Please select an office boy', 'براہِ کرم آفس بوائے منتخب کریں') : null,
+                    validator: (value) => value == null
+                        ? coreText(
+                            context,
+                            'Please select an office boy',
+                            'براہِ کرم آفس بوائے منتخب کریں',
+                          )
+                        : null,
                   ),
                 const SizedBox(height: 10),
                 TextFormField(
@@ -298,11 +321,7 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                       'Amount in rupees',
                       'رقم روپے میں',
                     ),
-                    helperText: coreText(
-                      context,
-                      'Example: 500',
-                      'مثال: ۵۰۰',
-                    ),
+                    helperText: coreText(context, 'Example: 500', 'مثال: ۵۰۰'),
                     prefixText: 'Rs. ',
                   ),
                   validator: (value) {
@@ -399,7 +418,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                     isExpanded: true,
                     initialValue: _taggedManagerId,
                     decoration: InputDecoration(
-                      labelText: coreText(context, 'Tag to Manager (Optional)', 'مینیجر کو ٹیگ کریں (اختیاری)'),
+                      labelText: coreText(
+                        context,
+                        'Tag to Manager (Optional)',
+                        'مینیجر کو ٹیگ کریں (اختیاری)',
+                      ),
                       helperText: coreText(
                         context,
                         'Choose who should review this',
@@ -411,12 +434,16 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                         value: null,
                         child: Text(coreText(context, 'None', 'کوئی نہیں')),
                       ),
-                      ...managers.map((m) => DropdownMenuItem(
-                        value: m.uid,
-                        child: Text(m.name, overflow: TextOverflow.ellipsis),
-                      )),
+                      ...managers.map(
+                        (m) => DropdownMenuItem(
+                          value: m.uid,
+                          child: Text(m.name, overflow: TextOverflow.ellipsis),
+                        ),
+                      ),
                     ],
-                    onChanged: _busy ? null : (v) => setState(() => _taggedManagerId = v),
+                    onChanged: _busy
+                        ? null
+                        : (v) => setState(() => _taggedManagerId = v),
                   ),
                 ],
                 if (!isAdvance) ...[
@@ -491,7 +518,9 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
           children: [
             TextButton(
               style: TextButton.styleFrom(
-                foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                foregroundColor: isDark
+                    ? const Color(0xFF94A3B8)
+                    : const Color(0xFF64748B),
               ),
               onPressed: _busy ? null : () => Navigator.pop(context, false),
               child: Text(coreText(context, 'Cancel', 'منسوخ کریں')),
@@ -513,7 +542,11 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                     )
                   : Text(
                       isItem
-                          ? coreText(context, 'Save Purchase', 'خریداری محفوظ کریں')
+                          ? coreText(
+                              context,
+                              'Save Purchase',
+                              'خریداری محفوظ کریں',
+                            )
                           : coreText(context, 'Send Request', 'درخواست بھیجیں'),
                     ),
             ),
@@ -545,7 +578,9 @@ class _MethodCard extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 64),
         decoration: BoxDecoration(
           color: isDark
-              ? (selected ? const Color(0xFF312E81).withValues(alpha: 0.6) : const Color(0xFF0F172A))
+              ? (selected
+                    ? const Color(0xFF312E81).withValues(alpha: 0.6)
+                    : const Color(0xFF0F172A))
               : (selected ? const Color(0xFFF3E8FF) : Colors.white),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
@@ -563,7 +598,9 @@ class _MethodCard extends StatelessWidget {
               size: 20,
               color: selected
                   ? const Color(0xFF8B5CF6)
-                  : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                  : (isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B)),
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -575,7 +612,9 @@ class _MethodCard extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   color: selected
                       ? (isDark ? Colors.white : const Color(0xFF7C3AED))
-                      : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155)),
+                      : (isDark
+                            ? const Color(0xFFCBD5E1)
+                            : const Color(0xFF334155)),
                 ),
               ),
             ),

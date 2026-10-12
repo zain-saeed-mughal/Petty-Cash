@@ -13,7 +13,9 @@ Petty Cash is a Flutter expense management app for staff request submission, fin
 
 1. Create a Supabase project.
 2. Copy the project URL and publishable key into the app config in [lib/services/supabase_service.dart](lib/services/supabase_service.dart).
-3. Apply the SQL in [supabase_schema.sql](supabase_schema.sql) in the Supabase SQL Editor.
+3. For the existing Petty Cash project, follow the production upgrade steps in
+   [deployment/2026-10-12-review-fixes/DEPLOY.md](deployment/2026-10-12-review-fixes/DEPLOY.md).
+   The historical schema is not a replacement script for an existing database.
 4. Create a private storage bucket named `receipts` and use signed URLs for temporary access.
 
 ## Local development

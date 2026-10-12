@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
@@ -68,7 +67,8 @@ class _ManagerHomeState extends State<ManagerHome> {
       final e = DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
       return !d.isBefore(s) && !d.isAfter(e);
     }
-    return date.year == _selectedMonth.year && date.month == _selectedMonth.month;
+    return date.year == _selectedMonth.year &&
+        date.month == _selectedMonth.month;
   }
 
   @override
@@ -79,7 +79,9 @@ class _ManagerHomeState extends State<ManagerHome> {
     final ur = context.watch<LanguageProvider>().isRtl;
 
     final myItems = flow.items.where((i) => i.taggedManagerId == uid).toList();
-    final myReimbursements = flow.reimbursements.where((r) => r.taggedManagerId == uid).toList();
+    final myReimbursements = flow.reimbursements
+        .where((r) => r.taggedManagerId == uid)
+        .toList();
 
     double totalTaggedItems = 0;
     double totalTaggedReimbursements = 0;
@@ -96,11 +98,21 @@ class _ManagerHomeState extends State<ManagerHome> {
     }
 
     final totalSpent = totalTaggedItems + totalTaggedReimbursements;
-    final pendingCount = myItems.where((i) => i.status == 'pending' && _inRange(i.createdAt)).length +
-        myReimbursements.where((r) => r.status == 'pending' && _inRange(r.createdAt)).length;
+    final pendingCount =
+        myItems
+            .where((i) => i.status == 'pending' && _inRange(i.createdAt))
+            .length +
+        myReimbursements
+            .where((r) => r.status == 'pending' && _inRange(r.createdAt))
+            .length;
 
-    final pendingAmount = myItems.where((i) => i.status == 'pending' && _inRange(i.createdAt)).fold<double>(0, (s, i) => s + i.amount) +
-        myReimbursements.where((r) => r.status == 'pending' && _inRange(r.createdAt)).fold<double>(0, (s, r) => s + r.amount);
+    final pendingAmount =
+        myItems
+            .where((i) => i.status == 'pending' && _inRange(i.createdAt))
+            .fold<double>(0, (s, i) => s + i.amount) +
+        myReimbursements
+            .where((r) => r.status == 'pending' && _inRange(r.createdAt))
+            .fold<double>(0, (s, r) => s + r.amount);
 
     final heroAmount = totalSpent > 0
         ? totalSpent
@@ -111,28 +123,45 @@ class _ManagerHomeState extends State<ManagerHome> {
     for (final item in myItems.where((i) => _inRange(i.createdAt)).take(6)) {
       if (!seenIds.add('item_${item.id}')) continue;
       final isDone = item.status == 'approved';
-      recentList.add(RecentActivityItem(
-        icon: Icons.shopping_cart_rounded,
-        iconColor: const Color(0xFF1E60FF),
-        iconBgColor: const Color(0xFFEFF6FF),
-        title: item.description,
-        subtitle: 'PKR ${item.amount.toInt()} · Tagged purchase',
-        time: DateFormat('d MMM').format(item.createdAt),
-        statusDotColor: isDone ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-      ));
+      recentList.add(
+        RecentActivityItem(
+          icon: Icons.shopping_cart_rounded,
+          iconColor: const Color(0xFF1E60FF),
+          iconBgColor: const Color(0xFFEFF6FF),
+          title: item.description,
+          subtitle:
+              'PKR ${item.amount.toInt()} · ${ur ? 'منسلک خریداری' : 'Tagged purchase'}',
+          time: context.read<LanguageProvider>().date(
+            item.createdAt,
+            pattern: 'd MMM',
+          ),
+          statusDotColor: isDone
+              ? const Color(0xFF10B981)
+              : const Color(0xFFF59E0B),
+        ),
+      );
     }
-    for (final r in myReimbursements.where((r) => _inRange(r.createdAt)).take(4)) {
+    for (final r
+        in myReimbursements.where((r) => _inRange(r.createdAt)).take(4)) {
       if (!seenIds.add('reimb_${r.id}')) continue;
       final isDone = r.status == 'paid' || r.status == 'approved';
-      recentList.add(RecentActivityItem(
-        icon: Icons.receipt_long_rounded,
-        iconColor: const Color(0xFF0D9488),
-        iconBgColor: const Color(0xFFF0FDFA),
-        title: r.description,
-        subtitle: 'PKR ${r.amount.toInt()} · Tagged reimbursement',
-        time: DateFormat('d MMM').format(r.createdAt),
-        statusDotColor: isDone ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
-      ));
+      recentList.add(
+        RecentActivityItem(
+          icon: Icons.receipt_long_rounded,
+          iconColor: const Color(0xFF0D9488),
+          iconBgColor: const Color(0xFFF0FDFA),
+          title: r.description,
+          subtitle:
+              'PKR ${r.amount.toInt()} · ${ur ? 'منسلک رقم واپسی' : 'Tagged reimbursement'}',
+          time: context.read<LanguageProvider>().date(
+            r.createdAt,
+            pattern: 'd MMM',
+          ),
+          statusDotColor: isDone
+              ? const Color(0xFF10B981)
+              : const Color(0xFFF59E0B),
+        ),
+      );
     }
 
     return ModernDashboardView(

@@ -511,6 +511,16 @@ void main() {
                 ),
               );
               await t.pump(const Duration(seconds: 1));
+              if (entry.key == 'payment_center' &&
+                  locale == 'ur' &&
+                  size.width == 360 &&
+                  scale == 1.5) {
+                final heading = find.text('رقم اور خرچ');
+                expect(heading, findsOneWidget);
+                final rect = t.getRect(heading);
+                expect(rect.left, greaterThanOrEqualTo(0));
+                expect(rect.right, lessThanOrEqualTo(size.width));
+              }
               if (entry.key == 'users') {
                 expect(find.textContaining('Main Office'), findsWidgets);
               }

@@ -95,12 +95,15 @@ class AccountAppBar extends StatelessWidget implements PreferredSizeWidget {
                   label: Text(unread > 99 ? '99+' : '$unread'),
                   child: const Icon(Icons.notifications_none_rounded),
                 ),
-                onPressed: () => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) => const NotificationsPanel(),
-                ),
+                onPressed: () {
+                  notifications?.refresh();
+                  showModalBottomSheet<void>(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const NotificationsPanel(),
+                  );
+                },
               );
             },
           ),

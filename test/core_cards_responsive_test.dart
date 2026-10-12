@@ -286,6 +286,11 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(
+            find.textContaining(language.money(30000)),
+            findsOneWidget,
+            reason: 'The card must show the ledger-backed balance',
+          );
+          expect(
             tester.takeException(),
             isNull,
             reason: '$locale at $width px',

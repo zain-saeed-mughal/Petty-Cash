@@ -498,9 +498,11 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                           Expanded(
                             child: Text(
                               _startDate != null && _endDate != null
-                                  ? '${DateFormat('dd MMM').format(_startDate!)} - ${DateFormat('dd MMM').format(_endDate!)}'
-                                  : DateFormat('MMMM yyyy')
-                                        .format(_selectedMonth),
+                                  ? '${context.read<LanguageProvider>().date(_startDate!, pattern: 'dd MMM')} - ${context.read<LanguageProvider>().date(_endDate!, pattern: 'dd MMM')}'
+                                  : context.read<LanguageProvider>().date(
+                                      _selectedMonth,
+                                      pattern: 'MMMM yyyy',
+                                    ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -1532,7 +1534,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    DateFormat('dd MMM yyyy').format(tempStart),
+                                    context.read<LanguageProvider>().date(
+                                      tempStart,
+                                    ),
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
@@ -1543,7 +1547,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    DateFormat('EEEE').format(tempStart),
+                                    context.read<LanguageProvider>().date(
+                                      tempStart,
+                                      pattern: 'EEEE',
+                                    ),
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: isDark
@@ -1618,7 +1625,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    DateFormat('dd MMM yyyy').format(tempEnd),
+                                    context.read<LanguageProvider>().date(
+                                      tempEnd,
+                                    ),
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
@@ -1629,7 +1638,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    DateFormat('EEEE').format(tempEnd),
+                                    context.read<LanguageProvider>().date(
+                                      tempEnd,
+                                      pattern: 'EEEE',
+                                    ),
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: isDark

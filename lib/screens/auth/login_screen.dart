@@ -7,6 +7,7 @@ import '../../providers/language_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../config/app_theme.dart';
 import '../../config/app_constants.dart';
+import '../../widgets/app_toast.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -57,7 +58,6 @@ class _LoginScreenState extends State<LoginScreen>
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final success = await auth.signIn(
       _emailController.text.trim(),
@@ -79,14 +79,11 @@ class _LoginScreenState extends State<LoginScreen>
       final welcomeMessage = user?.isSuperAdmin == true
           ? '${lang.tr('welcome_admin')}$displayName!'
           : '${lang.tr('welcome_user')}$displayName!';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(welcomeMessage),
-          backgroundColor: isDark
-              ? const Color(0xFF7C3AED)
-              : AppTheme.primaryBlue,
-          behavior: SnackBarBehavior.floating,
-        ),
+      showAppToast(
+        context,
+        message: welcomeMessage,
+        type: ToastType.success,
+        icon: Icons.waving_hand_rounded,
       );
     }
   }
@@ -393,17 +390,12 @@ class _LoginScreenState extends State<LoginScreen>
                                   alignment: AlignmentDirectional.centerEnd,
                                   child: TextButton(
                                     onPressed: () {
-                                      ScaffoldMessenger.of(
+                                      showAppToast(
                                         context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
+                                        message:
                                             langProvider.tr('contact_admin'),
-                                          ),
-                                          backgroundColor: isDark
-                                              ? AppTheme.surfaceDark
-                                              : AppTheme.primaryNavy,
-                                        ),
+                                        type: ToastType.info,
+                                        icon: Icons.lock_reset_rounded,
                                       );
                                     },
                                     style: TextButton.styleFrom(
@@ -511,19 +503,14 @@ class _LoginScreenState extends State<LoginScreen>
                                     const SizedBox(width: 6),
                                     GestureDetector(
                                       onTap: () {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  langProvider.tr(
-                                                    'contact_super_admin',
-                                                  ),
-                                                ),
-                                                backgroundColor: isDark
-                                                    ? AppTheme.surfaceDark
-                                                    : AppTheme.primaryNavy,
-                                              ),
-                                            );
+                                        showAppToast(
+                                          context,
+                                          message: langProvider.tr(
+                                            'contact_super_admin',
+                                          ),
+                                          type: ToastType.info,
+                                          icon: Icons.person_add_rounded,
+                                        );
                                       },
                                       child: Text(
                                         langProvider.tr('create_account'),

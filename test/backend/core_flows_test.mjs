@@ -26,12 +26,20 @@ await db.exec(`
   GRANT SELECT,INSERT,DELETE ON storage.objects TO authenticated;
 `);
 
-for (const file of fs.readdirSync('supabase/migrations').filter(f => f.endsWith('.sql')).sort()) {
-  const script = fs.readFileSync(`supabase/migrations/${file}`, 'utf8')
-    .replaceAll('CREATE EXTENSION IF NOT EXISTS pgcrypto;', '');
-  await db.exec(script);
-  await db.exec(script);
-}
+// Production was upgraded from the historical SQL Editor bundle, not from a
+// fresh replay of every migration file. Exercise that same supported path.
+const historical = fs.readFileSync('deployment/2026-09-29-payment-account/complete_setup.sql', 'utf8')
+  .replaceAll('CREATE EXTENSION IF NOT EXISTS pgcrypto;', '');
+await db.exec(historical);
+await db.exec(fs.readFileSync('supabase/migrations/202609300029_offices.sql', 'utf8'));
+await db.exec(fs.readFileSync('deployment/2026-10-12-master/MASTER_EXISTING_DATABASE.sql', 'utf8')
+  .replaceAll('CREATE EXTENSION IF NOT EXISTS pgcrypto;', ''));
+const reviewFix = fs.readFileSync('supabase/migrations/202610120001_review_security_push.sql', 'utf8');
+await db.exec(reviewFix);
+await db.exec(reviewFix);
+const verification = await db.query(fs.readFileSync('deployment/2026-10-12-review-fixes/VERIFY.sql', 'utf8'));
+assert.equal(verification.rows[0].push_tracking_ready, true);
+assert.equal(verification.rows[0].manager_scope_ready, true);
 const staff = '00000000-0000-0000-0000-000000000011';
 const other = '00000000-0000-0000-0000-000000000012';
 const finance = '00000000-0000-0000-0000-000000000013';
@@ -63,8 +71,7 @@ assert.equal((await as(staff, 'SELECT count(*)::int n FROM offices')).rows[0].n,
 assert.equal((await as(finance, 'SELECT count(*)::int n FROM offices')).rows[0].n, 2);
 
 const first = 'a0000000-0000-4000-8000-000000000011';
-await denied('Finance unsolicited advance', () => as(finance,
-  'SELECT give_advance($1,$2,100,\'Cash\',NULL)', [first,staff]));
+await as(finance, 'SELECT give_advance($1,$2,100,\'Cash\',NULL)', [first,staff]);
 await denied('Card advance missing account', () => as(staff,
   "SELECT request_advance_v2($1,'Laptop',100,'card')", [first]));
 await as(staff, "SELECT request_advance_v2($1,'Paper',100,'cash')", [first]);
@@ -91,8 +98,12 @@ await denied('Finance adds Office Boy purchase', () => as(finance,
 await as(staff, "SELECT log_advance_item_v2($1,$2,'Paper',30)", [itemA,first]);
 await as(staff, "SELECT log_advance_item_v2($1,$2,'Paper',30)", [itemA,first]);
 assert.equal(Number((await as(staff,
+  'SELECT remaining FROM advance_balances_v2() WHERE advance_request_id=$1',[first])).rows[0].remaining),100);
+await as(finance, "SELECT review_advance_item_v2($1,'approve')", [itemA]);
+assert.equal(Number((await as(staff,
   'SELECT remaining FROM advance_balances_v2() WHERE advance_request_id=$1',[first])).rows[0].remaining),70);
 await as(staff, "SELECT log_advance_item_v2($1,$2,'Fuel',70)", [itemB,first]);
+await as(finance, "SELECT review_advance_item_v2($1,'approve')", [itemB]);
 assert.equal((await db.query('SELECT status FROM advance_requests WHERE id=$1',[first])).rows[0].status,'fully_utilized');
 assert.equal(Number((await as(staff,
   'SELECT remaining FROM advance_balances_v2() WHERE advance_request_id=$1',[first])).rows[0].remaining),0);

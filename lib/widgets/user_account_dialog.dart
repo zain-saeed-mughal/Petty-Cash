@@ -265,7 +265,9 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
               Expanded(
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    foregroundColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                    foregroundColor: isDark
+                        ? const Color(0xFF94A3B8)
+                        : const Color(0xFF64748B),
                   ),
                   onPressed: _busy ? null : () => Navigator.pop(context),
                   child: Text(context.t('Cancel')),
@@ -285,7 +287,9 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : Text(

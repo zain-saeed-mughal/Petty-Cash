@@ -86,6 +86,21 @@ void main() {
     );
     language.dispose();
   });
+  test('Direct advance approval alert is specific in Urdu', () {
+    final language = LanguageProvider(initialLanguage: 'ur', loadSaved: false);
+    final alert = AppNotification(
+      userId: 'office-boy',
+      title: 'Advance needs approval',
+      message: 'Finance sent you an advance of PKR 5000. Tap to approve.',
+      relatedCoreAdvanceId: 'advance-id',
+    );
+    expect(language.notificationTitle(alert), 'ایڈوانس کی منظوری درکار ہے');
+    expect(
+      language.notificationBody(alert),
+      'فنانس نے آپ کو 5000 روپے ایڈوانس بھیجا ہے۔ منظوری کے لیے دبائیں۔',
+    );
+    language.dispose();
+  });
   test('Technical errors become plain next-step messages', () {
     final english = LanguageProvider(initialLanguage: 'en', loadSaved: false);
     expect(

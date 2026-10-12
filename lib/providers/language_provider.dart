@@ -157,6 +157,7 @@ class LanguageProvider extends ChangeNotifier {
       'Repayment paid': 'رقم واپس ادا کر دی گئی',
       'Payment request submitted': 'ادائیگی کی درخواست جمع ہوئی',
       'Advance sent for approval': 'ایڈوانس منظوری کے لیے بھیجا گیا',
+      'Advance needs approval': 'ایڈوانس کی منظوری درکار ہے',
       'Advance received': 'ایڈوانس وصول ہوا',
       'Advance declined': 'ایڈوانس مسترد ہوا',
       'Purchase submitted': 'خریداری جمع ہوئی',
@@ -193,6 +194,12 @@ class LanguageProvider extends ChangeNotifier {
         .firstMatch(value);
     if (coreAdvance != null) {
       return '${coreAdvance[1]} نے ${coreAdvance[2]} روپے ایڈوانس مانگے ہیں۔';
+    }
+    final directAdvance = RegExp(
+      r'^Finance sent you an advance of PKR (.+)\. Tap to approve\.$',
+    ).firstMatch(value);
+    if (directAdvance != null) {
+      return 'فنانس نے آپ کو ${directAdvance[1]} روپے ایڈوانس بھیجا ہے۔ منظوری کے لیے دبائیں۔';
     }
     final coreRepayment = RegExp(r'^(.*?) requested PKR (.+) repayment\.$')
         .firstMatch(value);
