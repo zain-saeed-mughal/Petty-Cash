@@ -2918,7 +2918,21 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
               (r) => r.status == 'paid' && _inRange(r.paidAt ?? r.createdAt),
             )
             .fold<double>(0, (s, r) => s + r.amount);
+        final filteredAdvanceIds = allAdvances.map((a) => a.id).toSet();
+        final pendingPurchases = shownAdvances
+            ? flow.items
+                  .where(
+                    (item) =>
+                        filteredAdvanceIds.contains(item.advanceId) &&
+                        (effectiveManagerId == null ||
+                            item.taggedManagerId == effectiveManagerId) &&
+                        item.status == 'pending' &&
+                        _inRange(item.createdAt),
+                  )
+                  .fold<double>(0, (sum, item) => sum + item.amount)
+            : 0.0;
         final pending =
+            pendingPurchases +
             (shownAdvances ? allAdvances : <CoreAdvance>[])
                 .where(
                   (a) =>
@@ -3282,7 +3296,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                           badgeColor: const Color(0xFF10B981),
                         ),
                         _Metric(
-                          _label(context, 'Requests due', 'باقی درخواستیں'),
+                          _label(context, 'Pending amount', 'زیر التوا رقم'),
                           _money(context, displayPending),
                           Icons.pending_actions,
                           const Color(0xFFF59E0B),
@@ -3291,21 +3305,6 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                         ),
                       ],
                     ]),
-                    const SizedBox(height: 12),
-                    Text(
-                      isManager
-                          ? _label(
-                              context,
-                              'Approved tagged costs include approved purchases and approved or paid repayments. Approved repayments may still be unpaid.',
-                              'منظور شدہ ٹیگ کردہ اخراجات میں منظور شدہ خریداری اور منظور شدہ یا ادا شدہ واپسی شامل ہے۔ منظور شدہ واپسی کی ادائیگی باقی ہو سکتی ہے۔',
-                            )
-                          : _label(
-                              context,
-                              'Requests due includes advances awaiting receipt and repayments awaiting approval or payment. Pending purchases are tracked separately. Manager filters show the full matching advance; the Manager panel totals tagged costs only.',
-                              'باقی درخواستوں میں وصولی کے منتظر ایڈوانس اور منظوری یا ادائیگی کی منتظر واپسی شامل ہے۔ زیر التوا خریداری الگ شمار ہوتی ہے۔ مینیجر فلٹر مکمل متعلقہ ایڈوانس دکھاتا ہے؛ مینیجر پینل صرف ٹیگ کردہ اخراجات جمع کرتا ہے۔',
-                            ),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
                     const SizedBox(height: 18),
                     Text(
                       _label(

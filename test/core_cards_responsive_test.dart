@@ -113,6 +113,41 @@ void main() {
 
     expect(find.text('Rs. 200.00'), findsOneWidget);
     expect(find.text('Rs. 900.00'), findsNothing);
+    expect(find.text('Pending amount'), findsOneWidget);
+    expect(find.text('Rs. 300.00'), findsOneWidget);
+    expect(find.textContaining('Requests due includes'), findsNothing);
+    // Approval moves the amount from pending into used without double counting.
+    flow.items = flow.items
+        .map(
+          (item) => item.id == 'pending'
+              ? CoreAdvanceItem(
+                  id: item.id,
+                  advanceId: item.advanceId,
+                  officeBoyId: item.officeBoyId,
+                  officeId: item.officeId,
+                  description: item.description,
+                  amount: item.amount,
+                  createdAt: item.createdAt,
+                  status: 'approved',
+                )
+              : item,
+        )
+        .toList();
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider<AuthProvider>.value(value: _Auth()),
+          ChangeNotifierProvider<UserProvider>.value(value: _Users()),
+          ChangeNotifierProvider<CoreFlowProvider>.value(value: flow),
+          ChangeNotifierProvider<LanguageProvider>.value(value: language),
+        ],
+        child: const MaterialApp(home: Scaffold(body: CoreMonthlyRecords())),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Rs. 500.00'), findsOneWidget);
+    expect(find.text('Rs. 300.00'), findsNothing);
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
   });
