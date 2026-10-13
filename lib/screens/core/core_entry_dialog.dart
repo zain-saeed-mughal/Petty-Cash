@@ -1,3 +1,4 @@
+import 'package:petty_cash/config/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -98,12 +99,19 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
     final amount = double.tryParse(_amount.text.trim());
     if (amount == null) return;
     if (widget.mode == 'item') {
-      final remaining =
-          context
-              .read<CoreFlowProvider>()
-              .balanceForAdvance(widget.advance!.id)
-              ?.remaining ??
-          0;
+      final flow = context.read<CoreFlowProvider>();
+      final balance = flow.balanceForAdvance(widget.advance!.id);
+      if (flow.isBalanceLoading || flow.loadError != null || balance == null) {
+        setState(
+          () => _error = coreText(
+            context,
+            'Balance is updating or unavailable. Wait a moment; if this continues, close this form and retry loading your records.',
+            'بیلنس اپ ڈیٹ ہو رہا ہے یا دستیاب نہیں۔ کچھ دیر انتظار کریں؛ مسئلہ برقرار رہے تو فارم بند کر کے ریکارڈ دوبارہ لوڈ کریں۔',
+          ),
+        );
+        return;
+      }
+      final remaining = balance.remaining;
       if (amount > remaining) {
         setState(
           () => _error = coreText(
@@ -206,7 +214,9 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
     return AlertDialog(
       backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
       title: Text(
-        isAdvance
+        isDirectAdvance
+            ? coreText(context, 'Give Advance', 'ایڈوانس دیں')
+            : isAdvance
             ? coreText(context, 'Request Advance', 'ایڈوانس مانگیں')
             : isItem
             ? coreText(context, 'Add Purchase', 'خریداری درج کریں')
@@ -216,7 +226,10 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                 'میں نے اپنی رقم سے خریدا',
               ),
         style: TextStyle(
-          color: isDark ? Colors.white : const Color(0xFF0F172A),
+          color: AppTheme.readable(
+            context,
+            isDark ? Colors.white : const Color(0xFF0F172A),
+          ),
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -236,12 +249,16 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                   ),
                 if (isDirectAdvance)
                   DropdownButtonFormField<String>(
+                    itemHeight: null,
                     initialValue: _officeBoyId,
                     decoration: InputDecoration(
-                      labelText: coreText(
-                        context,
-                        'Select Office Boy',
-                        'آفس بوائے منتخب کریں',
+                      label: Text(
+                        coreText(
+                          context,
+                          'Select Office Boy',
+                          'آفس بوائے منتخب کریں',
+                        ),
+                        softWrap: true,
                       ),
                       helperText: coreText(
                         context,
@@ -273,19 +290,24 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                 TextFormField(
                   controller: _description,
                   maxLength: isAdvance ? 2000 : 500,
+                  minLines: 2,
+                  maxLines: null,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: InputDecoration(
-                    labelText: isAdvance
-                        ? coreText(
-                            context,
-                            'What do you need it for?',
-                            'رقم کس کام کے لیے چاہیے؟',
-                          )
-                        : coreText(
-                            context,
-                            'What did you buy?',
-                            'آپ نے کیا خریدا؟',
-                          ),
+                    label: Text(
+                      isAdvance
+                          ? coreText(
+                              context,
+                              'What do you need it for?',
+                              'رقم کس کام کے لیے چاہیے؟',
+                            )
+                          : coreText(
+                              context,
+                              'What did you buy?',
+                              'آپ نے کیا خریدا؟',
+                            ),
+                      softWrap: true,
+                    ),
                     helperText: isAdvance
                         ? coreText(
                             context,
@@ -316,10 +338,9 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                   ],
                   decoration: InputDecoration(
-                    labelText: coreText(
-                      context,
-                      'Amount in rupees',
-                      'رقم روپے میں',
+                    label: Text(
+                      coreText(context, 'Amount in rupees', 'رقم روپے میں'),
+                      softWrap: true,
                     ),
                     helperText: coreText(context, 'Example: 500', 'مثال: ۵۰۰'),
                     prefixText: 'Rs. ',
@@ -380,10 +401,17 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                     controller: _accountName,
                     maxLength: 120,
                     decoration: InputDecoration(
-                      labelText: coreText(
-                        context,
-                        'Account name (optional)',
-                        'اکاؤنٹ کا نام (اختیاری)',
+                      label: Text(
+                        coreText(
+                          context,
+                          isAdvance
+                              ? 'Account name (required)'
+                              : 'Account name (optional)',
+                          isAdvance
+                              ? 'اکاؤنٹ کا نام (ضروری)'
+                              : 'اکاؤنٹ کا نام (اختیاری)',
+                        ),
+                        softWrap: true,
                       ),
                       helperText: coreText(
                         context,
@@ -391,17 +419,31 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                         'اکاؤنٹ پر درج نام',
                       ),
                     ),
-                    validator: (value) => null,
+                    validator: (value) =>
+                        isAdvance && (value?.trim().isEmpty ?? true)
+                        ? coreText(
+                            context,
+                            'Enter the account name.',
+                            'اکاؤنٹ کا نام لکھیں۔',
+                          )
+                        : null,
                   ),
                   TextFormField(
                     controller: _accountDetails,
                     maxLength: 500,
                     maxLines: 2,
                     decoration: InputDecoration(
-                      labelText: coreText(
-                        context,
-                        'Account details (optional)',
-                        'اکاؤنٹ کی تفصیل (اختیاری)',
+                      label: Text(
+                        coreText(
+                          context,
+                          isAdvance
+                              ? 'Account details (required)'
+                              : 'Account details (optional)',
+                          isAdvance
+                              ? 'اکاؤنٹ کی تفصیل (ضروری)'
+                              : 'اکاؤنٹ کی تفصیل (اختیاری)',
+                        ),
+                        softWrap: true,
                       ),
                       helperText: coreText(
                         context,
@@ -409,19 +451,30 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                         'مثال: اکاؤنٹ یا آئی بین نمبر',
                       ),
                     ),
-                    validator: (value) => null,
+                    validator: (value) =>
+                        isAdvance && (value?.trim().isEmpty ?? true)
+                        ? coreText(
+                            context,
+                            'Enter the account details.',
+                            'اکاؤنٹ کی تفصیل لکھیں۔',
+                          )
+                        : null,
                   ),
                 ],
                 if (isItem || isReimbursement) ...[
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
+                    itemHeight: null,
                     isExpanded: true,
                     initialValue: _taggedManagerId,
                     decoration: InputDecoration(
-                      labelText: coreText(
-                        context,
-                        'Tag to Manager (Optional)',
-                        'مینیجر کو ٹیگ کریں (اختیاری)',
+                      label: Text(
+                        coreText(
+                          context,
+                          'Tag to Manager (Optional)',
+                          'مینیجر کو ٹیگ کریں (اختیاری)',
+                        ),
+                        softWrap: true,
                       ),
                       helperText: coreText(
                         context,
@@ -437,7 +490,7 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                       ...managers.map(
                         (m) => DropdownMenuItem(
                           value: m.uid,
-                          child: Text(m.name, overflow: TextOverflow.ellipsis),
+                          child: Text(m.name, softWrap: true),
                         ),
                       ),
                     ],
@@ -499,7 +552,10 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                   Text(
                     _error!,
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
+                      color: AppTheme.readable(
+                        context,
+                        Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ),
                 ],
@@ -547,6 +603,8 @@ class _CoreEntryDialogState extends State<CoreEntryDialog> {
                               'Save Purchase',
                               'خریداری محفوظ کریں',
                             )
+                          : isDirectAdvance
+                          ? coreText(context, 'Give Advance', 'ایڈوانس دیں')
                           : coreText(context, 'Send Request', 'درخواست بھیجیں'),
                     ),
             ),
@@ -606,15 +664,17 @@ class _MethodCard extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                softWrap: true,
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  color: selected
-                      ? (isDark ? Colors.white : const Color(0xFF7C3AED))
-                      : (isDark
-                            ? const Color(0xFFCBD5E1)
-                            : const Color(0xFF334155)),
+                  color: AppTheme.readable(
+                    context,
+                    selected
+                        ? (isDark ? Colors.white : const Color(0xFF7C3AED))
+                        : (isDark
+                              ? const Color(0xFFCBD5E1)
+                              : const Color(0xFF334155)),
+                  ),
                 ),
               ),
             ),

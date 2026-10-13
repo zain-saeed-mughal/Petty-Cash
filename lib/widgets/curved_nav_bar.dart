@@ -1,5 +1,9 @@
+import 'package:petty_cash/config/app_theme.dart';
+
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import 'adaptive_scaffold.dart';
 
 class CurvedNavBar extends StatelessWidget {
@@ -70,8 +74,8 @@ class CurvedNavBar extends StatelessWidget {
                         )!;
 
                         final textColor = Color.lerp(
-                          inactiveTextColor,
-                          activePurple,
+                          AppTheme.readable(context, inactiveTextColor),
+                          AppTheme.readable(context, activePurple),
                           activeProgress,
                         )!;
 
@@ -97,7 +101,10 @@ class CurvedNavBar extends StatelessWidget {
                                         textAlign: TextAlign.center,
                                         maxLines: 1,
                                         style: TextStyle(
-                                          color: textColor,
+                                          color: AppTheme.readable(
+                                            context,
+                                            textColor,
+                                          ),
                                           fontWeight: isSelected
                                               ? FontWeight.w700
                                               : FontWeight.w500,
@@ -132,12 +139,14 @@ class CurvedNavBar extends StatelessWidget {
                                           : null,
                                     ),
                                     child: Center(
-                                      child: d.badgeCount != null &&
+                                      child:
+                                          d.badgeCount != null &&
                                               d.badgeCount! > 0
                                           ? Badge(
                                               label: Text('${d.badgeCount}'),
-                                              backgroundColor:
-                                                  const Color(0xFFEF4444),
+                                              backgroundColor: const Color(
+                                                0xFFEF4444,
+                                              ),
                                               child: Icon(
                                                 isSelected
                                                     ? d.selectedIcon
@@ -219,7 +228,11 @@ class _BulgePainter extends CustomPainter {
 
     // Across the top edge following the upward bulge wave
     const step = 3.0;
-    for (double x = cornerRadius + step; x < size.width - cornerRadius; x += step) {
+    for (
+      double x = cornerRadius + step;
+      x < size.width - cornerRadius;
+      x += step
+    ) {
       path.lineTo(x, getY(x));
     }
 
@@ -234,7 +247,12 @@ class _BulgePainter extends CustomPainter {
 
     // Down to bottom-right corner
     path.lineTo(size.width, size.height - cornerRadius);
-    path.quadraticBezierTo(size.width, size.height, size.width - cornerRadius, size.height);
+    path.quadraticBezierTo(
+      size.width,
+      size.height,
+      size.width - cornerRadius,
+      size.height,
+    );
 
     // Across bottom edge
     path.lineTo(cornerRadius, size.height);

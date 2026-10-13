@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:petty_cash/config/app_theme.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:petty_cash/models/core_flow_models.dart';
 import 'package:petty_cash/models/user_model.dart';
@@ -190,9 +192,14 @@ void main() {
           4,
           (index) => tester.getTopLeft(filters.at(index)),
         );
-        expect(positions[0].dy, closeTo(positions[1].dy, 1));
-        expect(positions[2].dy, closeTo(positions[3].dy, 1));
-        expect(positions[0].dy, lessThan(positions[2].dy));
+        if (width < 520) {
+          for (var i = 1; i < positions.length; i++) {
+            expect(positions[i].dy, greaterThan(positions[i - 1].dy));
+          }
+        } else {
+          expect(positions[0].dy, closeTo(positions[1].dy, 1));
+          expect(positions[2].dy, closeTo(positions[3].dy, 1));
+        }
       }
     }
     tester.view.resetPhysicalSize();
@@ -260,6 +267,9 @@ void main() {
                 ChangeNotifierProvider<LanguageProvider>.value(value: language),
               ],
               child: MaterialApp(
+                theme: AppTheme.forLanguage(locale),
+                darkTheme: AppTheme.darkTheme(locale),
+                themeMode: ThemeMode.dark,
                 home: MediaQuery(
                   data: MediaQueryData(
                     size: Size(width, 700),
@@ -294,6 +304,13 @@ void main() {
             tester.takeException(),
             isNull,
             reason: '$locale at $width px',
+          );
+          final title = find.text(flow.advances.first.purpose);
+          final paragraph = tester.renderObject<RenderParagraph>(title);
+          expect(
+            paragraph.didExceedMaxLines,
+            isFalse,
+            reason: 'The full advance purpose must remain readable',
           );
         }
       }

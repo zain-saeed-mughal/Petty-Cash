@@ -76,7 +76,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               child: Text(
                 context.t('Account Created'),
                 style: TextStyle(
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  color: AppTheme.readable(
+                    context,
+                    isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
                   fontWeight: FontWeight.w700,
                   fontSize: 18,
                 ),
@@ -92,9 +95,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               Text(
                 '$name ${Provider.of<LanguageProvider>(context, listen: false).tr('can_use_temp_creds')}',
                 style: TextStyle(
-                  color: isDark
-                      ? const Color(0xFFCBD5E1)
-                      : const Color(0xFF334155),
+                  color: AppTheme.readable(
+                    context,
+                    isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                  ),
                   fontSize: 13,
                 ),
               ),
@@ -126,9 +130,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ).tr('share_password_securely'),
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark
-                      ? const Color(0xFF94A3B8)
-                      : const Color(0xFF64748B),
+                  color: AppTheme.readable(
+                    context,
+                    isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                  ),
                 ),
               ),
             ],
@@ -188,9 +193,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+                    color: AppTheme.readable(
+                      context,
+                      isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -199,7 +207,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 14,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    color: AppTheme.readable(
+                      context,
+                      isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
                   ),
                 ),
               ],
@@ -373,9 +384,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.w800,
-                                    color: isDark
-                                        ? Colors.white
-                                        : AppTheme.primaryNavy,
+                                    color: AppTheme.readable(
+                                      context,
+                                      isDark
+                                          ? Colors.white
+                                          : AppTheme.primaryNavy,
+                                    ),
                                     letterSpacing: -0.8,
                                   ),
                                 ),
@@ -388,13 +402,15 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                             .tr('admin_manage_desc'),
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: isDark
-                                        ? const Color(0xFF94A3B8)
-                                        : const Color(0xFF64748B),
+                                    color: AppTheme.readable(
+                                      context,
+                                      isDark
+                                          ? const Color(0xFF94A3B8)
+                                          : const Color(0xFF64748B),
+                                    ),
                                     fontWeight: FontWeight.w500,
                                   ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
+                                  softWrap: true,
                                 ),
                               ],
                             ),
@@ -478,9 +494,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                 onChanged: (_) => setState(() {}),
                                 style: TextStyle(
                                   fontSize: 13,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppTheme.primaryNavy,
+                                  color: AppTheme.readable(
+                                    context,
+                                    isDark
+                                        ? Colors.white
+                                        : AppTheme.primaryNavy,
+                                  ),
                                 ),
                                 decoration: InputDecoration(
                                   isDense: true,
@@ -493,9 +512,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                                   ).tr('search_users_hint'),
                                   hintStyle: TextStyle(
                                     fontSize: 13,
-                                    color: isDark
-                                        ? const Color(0xFF64748B)
-                                        : const Color(0xFF94A3B8),
+                                    color: AppTheme.readable(
+                                      context,
+                                      isDark
+                                          ? const Color(0xFF64748B)
+                                          : const Color(0xFF94A3B8),
+                                    ),
                                   ),
                                   prefixIcon: const Icon(
                                     Icons.search_rounded,
@@ -622,7 +644,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: AppTheme.primaryNavy,
+                          color: AppTheme.readable(
+                            context,
+                            AppTheme.primaryNavy,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -630,7 +655,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         Provider.of<LanguageProvider>(context)
                             .tr('try_adjusting_search_users'),
                         style: TextStyle(
-                          color: Color(0xFF64748B),
+                          color: AppTheme.readable(context, Color(0xFF64748B)),
                           fontSize: 15,
                         ),
                         textAlign: TextAlign.center,
@@ -681,9 +706,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         style: TextStyle(
           fontSize: 12,
           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-          color: isSelected
-              ? Colors.white
-              : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
+          color: AppTheme.readable(
+            context,
+            isSelected
+                ? Colors.white
+                : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569)),
+          ),
         ),
       ),
       backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
@@ -762,7 +790,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             child: Text(
               user.name.isNotEmpty ? user.name[0].toUpperCase() : 'U',
               style: TextStyle(
-                color: roleColor,
+                color: AppTheme.readable(context, roleColor),
                 fontWeight: FontWeight.w800,
                 fontSize: 16,
               ),
@@ -787,7 +815,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       style: TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
-                        color: isDark ? Colors.white : AppTheme.primaryNavy,
+                        color: AppTheme.readable(
+                          context,
+                          isDark ? Colors.white : AppTheme.primaryNavy,
+                        ),
                       ),
                     ),
                     Container(
@@ -806,7 +837,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       child: Text(
                         context.t(user.role.displayName),
                         style: TextStyle(
-                          color: roleColor,
+                          color: AppTheme.readable(context, roleColor),
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
@@ -838,12 +869,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           Flexible(
                             child: Text(
                               user.email,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
                               style: TextStyle(
-                                color: isDark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF64748B),
+                                color: AppTheme.readable(
+                                  context,
+                                  isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                ),
                                 fontSize: 12,
                               ),
                             ),
@@ -867,12 +900,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           Flexible(
                             child: Text(
                               '${context.t('Office')}: ${officeName ?? context.t('Not assigned')}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
                               style: TextStyle(
-                                color: isDark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF64748B),
+                                color: AppTheme.readable(
+                                  context,
+                                  isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                ),
                                 fontSize: 12,
                               ),
                             ),
@@ -899,12 +934,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                     Flexible(
                       child: Text(
                         context.language.date(user.createdAt),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
                         style: TextStyle(
-                          color: isDark
-                              ? const Color(0xFF64748B)
-                              : const Color(0xFF94A3B8),
+                          color: AppTheme.readable(
+                            context,
+                            isDark
+                                ? const Color(0xFF64748B)
+                                : const Color(0xFF94A3B8),
+                          ),
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                         ),

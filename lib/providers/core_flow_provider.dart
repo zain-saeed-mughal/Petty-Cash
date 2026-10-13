@@ -9,13 +9,18 @@ import '../services/app_error.dart';
 import '../services/database_service.dart';
 
 class CoreFlowProvider extends ChangeNotifier {
-  final DatabaseService _db = DatabaseService();
+  CoreFlowProvider({DatabaseService? database})
+    : _db = database ?? DatabaseService();
+
+  final DatabaseService _db;
   final _subscriptions = <StreamSubscription<dynamic>>[];
   final _ready = <String>{};
   final _errors = <String, String>{};
   final _busy = <String>{};
   String? _identity;
   int _generation = 0;
+  int _balanceRequest = 0;
+  int _balanceCompleted = 0;
   bool _disposed = false;
   List<OfficeRecord> offices = [];
   List<CoreAdvance> advances = [];
@@ -25,8 +30,13 @@ class CoreFlowProvider extends ChangeNotifier {
   List<CoreActivity> activity = [];
 
   bool get isLoading =>
-      _identity != null && _ready.length < 6 && _errors.isEmpty;
+      _identity != null && _ready.length < 6 && loadError == null;
   String? get error => _errors.values.firstOrNull;
+  String? get loadError => _errors.entries
+      .where((entry) => entry.key != 'action')
+      .map((entry) => entry.value)
+      .firstOrNull;
+  bool get isBalanceLoading => _balanceRequest != _balanceCompleted;
   bool isBusy(String key) => _busy.contains(key);
   double balanceFor(String uid) => balances
       .where((row) => row.officeBoyId == uid)
@@ -45,7 +55,10 @@ class CoreFlowProvider extends ChangeNotifier {
   }
 
   void refresh() {
+    if (_disposed) return;
     _generation++;
+    _busy.clear();
+    _balanceCompleted = ++_balanceRequest;
     for (final subscription in _subscriptions) {
       unawaited(subscription.cancel());
     }
@@ -106,41 +119,58 @@ class CoreFlowProvider extends ChangeNotifier {
   }
 
   Future<void> _loadBalances(int generation) async {
+    final request = ++_balanceRequest;
     try {
       final rows = await _db.getCoreBalances();
-      if (_disposed || generation != _generation) return;
+      if (_disposed ||
+          generation != _generation ||
+          request != _balanceRequest) {
+        return;
+      }
+      _balanceCompleted = request;
       balances = rows;
       _ready.add('balances');
       _errors.remove('balances');
       notifyListeners();
     } catch (e) {
-      if (_disposed || generation != _generation) return;
+      if (_disposed ||
+          generation != _generation ||
+          request != _balanceRequest) {
+        return;
+      }
+      _balanceCompleted = request;
       _errors['balances'] = userMessage(e);
       notifyListeners();
     }
   }
 
-  Future<bool> _run(String key, Future<void> Function() action) async {
-    if (!_busy.add(key)) return false;
+  Future<bool> _run(
+    String key,
+    Future<void> Function(bool Function() isCurrent) action,
+  ) async {
+    if (_disposed || _identity == null || !_busy.add(key)) return false;
     final generation = _generation;
+    bool isCurrent() => !_disposed && generation == _generation;
     notifyListeners();
     try {
-      await action();
-      if (!_disposed && generation == _generation) {
-        _errors.remove('action');
-        unawaited(_loadBalances(generation));
-        notifyListeners();
-      }
+      await action(isCurrent);
+      if (!isCurrent()) return false;
+      _errors.remove('action');
+      unawaited(_loadBalances(generation));
+      notifyListeners();
       return true;
     } catch (e) {
-      if (!_disposed && generation == _generation) {
+      if (isCurrent()) {
         _errors['action'] = userMessage(e);
         notifyListeners();
       }
       return false;
     } finally {
-      _busy.remove(key);
-      if (!_disposed) notifyListeners();
+      // An old operation must never clear a new session's busy flag.
+      if (isCurrent()) {
+        _busy.remove(key);
+        notifyListeners();
+      }
     }
   }
 
@@ -151,7 +181,7 @@ class CoreFlowProvider extends ChangeNotifier {
     required String method,
     String? accountName,
     String? accountDetails,
-  }) => _run('request-advance', () async {
+  }) => _run('request-advance', (isCurrent) async {
     final row = await _db.requestCoreAdvance(
       id: id ?? const Uuid().v4(),
       purpose: purpose,
@@ -160,20 +190,24 @@ class CoreFlowProvider extends ChangeNotifier {
       accountName: accountName,
       accountDetails: accountDetails,
     );
+    if (!isCurrent()) return;
     advances = [row, ...advances.where((entry) => entry.id != row.id)];
   });
 
   Future<bool> clearAdvance(String id, String method, String? note) =>
-      _run(id, () async {
+      _run(id, (isCurrent) async {
         final row = await _db.clearCoreAdvance(id, method, note);
+        if (!isCurrent()) return;
         advances = [row, ...advances.where((entry) => entry.id != row.id)];
       });
 
-  Future<bool> createOffice(String name) => _run('create-office', () async {
-    final row = await _db.createOffice(name);
-    offices = [...offices.where((entry) => entry.id != row.id), row]
-      ..sort((a, b) => a.name.compareTo(b.name));
-  });
+  Future<bool> createOffice(String name) =>
+      _run('create-office', (isCurrent) async {
+        final row = await _db.createOffice(name);
+        if (!isCurrent()) return;
+        offices = [...offices.where((entry) => entry.id != row.id), row]
+          ..sort((a, b) => a.name.compareTo(b.name));
+      });
 
   Future<bool> addItem({
     String? id,
@@ -182,7 +216,7 @@ class CoreFlowProvider extends ChangeNotifier {
     required double amount,
     String? billPath,
     String? taggedManagerId,
-  }) => _run('add-item', () async {
+  }) => _run('add-item', (isCurrent) async {
     final row = await _db.logCoreAdvanceItem(
       id: id ?? const Uuid().v4(),
       advanceId: advanceId,
@@ -191,12 +225,14 @@ class CoreFlowProvider extends ChangeNotifier {
       billPath: billPath,
       taggedManagerId: taggedManagerId,
     );
+    if (!isCurrent()) return;
     items = [row, ...items.where((entry) => entry.id != row.id)];
   });
 
   Future<bool> reviewAdvanceItem(String id, String decision, String? reason) =>
-      _run(id, () async {
+      _run(id, (isCurrent) async {
         final row = await _db.reviewCoreAdvanceItem(id, decision, reason);
+        if (!isCurrent()) return;
         items = [row, ...items.where((entry) => entry.id != row.id)];
       });
 
@@ -206,7 +242,7 @@ class CoreFlowProvider extends ChangeNotifier {
     required double amount,
     required String purpose,
     required String method,
-  }) => _run('direct-allot', () async {
+  }) => _run('direct-allot', (isCurrent) async {
     final row = await _db.directAllotAdvanceV2(
       id: id ?? const Uuid().v4(),
       officeBoyId: officeBoyId,
@@ -214,12 +250,14 @@ class CoreFlowProvider extends ChangeNotifier {
       purpose: purpose,
       method: method,
     );
+    if (!isCurrent()) return;
     advances = [row, ...advances.where((entry) => entry.id != row.id)];
   });
 
   Future<bool> respondToDirectAdvance(String id, String decision) =>
-      _run(id, () async {
+      _run(id, (isCurrent) async {
         await _db.respondToDirectAdvanceV2(id, decision);
+        if (!isCurrent()) return;
         final index = advances.indexWhere((a) => a.id == id);
         if (index != -1) {
           final old = advances[index];
@@ -251,7 +289,7 @@ class CoreFlowProvider extends ChangeNotifier {
     String? accountName,
     String? accountDetails,
     String? taggedManagerId,
-  }) => _run('request-reimbursement', () async {
+  }) => _run('request-reimbursement', (isCurrent) async {
     final row = await _db.submitCoreReimbursement(
       id: id ?? const Uuid().v4(),
       item: item,
@@ -262,6 +300,7 @@ class CoreFlowProvider extends ChangeNotifier {
       accountDetails: accountDetails,
       taggedManagerId: taggedManagerId,
     );
+    if (!isCurrent()) return;
     reimbursements = [
       row,
       ...reimbursements.where((entry) => entry.id != row.id),
@@ -272,8 +311,9 @@ class CoreFlowProvider extends ChangeNotifier {
     String id,
     String decision,
     String? reason,
-  ) => _run(id, () async {
+  ) => _run(id, (isCurrent) async {
     final row = await _db.reviewCoreReimbursement(id, decision, reason);
+    if (!isCurrent()) return;
     reimbursements = [
       row,
       ...reimbursements.where((entry) => entry.id != row.id),
@@ -281,8 +321,9 @@ class CoreFlowProvider extends ChangeNotifier {
   });
 
   Future<bool> markReimbursementPaid(String id, String method) =>
-      _run(id, () async {
+      _run(id, (isCurrent) async {
         final row = await _db.markCoreReimbursementPaid(id, method);
+        if (!isCurrent()) return;
         reimbursements = [
           row,
           ...reimbursements.where((entry) => entry.id != row.id),

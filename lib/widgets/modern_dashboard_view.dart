@@ -1,3 +1,5 @@
+import 'package:petty_cash/config/app_theme.dart';
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -172,7 +174,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
     final langProvider = context.watch<LanguageProvider>();
     final user = context.watch<AuthProvider>().currentUser;
     final flow = context.watch<CoreFlowProvider>();
-    final userName = user?.name.split(' ').first ?? 'User';
+    final userName = user?.isSuperAdmin == true
+        ? 'Zain Saeed'
+        : user?.name.split(' ').first ?? 'User';
 
     // Compute office name
     String officeDisplayName = ur ? 'تمام برانچز' : 'All Branches';
@@ -234,19 +238,22 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F172A),
+                              color: AppTheme.readable(
+                                context,
+                                isDark ? Colors.white : const Color(0xFF0F172A),
+                              ),
                             ),
                           ),
                           Text(
                             userName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            softWrap: true,
+                            style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF7C3AED),
+                              color: AppTheme.readable(
+                                context,
+                                Color(0xFF7C3AED),
+                              ),
                             ),
                           ),
                         ],
@@ -258,9 +265,12 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                             : "Here's what's happening across your company",
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark
-                              ? const Color(0xFF94A3B8)
-                              : const Color(0xFF64748B),
+                          color: AppTheme.readable(
+                            context,
+                            isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                          ),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -299,9 +309,12 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
-                              color: langProvider.currentLanguage == 'en'
-                                  ? Colors.white
-                                  : const Color(0xFF64748B),
+                              color: AppTheme.readable(
+                                context,
+                                langProvider.currentLanguage == 'en'
+                                    ? Colors.white
+                                    : const Color(0xFF64748B),
+                              ),
                             ),
                           ),
                         ),
@@ -329,9 +342,12 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               fontFamily: 'JameelNooriNastaleeq',
-                              color: langProvider.currentLanguage == 'ur'
-                                  ? Colors.white
-                                  : const Color(0xFF64748B),
+                              color: AppTheme.readable(
+                                context,
+                                langProvider.currentLanguage == 'ur'
+                                    ? Colors.white
+                                    : const Color(0xFF64748B),
+                              ),
                             ),
                           ),
                         ),
@@ -356,7 +372,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    color: AppTheme.readable(
+                      context,
+                      isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
                   ),
                 ),
                 Container(
@@ -386,10 +405,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                       const SizedBox(width: 4),
                       Text(
                         widget.roleBadgeText,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF7C3AED),
+                          color: AppTheme.readable(context, Color(0xFF7C3AED)),
                         ),
                       ),
                     ],
@@ -443,14 +462,16 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                             Expanded(
                               child: Text(
                                 officeDisplayName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF1E293B),
+                                  color: AppTheme.readable(
+                                    context,
+                                    isDark
+                                        ? Colors.white
+                                        : const Color(0xFF1E293B),
+                                  ),
                                 ),
                               ),
                             ),
@@ -503,14 +524,16 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                       _selectedMonth,
                                       pattern: 'MMMM yyyy',
                                     ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF1E293B),
+                                color: AppTheme.readable(
+                                  context,
+                                  isDark
+                                      ? Colors.white
+                                      : const Color(0xFF1E293B),
+                                ),
                               ),
                             ),
                           ),
@@ -558,10 +581,12 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                       children: [
                         Text(
                           widget.heroTitle,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
+                            color: AppTheme.readable(
+                              context,
+                              Colors.white.withValues(alpha: 0.9),
+                            ),
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
@@ -731,14 +756,14 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                       Expanded(
                         child: Text(
                           ur ? 'اخراجات کا جائزہ' : 'Spending overview',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0F172A),
+                            color: AppTheme.readable(
+                              context,
+                              isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
                           ),
                         ),
                       ),
@@ -750,10 +775,13 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                             children: [
                               Text(
                                 ur ? 'رپورٹ دیکھیں' : 'View report',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF7C3AED),
+                                  color: AppTheme.readable(
+                                    context,
+                                    Color(0xFF7C3AED),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 3),
@@ -803,14 +831,14 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                       Expanded(
                         child: Text(
                           ur ? 'حالیہ سرگرمی' : 'Recent activity',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0F172A),
+                            color: AppTheme.readable(
+                              context,
+                              isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
                           ),
                         ),
                       ),
@@ -822,10 +850,13 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                             children: [
                               Text(
                                 ur ? 'سب دیکھیں' : 'View all',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF7C3AED),
+                                  color: AppTheme.readable(
+                                    context,
+                                    Color(0xFF7C3AED),
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 3),
@@ -848,8 +879,11 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                           ur
                               ? 'ابھی کوئی سرگرمی نہیں'
                               : 'No recent activity yet',
-                          style: const TextStyle(
-                            color: Color(0xFF94A3B8),
+                          style: TextStyle(
+                            color: AppTheme.readable(
+                              context,
+                              Color(0xFF94A3B8),
+                            ),
                             fontSize: 13,
                           ),
                         ),
@@ -885,12 +919,16 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
     required String amount,
     required String subtitle,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: bgColor,
+        color: isDark ? AppTheme.surfaceDark : bgColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor, width: 1),
+        border: Border.all(
+          color: isDark ? AppTheme.borderDark : borderColor,
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -906,12 +944,11 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
           const SizedBox(height: 8),
           Text(
             title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            softWrap: true,
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF64748B),
+              color: AppTheme.readable(context, Color(0xFF64748B)),
             ),
           ),
           const SizedBox(height: 4),
@@ -921,22 +958,21 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
             child: Text(
               amount,
               maxLines: 1,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF0F172A),
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
               ),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             subtitle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            softWrap: true,
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w500,
-              color: Color(0xFF94A3B8),
+              color: AppTheme.readable(context, Color(0xFF94A3B8)),
             ),
           ),
         ],
@@ -961,7 +997,7 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
           color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
         ),
       ),
-      child: Row(
+      child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -971,35 +1007,36 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
             ),
             child: Icon(icon, color: iconColor, size: 16),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  count,
-                  maxLines: 1,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+          const SizedBox(height: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                count,
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.readable(
+                    context,
+                    isDark ? Colors.white : const Color(0xFF0F172A),
                   ),
                 ),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+              ),
+              Text(
+                label,
+                softWrap: true,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.readable(
+                    context,
+                    isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -1094,14 +1131,16 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
               Flexible(
                 child: Text(
                   ur ? 'ہفتہ وار اخراجات کا رجحان' : 'Weekly Trend',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+                    color: AppTheme.readable(
+                      context,
+                      isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
+                    ),
                   ),
                 ),
               ),
@@ -1118,12 +1157,11 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                   ),
                   child: Text(
                     avgText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    softWrap: true,
+                    style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF7C3AED),
+                      color: AppTheme.readable(context, Color(0xFF7C3AED)),
                     ),
                   ),
                 ),
@@ -1241,11 +1279,14 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                           fontWeight: isPeak
                               ? FontWeight.w800
                               : FontWeight.w600,
-                          color: isPeak
-                              ? const Color(0xFF7C3AED)
-                              : (isDark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF64748B)),
+                          color: AppTheme.readable(
+                            context,
+                            isPeak
+                                ? const Color(0xFF7C3AED)
+                                : (isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B)),
+                          ),
                         ),
                       ),
                     ],
@@ -1280,24 +1321,28 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
               children: [
                 Text(
                   act.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                    color: AppTheme.readable(
+                      context,
+                      isDark ? Colors.white : const Color(0xFF0F172A),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   act.subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
+                    color: AppTheme.readable(
+                      context,
+                      isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
+                    ),
                   ),
                 ),
               ],
@@ -1312,9 +1357,9 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                 children: [
                   Text(
                     act.time,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 10,
-                      color: Color(0xFF94A3B8),
+                      color: AppTheme.readable(context, Color(0xFF94A3B8)),
                     ),
                   ),
                   const SizedBox(width: 5),
@@ -1356,7 +1401,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                   style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: AppTheme.readable(
+                      context,
+                      isDark ? Colors.white : Colors.black87,
+                    ),
                   ),
                 ),
               ),
@@ -1369,7 +1417,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                 title: Text(
                   ur ? 'تمام برانچز' : 'All Branches',
                   style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: AppTheme.readable(
+                      context,
+                      isDark ? Colors.white : Colors.black87,
+                    ),
                   ),
                 ),
                 trailing: _selectedOfficeId == null
@@ -1393,7 +1444,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                   title: Text(
                     office.name,
                     style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: AppTheme.readable(
+                        context,
+                        isDark ? Colors.white : Colors.black87,
+                      ),
                     ),
                   ),
                   trailing: isSel
@@ -1455,7 +1509,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        color: AppTheme.readable(
+                          context,
+                          isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -1466,9 +1523,12 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
+                        color: AppTheme.readable(
+                          context,
+                          isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -1524,10 +1584,13 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                       const SizedBox(width: 6),
                                       Text(
                                         ur ? 'شروع (From)' : 'From Date',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
-                                          color: Color(0xFF7C3AED),
+                                          color: AppTheme.readable(
+                                            context,
+                                            Color(0xFF7C3AED),
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -1540,9 +1603,12 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF0F172A),
+                                      color: AppTheme.readable(
+                                        context,
+                                        isDark
+                                            ? Colors.white
+                                            : const Color(0xFF0F172A),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -1553,9 +1619,12 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                     ),
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: isDark
-                                          ? const Color(0xFF94A3B8)
-                                          : const Color(0xFF64748B),
+                                      color: AppTheme.readable(
+                                        context,
+                                        isDark
+                                            ? const Color(0xFF94A3B8)
+                                            : const Color(0xFF64748B),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1615,10 +1684,13 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                       const SizedBox(width: 6),
                                       Text(
                                         ur ? 'اختتام (To)' : 'To Date',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
-                                          color: Color(0xFF0D9488),
+                                          color: AppTheme.readable(
+                                            context,
+                                            Color(0xFF0D9488),
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -1631,9 +1703,12 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF0F172A),
+                                      color: AppTheme.readable(
+                                        context,
+                                        isDark
+                                            ? Colors.white
+                                            : const Color(0xFF0F172A),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -1644,9 +1719,12 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
                                     ),
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: isDark
-                                          ? const Color(0xFF94A3B8)
-                                          : const Color(0xFF64748B),
+                                      color: AppTheme.readable(
+                                        context,
+                                        isDark
+                                            ? const Color(0xFF94A3B8)
+                                            : const Color(0xFF64748B),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1774,7 +1852,10 @@ class _ModernDashboardViewState extends State<ModernDashboardView> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white70 : const Color(0xFF475569),
+            color: AppTheme.readable(
+              context,
+              isDark ? Colors.white70 : const Color(0xFF475569),
+            ),
           ),
         ),
       ),

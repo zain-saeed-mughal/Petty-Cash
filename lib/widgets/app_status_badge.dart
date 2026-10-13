@@ -6,6 +6,7 @@ import 'package:petty_cash/providers/language_provider.dart';
 class AppStatusBadge extends StatelessWidget {
   final String status;
   final bool isCompact;
+
   /// Set to true when the badge is shown to the person who *received* the money
   /// (e.g. Office Boy's own advance card). Changes 'Sent' → 'Received'.
   final bool isRecipient;
@@ -106,6 +107,14 @@ class AppStatusBadge extends StatelessWidget {
         break;
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (isDark) {
+      bgColor = Color.alphaBlend(
+        textColor.withValues(alpha: .18),
+        AppTheme.surfaceDark,
+      );
+    }
+    textColor = AppTheme.onSurface(textColor, bgColor);
     final isUrdu = context.watch<LanguageProvider>().isRtl;
     final displayLabel = isUrdu ? labelUr : labelEn;
 
@@ -126,8 +135,7 @@ class AppStatusBadge extends StatelessWidget {
               Flexible(
                 child: Text(
                   displayLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                   style: TextStyle(
                     color: textColor,
                     fontSize: 11,

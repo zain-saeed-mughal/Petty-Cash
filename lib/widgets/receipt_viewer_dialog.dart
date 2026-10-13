@@ -41,7 +41,7 @@ class ReceiptViewerDialog extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(maxWidth: 800, maxHeight: 850),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
             boxShadow: const [
               BoxShadow(
@@ -62,24 +62,24 @@ class ReceiptViewerDialog extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.receipt_long_rounded,
-                      color: AppTheme.primaryBlue,
+                      color: AppTheme.readable(context, AppTheme.primaryBlue),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        title,
-                        style: const TextStyle(
+                        context.t(title),
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: AppTheme.primaryNavy,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        softWrap: true,
                       ),
                     ),
                     IconButton(
+                      color: Theme.of(context).colorScheme.onSurface,
                       icon: const Icon(Icons.close_rounded),
                       tooltip: context.t('Close'),
                       onPressed: () => Navigator.of(context).pop(),

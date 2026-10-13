@@ -10,9 +10,31 @@ import 'notifications_panel.dart';
 
 /// The same compact account controls on every dashboard, in both directions.
 class AccountAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const AccountAppBar({super.key});
+  final double toolbarHeight;
+  const AccountAppBar({super.key, this.toolbarHeight = 64});
+
+  factory AccountAppBar.forContext(BuildContext context) {
+    final name =
+        context.watch<AuthProvider>().currentUser?.name ?? context.t('User');
+    final width = (MediaQuery.sizeOf(context).width - 32 - 48 - 144).clamp(
+      48.0,
+      double.infinity,
+    );
+    final painter = TextPainter(
+      text: TextSpan(
+        text: name,
+        style: Theme.of(context).textTheme.titleLarge
+            ?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+      ),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout(maxWidth: width);
+    final height = (painter.height + 20).clamp(64.0, double.infinity);
+    painter.dispose();
+    return AccountAppBar(toolbarHeight: height);
+  }
   @override
-  Size get preferredSize => const Size.fromHeight(64);
+  Size get preferredSize => Size.fromHeight(toolbarHeight);
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +43,7 @@ class AccountAppBar extends StatelessWidget implements PreferredSizeWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppBar(
       automaticallyImplyLeading: false,
-      toolbarHeight: 64,
+      toolbarHeight: toolbarHeight,
       titleSpacing: 16,
       title: Row(
         children: [
@@ -40,9 +62,12 @@ class AccountAppBar extends StatelessWidget implements PreferredSizeWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? const Color(0xFFA78BFA)
-                            : const Color(0xFF7C3AED),
+                        color: AppTheme.readable(
+                          context,
+                          isDark
+                              ? const Color(0xFFA78BFA)
+                              : const Color(0xFF7C3AED),
+                        ),
                       ),
                     ),
                   ),
@@ -51,12 +76,16 @@ class AccountAppBar extends StatelessWidget implements PreferredSizeWidget {
                     child: Text(
                       name,
                       key: const ValueKey('account-name'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 100,
+                      overflow: TextOverflow.visible,
+                      softWrap: true,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : AppTheme.primaryNavy,
+                        color: AppTheme.readable(
+                          context,
+                          isDark ? Colors.white : AppTheme.primaryNavy,
+                        ),
                       ),
                     ),
                   ),

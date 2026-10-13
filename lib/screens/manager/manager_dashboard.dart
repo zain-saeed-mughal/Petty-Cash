@@ -164,42 +164,48 @@ class _ManagerHomeState extends State<ManagerHome> {
       );
     }
 
-    return ModernDashboardView(
-      showBranchFilter: false,
-      showFinancialCards: false,
-      roleBadgeText: ur ? 'مینیجر' : 'Branch Manager',
-      heroTitle: ur ? 'مینیج شدہ اخراجات' : 'Managed Branch Budget',
-      heroAmount: heroAmount,
-      availableAmount: 0,
-      onHoldAmount: 0,
-      spentAmount: 0,
-      metric1Count: myItems.where((i) => _inRange(i.createdAt)).length,
-      metric1Label: ur ? 'خریداری' : 'Purchases',
-      metric1Icon: Icons.shopping_cart_rounded,
-      metric2Count: myReimbursements.where((r) => _inRange(r.createdAt)).length,
-      metric2Label: ur ? 'واپسی' : 'Reimb.',
-      metric2Icon: Icons.receipt_rounded,
-      metric3Count: pendingCount,
-      metric3Label: ur ? 'زیر التوا' : 'Pending',
-      metric3Icon: Icons.hourglass_top_rounded,
-      recentActivities: recentList,
-      onViewReport: widget.onRecords,
-      onViewAllActivity: widget.onRecords,
-      initialMonth: _selectedMonth,
-      initialStartDate: _startDate,
-      initialEndDate: _endDate,
-      onDateRangeChanged: (start, end) {
-        setState(() {
-          _startDate = start;
-          _endDate = end;
-          _selectedMonth = DateTime(start.year, start.month);
-        });
-      },
-      onMonthChanged: (m) => setState(() {
-        _selectedMonth = m;
-        _startDate = DateTime(m.year, m.month, 1);
-        _endDate = DateTime(m.year, m.month + 1, 0);
-      }),
+    return CoreDataGate(
+      child: ModernDashboardView(
+        showBranchFilter: false,
+        showFinancialCards: false,
+        roleBadgeText: ur ? 'مینیجر' : 'Branch Manager',
+        heroTitle: ur
+            ? 'ٹیگ کردہ اخراجات (زیر التوا سمیت)'
+            : 'Tagged costs (including pending)',
+        heroAmount: heroAmount,
+        availableAmount: 0,
+        onHoldAmount: 0,
+        spentAmount: 0,
+        metric1Count: myItems.where((i) => _inRange(i.createdAt)).length,
+        metric1Label: ur ? 'خریداری' : 'Purchases',
+        metric1Icon: Icons.shopping_cart_rounded,
+        metric2Count: myReimbursements
+            .where((r) => _inRange(r.createdAt))
+            .length,
+        metric2Label: ur ? 'واپسی' : 'Reimb.',
+        metric2Icon: Icons.receipt_rounded,
+        metric3Count: pendingCount,
+        metric3Label: ur ? 'زیر التوا' : 'Pending',
+        metric3Icon: Icons.hourglass_top_rounded,
+        recentActivities: recentList,
+        onViewReport: widget.onRecords,
+        onViewAllActivity: widget.onRecords,
+        initialMonth: _selectedMonth,
+        initialStartDate: _startDate,
+        initialEndDate: _endDate,
+        onDateRangeChanged: (start, end) {
+          setState(() {
+            _startDate = start;
+            _endDate = end;
+            _selectedMonth = DateTime(start.year, start.month);
+          });
+        },
+        onMonthChanged: (m) => setState(() {
+          _selectedMonth = m;
+          _startDate = DateTime(m.year, m.month, 1);
+          _endDate = DateTime(m.year, m.month + 1, 0);
+        }),
+      ),
     );
   }
 }

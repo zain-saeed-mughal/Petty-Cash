@@ -47,7 +47,7 @@ class AdaptiveScaffold extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (isDesktop) {
       return Scaffold(
-        appBar: const AccountAppBar(),
+        appBar: AccountAppBar.forContext(context),
         body: Row(
           children: [
             NavigationRail(
@@ -56,16 +56,16 @@ class AdaptiveScaffold extends StatelessWidget {
               extended: screenWidth >= 1024,
               minExtendedWidth: 200,
               backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-              selectedIconTheme: const IconThemeData(
-                color: AppTheme.primaryBlue,
+              selectedIconTheme: IconThemeData(
+                color: AppTheme.readable(context, AppTheme.primaryBlue),
               ),
-              selectedLabelTextStyle: const TextStyle(
-                color: AppTheme.primaryBlue,
+              selectedLabelTextStyle: TextStyle(
+                color: AppTheme.readable(context, AppTheme.primaryBlue),
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
               ),
-              unselectedLabelTextStyle: const TextStyle(
-                color: Color(0xFF64748B),
+              unselectedLabelTextStyle: TextStyle(
+                color: AppTheme.readable(context, Color(0xFF64748B)),
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
               ),
@@ -98,7 +98,7 @@ class AdaptiveScaffold extends StatelessWidget {
     // Mobile View
     return Scaffold(
       extendBody: false,
-      appBar: const AccountAppBar(),
+      appBar: AccountAppBar.forContext(context),
       body: body,
       bottomNavigationBar: CurvedNavBar(
         currentIndex: currentIndex,

@@ -1,6 +1,29 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  /// Foreground for normal-size text on the supplied opaque surface.
+  static Color onSurface(Color foreground, Color background) {
+    final bg = background.computeLuminance();
+    final target = bg < 0.5 ? Colors.white : Colors.black;
+    for (var step = 0; step <= 100; step++) {
+      final candidate = Color.lerp(foreground, target, step / 100)!;
+      final luminance = Color.alphaBlend(
+        candidate,
+        background,
+      ).computeLuminance();
+      final ratio =
+          (luminance > bg ? luminance + .05 : bg + .05) /
+          (luminance > bg ? bg + .05 : luminance + .05);
+      if (ratio >= 4.5) return candidate;
+    }
+    return target;
+  }
+
+  static Color readable(BuildContext context, Color color) =>
+      Theme.of(context).brightness == Brightness.dark
+      ? onSurface(color, borderDark)
+      : color;
+
   // Brand Colors
   static const Color primaryNavy = Color(0xFF0F172A); // Slate 900
   static const Color primaryBlue = Color(0xFF2563EB); // Royal Blue
@@ -72,9 +95,9 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: const Color(0xFF8B5CF6),
         brightness: Brightness.dark,
-        primary: const Color(0xFF8B5CF6),
-        onPrimary: Colors.white,
-        secondary: const Color(0xFF14B8A6),
+        primary: const Color(0xFFC4B5FD),
+        onPrimary: const Color(0xFF21143D),
+        secondary: const Color(0xFF5EEAD4),
         surface: surfaceDark,
         error: const Color(0xFFF87171),
       ),
@@ -127,6 +150,9 @@ class AppTheme {
         margin: EdgeInsets.zero,
       ),
       inputDecorationTheme: InputDecorationTheme(
+        errorMaxLines: 8,
+        helperMaxLines: 8,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
         filled: true,
         fillColor: surfaceDark,
         contentPadding: const EdgeInsets.symmetric(
@@ -150,7 +176,7 @@ class AppTheme {
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),
-        hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 15),
+        hintStyle: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 15),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -202,6 +228,7 @@ class AppTheme {
         ),
       ),
       dialogTheme: DialogThemeData(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         backgroundColor: surfaceDark,
         elevation: 24,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -300,6 +327,9 @@ class AppTheme {
         margin: EdgeInsets.zero,
       ),
       inputDecorationTheme: InputDecorationTheme(
+        errorMaxLines: 8,
+        helperMaxLines: 8,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
         filled: true,
         fillColor: surfaceLight,
         contentPadding: const EdgeInsets.symmetric(
@@ -383,6 +413,7 @@ class AppTheme {
         ),
       ),
       dialogTheme: DialogThemeData(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         backgroundColor: surfaceLight,
         elevation: 24,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -396,9 +427,7 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       dividerTheme: const DividerThemeData(
         color: borderLight,

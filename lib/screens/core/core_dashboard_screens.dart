@@ -145,12 +145,11 @@ class _Metric extends StatelessWidget {
                     ),
                     child: Text(
                       badge!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: badgeColor ?? color,
+                        color: AppTheme.readable(context, badgeColor ?? color),
                       ),
                     ),
                   ),
@@ -167,19 +166,24 @@ class _Metric extends StatelessWidget {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : _navy,
+                color: AppTheme.readable(
+                  context,
+                  isDark ? Colors.white : _navy,
+                ),
               ),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            softWrap: true,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF617187),
+              color: AppTheme.readable(
+                context,
+                isDark ? const Color(0xFF94A3B8) : const Color(0xFF617187),
+              ),
             ),
           ),
         ],
@@ -225,8 +229,8 @@ class _Empty extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF63748C),
+              style: TextStyle(
+                color: AppTheme.readable(context, Color(0xFF63748C)),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -235,7 +239,10 @@ class _Empty extends StatelessWidget {
               Text(
                 subtitle!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFF8794A6), fontSize: 12),
+                style: TextStyle(
+                  color: AppTheme.readable(context, Color(0xFF8794A6)),
+                  fontSize: 12,
+                ),
               ),
             ],
           ],
@@ -251,10 +258,9 @@ class CoreDataGate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final flow = context.watch<CoreFlowProvider>();
-    if (flow.isLoading) return const Center(child: CircularProgressIndicator());
-    if (flow.error != null && flow.offices.isEmpty && flow.advances.isEmpty) {
+    if (flow.loadError != null) {
       return Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: _Panel(
             child: Column(
@@ -267,7 +273,7 @@ class CoreDataGate extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  context.read<LanguageProvider>().error(flow.error!),
+                  context.read<LanguageProvider>().error(flow.loadError!),
                   textAlign: TextAlign.center,
                 ),
                 TextButton.icon(
@@ -281,6 +287,7 @@ class CoreDataGate extends StatelessWidget {
         ),
       );
     }
+    if (flow.isLoading) return const Center(child: CircularProgressIndicator());
     return child;
   }
 }
@@ -517,8 +524,7 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
                       Flexible(
                         child: Text(
                           ur ? 'ایڈوانس کی درخواست' : 'Request Advance',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
@@ -568,8 +574,7 @@ class _OfficeBoyHomeState extends State<OfficeBoyHome> {
                       Flexible(
                         child: Text(
                           ur ? 'رقم واپسی (کلیم)' : 'Reimbursement',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
@@ -693,7 +698,8 @@ class CoreAdvanceCard extends StatelessWidget {
                 width: 1,
               ),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(
                   Icons.label_important_rounded,
@@ -701,21 +707,18 @@ class CoreAdvanceCard extends StatelessWidget {
                   color: Color(0xFF7C3AED),
                 ),
                 const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    advance.purpose.isNotEmpty
-                        ? advance.purpose
-                        : _label(context, 'Advance', 'ایڈوانس'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                      color: Color(0xFF7C3AED),
-                    ),
+                Text(
+                  advance.purpose.isNotEmpty
+                      ? advance.purpose
+                      : _label(context, 'Advance', 'ایڈوانس'),
+                  softWrap: true,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                    color: AppTheme.readable(context, Color(0xFF7C3AED)),
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(height: 8),
                 _StatusChip(advance.status, isRecipient: !showOwner),
               ],
             ),
@@ -753,12 +756,16 @@ class CoreAdvanceCard extends StatelessWidget {
           if (showOwner)
             Text(
               '${_person(context, advance.officeBoyId)} · ${_office(context, advance.officeId)}',
-              style: const TextStyle(color: Color(0xFF64748B)),
+              style: TextStyle(
+                color: AppTheme.readable(context, Color(0xFF64748B)),
+              ),
             ),
           const SizedBox(height: 8),
           Text(
             '${_label(context, 'Requested', 'مانگا گیا')}: ${advance.method == 'card' ? _label(context, 'Card', 'کارڈ') : _label(context, 'Cash', 'نقد')}',
-            style: const TextStyle(color: Color(0xFF64748B)),
+            style: TextStyle(
+              color: AppTheme.readable(context, Color(0xFF64748B)),
+            ),
           ),
           if (advance.financeNote != null && advance.financeNote!.isNotEmpty)
             Text(
@@ -783,9 +790,9 @@ class CoreAdvanceCard extends StatelessWidget {
                     child: Text(
                       '${_label(context, 'Left', 'باقی')}: ${_money(context, displayLeft)}',
                       textAlign: TextAlign.end,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: _teal,
+                        color: AppTheme.readable(context, _teal),
                       ),
                     ),
                   ),
@@ -898,7 +905,9 @@ class CoreAdvanceCard extends StatelessWidget {
                         icon: const Icon(Icons.close, color: Colors.red),
                         label: Text(
                           _label(context, 'Decline', 'مسترد کریں'),
-                          style: const TextStyle(color: Colors.red),
+                          style: TextStyle(
+                            color: AppTheme.readable(context, Colors.red),
+                          ),
                         ),
                       ),
                     ),
@@ -994,7 +1003,10 @@ class CoreAdvanceCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                  color: AppTheme.readable(
+                    context,
+                    isDark ? Colors.white : AppTheme.primaryNavy,
+                  ),
                 ),
               ),
             ),
@@ -1032,9 +1044,10 @@ class CoreAdvanceCard extends StatelessWidget {
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 14,
-                                color: isDark
-                                    ? Colors.white
-                                    : AppTheme.primaryNavy,
+                                color: AppTheme.readable(
+                                  context,
+                                  isDark ? Colors.white : AppTheme.primaryNavy,
+                                ),
                               ),
                             ),
                           ),
@@ -1046,9 +1059,10 @@ class CoreAdvanceCard extends StatelessWidget {
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
                                 fontSize: 14,
-                                color: isDark
-                                    ? Colors.white
-                                    : AppTheme.primaryNavy,
+                                color: AppTheme.readable(
+                                  context,
+                                  isDark ? Colors.white : AppTheme.primaryNavy,
+                                ),
                               ),
                             ),
                           ),
@@ -1060,9 +1074,12 @@ class CoreAdvanceCard extends StatelessWidget {
                         children: [
                           Text(
                             _date(context, item.createdAt),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: Color(0xFF94A3B8),
+                              color: AppTheme.readable(
+                                context,
+                                Color(0xFF94A3B8),
+                              ),
                             ),
                           ),
                           _StatusChip(item.status),
@@ -1072,9 +1089,12 @@ class CoreAdvanceCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           '${_label(context, 'Manager', 'منیجر')}: ${_person(context, item.taggedManagerId!)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF3159E8),
+                            color: AppTheme.readable(
+                              context,
+                              Color(0xFF3159E8),
+                            ),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -1085,8 +1105,8 @@ class CoreAdvanceCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           '${_label(context, 'Reason:', 'وجہ:')} ${item.rejectionReason!}',
-                          style: const TextStyle(
-                            color: Colors.red,
+                          style: TextStyle(
+                            color: AppTheme.readable(context, Colors.red),
                             fontSize: 12,
                           ),
                         ),
@@ -1112,6 +1132,11 @@ class CoreAdvanceCard extends StatelessWidget {
                             if (role == UserRole.finance &&
                                 item.status == 'pending') ...[
                               IconButton(
+                                tooltip: _label(
+                                  context,
+                                  'Approve purchase',
+                                  'خریداری منظور کریں',
+                                ),
                                 icon: const Icon(
                                   Icons.check_circle,
                                   color: Colors.green,
@@ -1143,6 +1168,11 @@ class CoreAdvanceCard extends StatelessWidget {
                                       },
                               ),
                               IconButton(
+                                tooltip: _label(
+                                  context,
+                                  'Reject purchase',
+                                  'خریداری مسترد کریں',
+                                ),
                                 icon: const Icon(
                                   Icons.cancel,
                                   color: Colors.red,
@@ -1232,7 +1262,10 @@ class _CopyAccount extends StatelessWidget {
               '${name ?? ''}${name != null && details != null ? '\n' : ''}${details ?? ''}',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white : Colors.black87,
+                color: AppTheme.readable(
+                  context,
+                  isDark ? Colors.white : Colors.black87,
+                ),
               ),
             ),
           ),
@@ -1331,7 +1364,8 @@ class CoreReimbursementCard extends StatelessWidget {
                 width: 1,
               ),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Icon(
                   Icons.label_important_rounded,
@@ -1339,21 +1373,18 @@ class CoreReimbursementCard extends StatelessWidget {
                   color: Color(0xFF0D9488),
                 ),
                 const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    request.description.isNotEmpty
-                        ? request.description
-                        : _label(context, 'Reimbursement', 'واپسی'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                      color: Color(0xFF0D9488),
-                    ),
+                Text(
+                  request.description.isNotEmpty
+                      ? request.description
+                      : _label(context, 'Reimbursement', 'واپسی'),
+                  softWrap: true,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                    color: AppTheme.readable(context, Color(0xFF0D9488)),
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(height: 8),
                 _StatusChip(request.status),
               ],
             ),
@@ -1391,20 +1422,24 @@ class CoreReimbursementCard extends StatelessWidget {
           if (showOwner)
             Text(
               '${_person(context, request.officeBoyId)} · ${_office(context, request.officeId)}',
-              style: const TextStyle(color: Color(0xFF64748B)),
+              style: TextStyle(
+                color: AppTheme.readable(context, Color(0xFF64748B)),
+              ),
             ),
           if (request.taggedManagerId != null)
             Text(
               '${_label(context, 'Manager', 'منیجر')}: ${_person(context, request.taggedManagerId!)}',
-              style: const TextStyle(
-                color: Color(0xFF3159E8),
+              style: TextStyle(
+                color: AppTheme.readable(context, Color(0xFF3159E8)),
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
             ),
           Text(
             '${_label(context, 'Wants', 'چاہیے')}: ${request.wantedMethod == 'card' ? _label(context, 'Card', 'کارڈ') : _label(context, 'Cash', 'نقد')}',
-            style: const TextStyle(color: Color(0xFF64748B)),
+            style: TextStyle(
+              color: AppTheme.readable(context, Color(0xFF64748B)),
+            ),
           ),
           if (request.wantedMethod == 'card')
             _CopyAccount(
@@ -1416,8 +1451,8 @@ class CoreReimbursementCard extends StatelessWidget {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 '${_label(context, 'Reason', 'وجہ')}: ${request.rejectionReason}',
-                style: const TextStyle(
-                  color: Color(0xFFC23F42),
+                style: TextStyle(
+                  color: AppTheme.readable(context, Color(0xFFC23F42)),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1539,7 +1574,10 @@ class CoreReimbursementCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white : AppTheme.primaryNavy,
+                  color: AppTheme.readable(
+                    context,
+                    isDark ? Colors.white : AppTheme.primaryNavy,
+                  ),
                 ),
               ),
             ),
@@ -1563,14 +1601,17 @@ class CoreReimbursementCard extends StatelessWidget {
                     _activityLabel(context, a.action),
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : AppTheme.primaryNavy,
+                      color: AppTheme.readable(
+                        context,
+                        isDark ? Colors.white : AppTheme.primaryNavy,
+                      ),
                     ),
                   ),
                   subtitle: Text(
                     '${_date(context, a.createdAt)} · ${_person(context, a.actorId)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF94A3B8),
+                      color: AppTheme.readable(context, Color(0xFF94A3B8)),
                     ),
                   ),
                 );
@@ -1623,7 +1664,10 @@ Future<void> _reject(BuildContext context, CoreReimbursement request) async {
           ),
           style: TextStyle(
             fontWeight: FontWeight.w700,
-            color: isDark ? Colors.white : AppTheme.primaryNavy,
+            color: AppTheme.readable(
+              context,
+              isDark ? Colors.white : AppTheme.primaryNavy,
+            ),
           ),
         ),
         content: Form(
@@ -1632,21 +1676,30 @@ Future<void> _reject(BuildContext context, CoreReimbursement request) async {
             controller: controller,
             maxLines: 3,
             maxLength: 2000,
-            style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+            style: TextStyle(
+              color: AppTheme.readable(
+                context,
+                isDark ? Colors.white : Colors.black87,
+              ),
+            ),
             decoration: InputDecoration(
               filled: true,
               fillColor: isDark
                   ? const Color(0xFF0F172A)
                   : const Color(0xFFF8FAFC),
-              labelText: _label(
-                context,
-                'Reason for Office Boy',
-                'آفس بوائے کے لیے وجہ',
+              label: Text(
+                _label(
+                  context,
+                  'Reason for Office Boy',
+                  'آفس بوائے کے لیے وجہ',
+                ),
+                softWrap: true,
               ),
               labelStyle: TextStyle(
-                color: isDark
-                    ? const Color(0xFF94A3B8)
-                    : const Color(0xFF64748B),
+                color: AppTheme.readable(
+                  context,
+                  isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                ),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -1781,7 +1834,10 @@ class CoreRecordsScreen extends StatelessWidget {
                 child: TabBar(
                   indicatorColor: const Color(0xFF7C3AED),
                   indicatorWeight: 3,
-                  labelColor: const Color(0xFF7C3AED),
+                  labelColor: AppTheme.readable(
+                    context,
+                    const Color(0xFF7C3AED),
+                  ),
                   unselectedLabelColor: isDark
                       ? const Color(0xFF94A3B8)
                       : const Color(0xFF64748B),
@@ -2164,31 +2220,40 @@ class FinanceBalances extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
-                              color: isDark ? Colors.white : _navy,
+                              color: AppTheme.readable(
+                                context,
+                                isDark ? Colors.white : _navy,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             '${_label(context, 'Given', 'دیا')}: ${_money(context, total)}',
                             style: TextStyle(
-                              color: isDark
-                                  ? const Color(0xFFCBD5E1)
-                                  : const Color(0xFF334155),
+                              color: AppTheme.readable(
+                                context,
+                                isDark
+                                    ? const Color(0xFFCBD5E1)
+                                    : const Color(0xFF334155),
+                              ),
                             ),
                           ),
                           Text(
                             '${_label(context, 'Spent', 'خرچ')}: ${_money(context, spent)}',
                             style: TextStyle(
-                              color: isDark
-                                  ? const Color(0xFFCBD5E1)
-                                  : const Color(0xFF334155),
+                              color: AppTheme.readable(
+                                context,
+                                isDark
+                                    ? const Color(0xFFCBD5E1)
+                                    : const Color(0xFF334155),
+                              ),
                             ),
                           ),
                           Text(
                             '${_label(context, 'Left', 'باقی')}: ${_money(context, total - spent)}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w800,
-                              color: _teal,
+                              color: AppTheme.readable(context, _teal),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -2203,27 +2268,36 @@ class FinanceBalances extends StatelessWidget {
                                 advance?.purpose ??
                                     _label(context, 'Advance', 'ایڈوانس'),
                                 style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF0F172A),
+                                  color: AppTheme.readable(
+                                    context,
+                                    isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                  ),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               subtitle: Text(
                                 '${b.itemCount} ${_label(context, 'purchases', 'خریداری')}',
                                 style: TextStyle(
-                                  color: isDark
-                                      ? const Color(0xFF94A3B8)
-                                      : const Color(0xFF64748B),
+                                  color: AppTheme.readable(
+                                    context,
+                                    isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
+                                  ),
                                 ),
                               ),
                               trailing: Text(
                                 _money(context, b.remaining),
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF0F172A),
+                                  color: AppTheme.readable(
+                                    context,
+                                    isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                  ),
                                 ),
                               ),
                             );
@@ -2504,7 +2578,10 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        color: AppTheme.readable(
+                          context,
+                          isDark ? Colors.white : const Color(0xFF0F172A),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -2515,9 +2592,12 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark
-                            ? const Color(0xFF94A3B8)
-                            : const Color(0xFF64748B),
+                        color: AppTheme.readable(
+                          context,
+                          isDark
+                              ? const Color(0xFF94A3B8)
+                              : const Color(0xFF64748B),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -2569,10 +2649,13 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                       const SizedBox(width: 6),
                                       Text(
                                         ur ? 'شروع (From)' : 'From Date',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
-                                          color: Color(0xFF7C3AED),
+                                          color: AppTheme.readable(
+                                            context,
+                                            Color(0xFF7C3AED),
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -2586,9 +2669,12 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF0F172A),
+                                      color: AppTheme.readable(
+                                        context,
+                                        isDark
+                                            ? Colors.white
+                                            : const Color(0xFF0F172A),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -2645,10 +2731,13 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                       const SizedBox(width: 6),
                                       Text(
                                         ur ? 'اختتام (To)' : 'To Date',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
-                                          color: Color(0xFF0D9488),
+                                          color: AppTheme.readable(
+                                            context,
+                                            Color(0xFF0D9488),
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -2662,9 +2751,12 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
-                                      color: isDark
-                                          ? Colors.white
-                                          : const Color(0xFF0F172A),
+                                      color: AppTheme.readable(
+                                        context,
+                                        isDark
+                                            ? Colors.white
+                                            : const Color(0xFF0F172A),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -2921,7 +3013,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                     _Panel(
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          final fieldWidth = constraints.maxWidth < 220
+                          final fieldWidth = constraints.maxWidth < 520
                               ? constraints.maxWidth
                               : ((constraints.maxWidth - 10) / 2).clamp(
                                   0.0,
@@ -2965,13 +3057,13 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                     SizedBox(
                                       width: fieldWidth,
                                       child: DropdownButtonFormField<String?>(
+                                        itemHeight: null,
                                         initialValue: _officeId,
                                         isExpanded: true,
                                         decoration: InputDecoration(
-                                          labelText: _label(
-                                            context,
-                                            'Office',
-                                            'دفتر',
+                                          label: Text(
+                                            _label(context, 'Office', 'دفتر'),
+                                            softWrap: true,
                                           ),
                                         ),
                                         items: [
@@ -2983,8 +3075,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                                 'All offices',
                                                 'تمام دفاتر',
                                               ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                              softWrap: true,
                                             ),
                                           ),
                                           ...flow.offices.map(
@@ -2992,8 +3083,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                               value: o.id,
                                               child: Text(
                                                 o.name,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
+                                                softWrap: true,
                                               ),
                                             ),
                                           ),
@@ -3007,13 +3097,17 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                   SizedBox(
                                     width: fieldWidth,
                                     child: DropdownButtonFormField<String?>(
+                                      itemHeight: null,
                                       initialValue: _personId,
                                       isExpanded: true,
                                       decoration: InputDecoration(
-                                        labelText: _label(
-                                          context,
-                                          'Office Boy',
-                                          'آفس بوائے',
+                                        label: Text(
+                                          _label(
+                                            context,
+                                            'Office Boy',
+                                            'آفس بوائے',
+                                          ),
+                                          softWrap: true,
                                         ),
                                       ),
                                       items: [
@@ -3025,18 +3119,13 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                               'All people',
                                               'تمام لوگ',
                                             ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                            softWrap: true,
                                           ),
                                         ),
                                         ...people.map(
                                           (u) => DropdownMenuItem<String?>(
                                             value: u.uid,
-                                            child: Text(
-                                              u.name,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
+                                            child: Text(u.name, softWrap: true),
                                           ),
                                         ),
                                       ],
@@ -3048,13 +3137,17 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                     SizedBox(
                                       width: fieldWidth,
                                       child: DropdownButtonFormField<String?>(
+                                        itemHeight: null,
                                         initialValue: _managerId,
                                         isExpanded: true,
                                         decoration: InputDecoration(
-                                          labelText: _label(
-                                            context,
-                                            'Manager',
-                                            'مینیجر',
+                                          label: Text(
+                                            _label(
+                                              context,
+                                              'Manager',
+                                              'مینیجر',
+                                            ),
+                                            softWrap: true,
                                           ),
                                         ),
                                         items: [
@@ -3066,8 +3159,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                                 'All Managers',
                                                 'تمام مینیجرز',
                                               ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                              softWrap: true,
                                             ),
                                           ),
                                           ...managers.map(
@@ -3075,8 +3167,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                               value: m.uid,
                                               child: Text(
                                                 m.name,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
+                                                softWrap: true,
                                               ),
                                             ),
                                           ),
@@ -3088,13 +3179,13 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                   SizedBox(
                                     width: fieldWidth,
                                     child: DropdownButtonFormField<String>(
+                                      itemHeight: null,
                                       initialValue: _type,
                                       isExpanded: true,
                                       decoration: InputDecoration(
-                                        labelText: _label(
-                                          context,
-                                          'Type',
-                                          'قسم',
+                                        label: Text(
+                                          _label(context, 'Type', 'قسم'),
+                                          softWrap: true,
                                         ),
                                       ),
                                       items: [
@@ -3106,8 +3197,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                               'All payments',
                                               'تمام ادائیگیاں',
                                             ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                            softWrap: true,
                                           ),
                                         ),
                                         DropdownMenuItem(
@@ -3118,8 +3208,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                               'Advance',
                                               'ایڈوانس',
                                             ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                            softWrap: true,
                                           ),
                                         ),
                                         DropdownMenuItem(
@@ -3130,8 +3219,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                                               'Own money',
                                               'اپنی رقم',
                                             ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                            softWrap: true,
                                           ),
                                         ),
                                       ],
@@ -3149,11 +3237,23 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                     const SizedBox(height: 14),
                     _MetricGrid([
                       _Metric(
-                        _label(context, 'Total given out', 'کل دی گئی رقم'),
+                        isManager
+                            ? _label(
+                                context,
+                                'Approved tagged costs',
+                                'منظور شدہ ٹیگ کردہ اخراجات',
+                              )
+                            : _label(
+                                context,
+                                'Total given out',
+                                'کل دی گئی رقم',
+                              ),
                         _money(context, totalGivenOut),
                         Icons.account_balance_wallet,
                         const Color(0xFF7C3AED),
-                        badge: _label(context, 'Total Out', 'کل جاری'),
+                        badge: isManager
+                            ? _label(context, 'Approved', 'منظور شدہ')
+                            : _label(context, 'Total Out', 'کل جاری'),
                         badgeColor: const Color(0xFF7C3AED),
                       ),
                       if (!isManager) ...[
@@ -3182,7 +3282,7 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                           badgeColor: const Color(0xFF10B981),
                         ),
                         _Metric(
-                          _label(context, 'Waiting / due', 'انتظار / باقی'),
+                          _label(context, 'Requests due', 'باقی درخواستیں'),
                           _money(context, displayPending),
                           Icons.pending_actions,
                           const Color(0xFFF59E0B),
@@ -3191,6 +3291,21 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                         ),
                       ],
                     ]),
+                    const SizedBox(height: 12),
+                    Text(
+                      isManager
+                          ? _label(
+                              context,
+                              'Approved tagged costs include approved purchases and approved or paid repayments. Approved repayments may still be unpaid.',
+                              'منظور شدہ ٹیگ کردہ اخراجات میں منظور شدہ خریداری اور منظور شدہ یا ادا شدہ واپسی شامل ہے۔ منظور شدہ واپسی کی ادائیگی باقی ہو سکتی ہے۔',
+                            )
+                          : _label(
+                              context,
+                              'Requests due includes advances awaiting receipt and repayments awaiting approval or payment. Pending purchases are tracked separately. Manager filters show the full matching advance; the Manager panel totals tagged costs only.',
+                              'باقی درخواستوں میں وصولی کے منتظر ایڈوانس اور منظوری یا ادائیگی کی منتظر واپسی شامل ہے۔ زیر التوا خریداری الگ شمار ہوتی ہے۔ مینیجر فلٹر مکمل متعلقہ ایڈوانس دکھاتا ہے؛ مینیجر پینل صرف ٹیگ کردہ اخراجات جمع کرتا ہے۔',
+                            ),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     const SizedBox(height: 18),
                     Text(
                       _label(
@@ -3201,7 +3316,10 @@ class _CoreMonthlyRecordsState extends State<CoreMonthlyRecords> {
                       style: TextStyle(
                         fontSize: 19,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : _navy,
+                        color: AppTheme.readable(
+                          context,
+                          isDark ? Colors.white : _navy,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -3252,7 +3370,10 @@ class CoreOfficesScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white : _navy,
+                        color: AppTheme.readable(
+                          context,
+                          isDark ? Colors.white : _navy,
+                        ),
                       ),
                     ),
                   ),
@@ -3289,18 +3410,22 @@ class CoreOfficesScreen extends StatelessWidget {
                             o.name,
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
-                              color: isDark
-                                  ? Colors.white
-                                  : const Color(0xFF0F172A),
+                              color: AppTheme.readable(
+                                context,
+                                isDark ? Colors.white : const Color(0xFF0F172A),
+                              ),
                             ),
                           ),
                         ),
                         Text(
                           '$peopleCount ${_label(context, 'people', 'لوگ')}',
                           style: TextStyle(
-                            color: isDark
-                                ? const Color(0xFF94A3B8)
-                                : const Color(0xFF64748B),
+                            color: AppTheme.readable(
+                              context,
+                              isDark
+                                  ? const Color(0xFF94A3B8)
+                                  : const Color(0xFF64748B),
+                            ),
                             fontSize: 12,
                           ),
                         ),
@@ -3400,7 +3525,10 @@ class _AddOfficeDialogState extends State<_AddOfficeDialog> {
       title: Text(
         _label(context, 'Add office', 'دفتر شامل کریں'),
         style: TextStyle(
-          color: isDark ? Colors.white : AppTheme.primaryNavy,
+          color: AppTheme.readable(
+            context,
+            isDark ? Colors.white : AppTheme.primaryNavy,
+          ),
           fontWeight: FontWeight.w700,
         ),
       ),
@@ -3416,10 +3544,16 @@ class _AddOfficeDialogState extends State<_AddOfficeDialog> {
               enabled: !_isSaving,
               autofocus: true,
               style: TextStyle(
-                color: isDark ? Colors.white : AppTheme.primaryNavy,
+                color: AppTheme.readable(
+                  context,
+                  isDark ? Colors.white : AppTheme.primaryNavy,
+                ),
               ),
               decoration: InputDecoration(
-                labelText: _label(context, 'Office name', 'دفتر کا نام'),
+                label: Text(
+                  _label(context, 'Office name', 'دفتر کا نام'),
+                  softWrap: true,
+                ),
                 hintText: _label(
                   context,
                   'e.g. Lahore Branch',
@@ -3439,8 +3573,8 @@ class _AddOfficeDialogState extends State<_AddOfficeDialog> {
               const SizedBox(height: 8),
               Text(
                 _errorMessage!,
-                style: const TextStyle(
-                  color: Color(0xFFEF4444),
+                style: TextStyle(
+                  color: AppTheme.readable(context, Color(0xFFEF4444)),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),

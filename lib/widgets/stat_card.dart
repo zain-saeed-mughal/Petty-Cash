@@ -46,12 +46,16 @@ class StatCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: AppTheme.readable(
+                        context,
+                        isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
+                      ),
                     ),
                   ),
                 ),
@@ -69,12 +73,14 @@ class StatCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              softWrap: true,
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : AppTheme.primaryNavy,
+                color: AppTheme.readable(
+                  context,
+                  isDark ? Colors.white : AppTheme.primaryNavy,
+                ),
                 letterSpacing: -0.5,
               ),
             ),
@@ -82,11 +88,10 @@ class StatCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 subtitle!,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                softWrap: true,
+                style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF94A3B8),
+                  color: AppTheme.readable(context, Color(0xFF94A3B8)),
                   fontWeight: FontWeight.w500,
                 ),
               ),

@@ -1,3 +1,4 @@
+import 'package:petty_cash/config/app_theme.dart';
 import 'package:petty_cash/l10n/context_l10n.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -111,7 +112,10 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
               ? context.t('Create account')
               : context.t('Edit account'),
           style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            color: AppTheme.readable(
+              context,
+              isDark ? Colors.white : const Color(0xFF0F172A),
+            ),
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -128,7 +132,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                     enabled: !_busy,
                     maxLength: 120,
                     decoration: InputDecoration(
-                      labelText: context.t('Full name'),
+                      label: Text(context.t('Full name'), softWrap: true),
                       helperText: context.t('Example: Sara Khan'),
                     ),
                     validator: (v) => v == null || v.trim().isEmpty
@@ -143,7 +147,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                     keyboardType: TextInputType.emailAddress,
                     autofillHints: const [AutofillHints.email],
                     decoration: InputDecoration(
-                      labelText: context.t('Email address'),
+                      label: Text(context.t('Email address'), softWrap: true),
                       helperText: context.t('Example: sara@example.com'),
                     ),
                     validator: (v) =>
@@ -161,9 +165,12 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                     enabled: !_busy,
                     obscureText: !_showPassword,
                     decoration: InputDecoration(
-                      labelText: widget.user == null
-                          ? context.t('Temporary password')
-                          : context.t('New password (optional)'),
+                      label: Text(
+                        widget.user == null
+                            ? context.t('Temporary password')
+                            : context.t('New password (optional)'),
+                        softWrap: true,
+                      ),
                       helperText: context.t('6 to 8 characters'),
                       suffixIcon: IconButton(
                         tooltip: _showPassword
@@ -187,20 +194,18 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                   const SizedBox(height: 16),
                   if (offices.isNotEmpty) ...[
                     DropdownButtonFormField<String>(
+                      itemHeight: null,
                       initialValue: selectedOfficeId,
                       isExpanded: true,
                       decoration: InputDecoration(
-                        labelText: context.t('Office'),
+                        label: Text(context.t('Office'), softWrap: true),
                         helperText: context.t('Choose this person\'s office'),
                       ),
                       items: offices
                           .map(
                             (office) => DropdownMenuItem(
                               value: office.id,
-                              child: Text(
-                                office.name,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                              child: Text(office.name, softWrap: true),
                             ),
                           )
                           .toList(),
@@ -211,10 +216,11 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                     const SizedBox(height: 16),
                   ],
                   DropdownButtonFormField<UserRole>(
+                    itemHeight: null,
                     initialValue: selectedRole,
                     isExpanded: true,
                     decoration: InputDecoration(
-                      labelText: context.t('Role'),
+                      label: Text(context.t('Role'), softWrap: true),
                       helperText: context.t('Choose what this person can do'),
                     ),
                     items: roles
@@ -223,7 +229,7 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                             value: r,
                             child: Text(
                               context.t(r.displayName),
-                              overflow: TextOverflow.ellipsis,
+                              softWrap: true,
                             ),
                           ),
                         )
@@ -249,7 +255,10 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
                       child: Text(
                         context.language.error(_error!),
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
+                          color: AppTheme.readable(
+                            context,
+                            Theme.of(context).colorScheme.error,
+                          ),
                         ),
                       ),
                     ),
@@ -260,45 +269,27 @@ class _UserAccountDialogState extends State<UserAccountDialog> {
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         actions: [
-          Row(
-            children: [
-              Expanded(
-                child: TextButton(
-                  style: TextButton.styleFrom(
-                    foregroundColor: isDark
-                        ? const Color(0xFF94A3B8)
-                        : const Color(0xFF64748B),
-                  ),
-                  onPressed: _busy ? null : () => Navigator.pop(context),
-                  child: Text(context.t('Cancel')),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C3AED),
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: _busy ? null : _save,
-                  child: _busy
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          context.t('Save account'),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                ),
-              ),
-            ],
+          TextButton(
+            onPressed: _busy ? null : () => Navigator.pop(context),
+            child: Text(context.t('Cancel')),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF7C3AED),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(140, 48),
+            ),
+            onPressed: _busy ? null : _save,
+            child: _busy
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(context.t('Save account')),
           ),
         ],
       ),
