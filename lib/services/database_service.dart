@@ -457,6 +457,10 @@ class DatabaseService {
     return OfficeRecord.fromMap(_asMap(row));
   }
 
+  Future<void> deleteOffice(String id) async {
+    await _client.rpc('delete_office', params: {'p_office_id': id});
+  }
+
   Future<CoreAdvance> requestCoreAdvance({
     required String id,
     required String purpose,

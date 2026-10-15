@@ -10,6 +10,7 @@ function fixture(
   profileSync = true,
   targetActive = true,
   targetOfficeId = "00000000-0000-0000-0000-000000000001",
+  schemaCheckError: unknown = null,
 ) {
   const writes: unknown[] = [];
   const rpcCalls: unknown[] = [];
@@ -72,7 +73,15 @@ function fixture(
         },
       }),
     },
-    from: () => ({
+    from: (table: string) => table === "account_deletion_receipts" ? ({
+      select: () => ({
+        limit: () => Promise.resolve({ data: [], error: schemaCheckError }),
+        eq: () => ({ order: () => ({ range: () => Promise.resolve({
+          data: [{ path: "other-user/linked-receipt.jpg" }], error: null,
+        }) }) }),
+      }),
+      delete: () => ({ eq: () => Promise.resolve({ error: null }) }),
+    }) : ({
       select: () => ({
         eq: (_key: string, id: string) => ({
           single: () =>
@@ -163,12 +172,12 @@ Deno.test("Staff cannot create users and admin cannot grant super-admin", async 
   );
   equal(staff.writes.length + admin.writes.length, 0);
 });
-Deno.test("Super-admin deletes Office Boy data, receipts, then the auth account", async () => {
+Deno.test("Super-admin deletes Office Boy payments, receipts, then the auth account", async () => {
   const f = fixture();
   equal((await f.send({ action: "delete", uid: "staff" })).status, 200);
   equal(f.rpcCalls.length, 1);
-  equal((f.rpcCalls[0] as { name: string }).name, "delete_office_boy_data");
-  equal(f.storageCalls.length, 2);
+  equal((f.rpcCalls[0] as { name: string }).name, "delete_user_financial_data");
+  equal(f.storageCalls.length, 3);
   equal((f.writes[1] as { deleteUser: string }).deleteUser, "staff");
 });
 Deno.test("Admin cannot permanently delete an Office Boy account", async () => {
@@ -177,11 +186,32 @@ Deno.test("Admin cannot permanently delete an Office Boy account", async () => {
   equal(f.rpcCalls.length, 0);
   equal(f.writes.length, 0);
 });
-Deno.test("Super-admin cannot use Office Boy purge for another role", async () => {
+Deno.test("Super-admin purges a Finance account's linked payments", async () => {
   const f = fixture("super_admin", null, null, "finance");
-  equal((await f.send({ action: "delete", uid: "staff" })).status, 400);
+  equal((await f.send({ action: "delete", uid: "staff" })).status, 200);
+  equal(f.rpcCalls.length, 1);
+  equal((f.rpcCalls[0] as { name: string }).name, "delete_user_financial_data");
+  equal((f.storageCalls[0] as { paths: string[] }).paths[0], "other-user/linked-receipt.jpg");
+  equal((f.writes[1] as { deleteUser: string }).deleteUser, "staff");
+});
+Deno.test("A failed linked-history purge disables the account for retry", async () => {
+  const f = fixture("super_admin", new Error("Financial history exists"), null, "manager");
+  equal((await f.send({ action: "delete", uid: "staff" })).status, 500);
+  equal(f.writes.length, 1);
+  equal(f.storageCalls.length, 0);
+});
+Deno.test("Super-admin cannot delete their own account", async () => {
+  const f = fixture();
+  equal((await f.send({ action: "delete", uid: "actor" })).status, 400);
   equal(f.rpcCalls.length, 0);
+});
+Deno.test("Missing SQL patch does not disable an account", async () => {
+  const f = fixture("super_admin", null, null, "finance", null, null,
+    true, true, "00000000-0000-0000-0000-000000000001",
+    new Error("Table missing"));
+  equal((await f.send({ action: "delete", uid: "staff" })).status, 409);
   equal(f.writes.length, 0);
+  equal(f.rpcCalls.length, 0);
 });
 Deno.test("Failed database cleanup leaves the account disabled and Auth intact", async () => {
   const f = fixture("super_admin", new Error("cleanup failed"));
@@ -192,7 +222,7 @@ Deno.test("Failed database cleanup leaves the account disabled and Auth intact",
 Deno.test("Failed receipt cleanup never deletes the auth account", async () => {
   const f = fixture("super_admin", null, new Error("storage failed"));
   equal((await f.send({ action: "delete", uid: "staff" })).status, 500);
-  equal(f.storageCalls.length, 2);
+  equal(f.storageCalls.length, 1);
   equal(f.rpcCalls.length, 1);
   equal(f.writes.length, 1);
 });

@@ -267,6 +267,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   Future<void> _confirmDeleteUser(BuildContext context, AppUser user) async {
     final provider = context.read<UserProvider>();
+    final language = context.read<LanguageProvider>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -277,7 +278,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           ).tr('deactivate_account_title'),
         ),
         content: Text(
-          '${Provider.of<LanguageProvider>(context, listen: false).tr('deactivate_account_confirm')}${user.name}${Provider.of<LanguageProvider>(context, listen: false).tr('deactivate_account_confirm_end')}',
+          user.isOfficeBoy
+              ? '${language.tr('deactivate_account_confirm')}${user.name}${language.tr('deactivate_account_confirm_end')}'
+              : '${language.tr('delete_staff_confirm')}${user.name}${language.tr('delete_staff_confirm_end')}',
         ),
         actions: [
           TextButton(
@@ -309,7 +312,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       if (success) {
         showAppToast(
           context,
-          message: langProvider.tr('account_deactivated'),
+          message: langProvider.tr(
+            user.isOfficeBoy ? 'account_deactivated' : 'staff_account_deleted',
+          ),
           type: ToastType.warning,
         );
       } else {
@@ -763,10 +768,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     final canEdit =
         currentUser.isSuperAdmin ||
         (currentUser.isAdmin && (user.isOfficeBoy || user.isFinance));
-    final canDelete =
-        currentUser.isSuperAdmin &&
-        user.isOfficeBoy &&
-        user.uid != currentUser.uid;
+    final canDelete = currentUser.isSuperAdmin && user.uid != currentUser.uid;
 
     return Container(
       width: double.infinity,

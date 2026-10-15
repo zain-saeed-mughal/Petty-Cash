@@ -209,6 +209,13 @@ class CoreFlowProvider extends ChangeNotifier {
           ..sort((a, b) => a.name.compareTo(b.name));
       });
 
+  Future<bool> deleteOffice(String id) =>
+      _run('delete-office-$id', (isCurrent) async {
+        await _db.deleteOffice(id);
+        if (!isCurrent()) return;
+        offices = offices.where((entry) => entry.id != id).toList();
+      });
+
   Future<bool> addItem({
     String? id,
     required String advanceId,

@@ -82,6 +82,14 @@ class UiTranslations {
         "آپ کو اس اکاؤنٹ میں تبدیلی کی اجازت نہیں ہے۔",
     "The account could not be saved. Please try again.":
         "اکاؤنٹ محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+    "This account appears in financial or audit history. Deactivate it to keep that history intact.": "یہ اکاؤنٹ مالی یا آڈٹ ریکارڈ میں موجود ہے۔ ریکارڈ محفوظ رکھنے کے لیے اسے غیر فعال کریں۔",
+    "The last active super-admin cannot be deleted":
+        "آخری فعال سپر ایڈمن کو ڈیلیٹ نہیں کیا جا سکتا۔",
+    "Move or delete every account in this office first":
+        "پہلے اس دفتر کے تمام اکاؤنٹس منتقل یا ڈیلیٹ کریں۔",
+    "This office has financial history and cannot be deleted":
+        "اس دفتر کا مالی ریکارڈ موجود ہے، اس لیے اسے ڈیلیٹ نہیں کیا جا سکتا۔",
+    "Main Office cannot be deleted": "مرکزی دفتر ڈیلیٹ نہیں کیا جا سکتا۔",
     "Back to requests": "درخواستوں پر واپس جائیں",
     "Created reimbursement request": "خرچ کی واپسی کی درخواست جمع کی",
     "Created advance request": "پیشگی رقم کی درخواست جمع کی",

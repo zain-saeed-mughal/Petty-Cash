@@ -3428,6 +3428,21 @@ class CoreOfficesScreen extends StatelessWidget {
                             fontSize: 12,
                           ),
                         ),
+                        if (o.id != '00000000-0000-0000-0000-000000000001') ...[
+                          const SizedBox(width: 8),
+                          IconButton(
+                            tooltip: _label(
+                              context,
+                              'Delete office',
+                              'دفتر ڈیلیٹ کریں',
+                            ),
+                            onPressed: () => _confirmDeleteOffice(context, o),
+                            icon: const Icon(
+                              Icons.delete_outline_rounded,
+                              color: Color(0xFFDC2626),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -3438,6 +3453,51 @@ class CoreOfficesScreen extends StatelessWidget {
         );
       },
     ),
+  );
+}
+
+Future<void> _confirmDeleteOffice(
+  BuildContext context,
+  OfficeRecord office,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(_label(context, 'Delete office', 'دفتر ڈیلیٹ کریں')),
+      content: Text(
+        _label(
+          context,
+          'Delete ${office.name}? Only an office with no accounts or financial history can be deleted. This cannot be undone.',
+          'کیا ${office.name} کو ڈیلیٹ کریں؟ صرف وہ دفتر ڈیلیٹ ہو سکتا ہے جس میں کوئی اکاؤنٹ یا مالی ریکارڈ نہ ہو۔ یہ عمل واپس نہیں ہو سکتا۔',
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(_label(context, 'Cancel', 'منسوخ کریں')),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFFDC2626),
+          ),
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(_label(context, 'Delete', 'ڈیلیٹ کریں')),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) return;
+  final flow = context.read<CoreFlowProvider>();
+  final deleted = await flow.deleteOffice(office.id);
+  if (!context.mounted) return;
+  showAppToast(
+    context,
+    message: deleted
+        ? _label(context, 'Office deleted.', 'دفتر ڈیلیٹ ہو گیا۔')
+        : context.read<LanguageProvider>().error(
+            flow.error ?? 'Could not delete office.',
+          ),
+    type: deleted ? ToastType.success : ToastType.error,
   );
 }
 

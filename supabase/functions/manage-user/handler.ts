@@ -37,6 +37,29 @@ async function removeUserReceipts(db: SupabaseClient, uid: string) {
   }
 }
 
+async function removeQueuedReceipts(db: SupabaseClient, uid: string) {
+  const paths: string[] = [];
+  while (true) {
+    const { data, error } = await db.from("account_deletion_receipts")
+      .select("path").eq("account_uid", uid)
+      .order("path")
+      .range(paths.length, paths.length + 999);
+    if (error) throw error;
+    paths.push(...(data ?? []).map((row) => row.path as string));
+    if ((data ?? []).length < 1000) break;
+  }
+  for (let offset = 0; offset < paths.length; offset += 100) {
+    const { error: removeError } = await db.storage.from("receipts")
+      .remove(paths.slice(offset, offset + 100));
+    if (removeError) throw removeError;
+  }
+  if (paths.length > 0) {
+    const { error: clearError } = await db.from("account_deletion_receipts")
+      .delete().eq("account_uid", uid);
+    if (clearError) throw clearError;
+  }
+}
+
 export const createHandler =
   (db: SupabaseClient) => async (req: Request): Promise<Response> => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
@@ -106,10 +129,15 @@ export const createHandler =
             error: "Only super-admins can delete users completely",
           }, 403);
         }
-        if (target!.role !== "office_boy") {
-          return reply({
-            error: "Only Office Boy accounts can be permanently deleted",
-          }, 400);
+        if (uid === actor.uid) {
+          return reply({ error: "You cannot delete your own account" }, 400);
+        }
+        // The Edge Function may be deployed before the SQL patch. Fail without
+        // disabling the account until the transactional migration is present.
+        const { error: schemaError } = await db.from("account_deletion_receipts")
+          .select("account_uid").limit(1);
+        if (schemaError) {
+          return reply({ error: "Run the account deletion SQL patch first" }, 409);
         }
         // Disable sign-in before any irreversible cleanup. Every following step
         // can be retried with the same uid if storage, SQL, or Auth fails.
@@ -122,18 +150,19 @@ export const createHandler =
           },
         });
         if (banError) return reply({ error: banError.message }, 400);
-        const { error } = await db.rpc("delete_office_boy_data", {
+        const { error: purgeError } = await db.rpc("delete_user_financial_data", {
           p_uid: uid,
         });
-        if (error) return reply({ error: `Account disabled. Delete incomplete: ${error.message}. Retry deletion.` }, 500);
+        if (purgeError) return reply({ error: `Account disabled. Delete incomplete: ${purgeError.message}. Retry deletion.` }, 500);
         try {
+          await removeQueuedReceipts(db, uid);
           await removeUserReceipts(db, uid);
         } catch (storageError) {
           console.error("Receipt cleanup failed:", storageError);
-          return reply({ error: "Account disabled and financial data removed. Receipt cleanup is incomplete; retry deletion." }, 500);
+          return reply({ error: "Account disabled. Receipt cleanup is incomplete; retry deletion." }, 500);
         }
         const { error: deleteError } = await db.auth.admin.deleteUser(uid);
-        if (deleteError) return reply({ error: `Account disabled and data removed. Retry deletion: ${deleteError.message}` }, 500);
+        if (deleteError) return reply({ error: `Account disabled. Retry deletion: ${deleteError.message}` }, 500);
         return reply({ ok: true });
       }
       const name = String(body.name ?? "").trim(),

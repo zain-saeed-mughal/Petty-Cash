@@ -18,6 +18,7 @@ class DelayedDatabase implements DatabaseService {
   final activity = StreamController<List<CoreActivity>>.broadcast();
   final balanceCalls = <Completer<List<CoreBalance>>>[];
   final officeCalls = <Completer<OfficeRecord>>[];
+  final officeDeleteCalls = <Completer<void>>[];
   final advanceCalls = <Completer<CoreAdvance>>[];
   @override
   Stream<List<OfficeRecord>> streamOffices() => offices.stream;
@@ -41,6 +42,13 @@ class DelayedDatabase implements DatabaseService {
   Future<OfficeRecord> createOffice(String name) {
     final request = Completer<OfficeRecord>();
     officeCalls.add(request);
+    return request.future;
+  }
+
+  @override
+  Future<void> deleteOffice(String id) {
+    final request = Completer<void>();
+    officeDeleteCalls.add(request);
     return request.future;
   }
 
@@ -224,6 +232,23 @@ void main() {
     expect(flow.error, isNotNull);
     expect(flow.loadError, isNull);
   });
+
+  test(
+    'office remains visible until deletion succeeds and on failure',
+    () async {
+      flow.offices = [const OfficeRecord('unused', 'Unused')];
+      final failed = flow.deleteOffice('unused');
+      expect(flow.offices, hasLength(1));
+      db.officeDeleteCalls[0].completeError(StateError('Office has history'));
+      expect(await failed, isFalse);
+      expect(flow.offices, hasLength(1));
+
+      final succeeded = flow.deleteOffice('unused');
+      db.officeDeleteCalls[1].complete();
+      expect(await succeeded, isTrue);
+      expect(flow.offices, isEmpty);
+    },
+  );
 
   testWidgets(
     'partial feed failure hides incomplete totals and retry recovers',
