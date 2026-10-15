@@ -86,6 +86,9 @@ class _PettyCashAppState extends State<PettyCashApp> {
 
   Future<void> _initializeServices() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    final splashMinimum = Future<void>.delayed(
+      const Duration(milliseconds: 1500),
+    );
 
     try {
       if (mounted) setState(() => _startupError = null);
@@ -94,6 +97,7 @@ class _PettyCashAppState extends State<PettyCashApp> {
       await langProvider.ready;
       await SupabaseService().initialize();
       await auth.restoreSession();
+      await splashMinimum;
 
       if (!mounted) return;
       _pushMessages ??= PushNotificationService().messages.stream.listen((
@@ -377,10 +381,7 @@ class _StartupSplashState extends State<_StartupSplash>
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFF0F172A),
-              Color(0xFF312E81),
-            ], // Deep navy to indigo
+            colors: [Color(0xFF160B31), Color(0xFF4C1D95)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -398,26 +399,22 @@ class _StartupSplashState extends State<_StartupSplash>
                   child: Transform.scale(
                     scale: _logoScale.value,
                     child: Container(
-                      padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: Colors.transparent,
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
-                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF6366F1)
-                                .withValues(alpha: 0.5),
-                            blurRadius: 40,
-                            spreadRadius: 10,
+                            color: const Color(0xFF8B5CF6)
+                                .withValues(alpha: 0.36),
+                            blurRadius: 48,
+                            spreadRadius: 3,
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.account_balance_wallet_rounded,
-                        color: Colors.white,
-                        size: 64,
+                      child: Image.asset(
+                        'assets/splash_logo.png',
+                        width: 162,
+                        height: 162,
                       ),
                     ),
                   ),
@@ -468,7 +465,7 @@ class _StartupSplashState extends State<_StartupSplash>
                   height: 3,
                   child: LinearProgressIndicator(
                     backgroundColor: Colors.white24,
-                    color: Color(0xFF818CF8), // Soft indigo
+                    color: Color(0xFFC4B5FD),
                   ),
                 ),
               ),

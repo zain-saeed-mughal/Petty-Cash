@@ -9,6 +9,7 @@ function fixture(
   authDeleteError: unknown = null,
   profileSync = true,
   targetActive = true,
+  targetOfficeId = "00000000-0000-0000-0000-000000000001",
 ) {
   const writes: unknown[] = [];
   const rpcCalls: unknown[] = [];
@@ -16,7 +17,7 @@ function fixture(
   const officeId = "00000000-0000-0000-0000-000000000001";
   const target = {
     uid: "staff", name: "Test User", email: "user@example.test",
-    role: targetRole, isActive: targetActive, office_id: officeId,
+    role: targetRole, isActive: targetActive, office_id: targetOfficeId,
   };
   const client = {
     auth: {
@@ -212,6 +213,22 @@ Deno.test("Editing an inactive account without an active flag does not reactivat
   const update = (f.writes[0] as { body: { app_metadata: { petty_cash_active: boolean }, ban_duration?: string } }).body;
   equal(update.app_metadata.petty_cash_active, false);
   equal(update.ban_duration, undefined);
+});
+
+Deno.test("Super-admin can move an Office Boy without changing payment records", async () => {
+  const f = fixture();
+  const newOffice = "00000000-0000-0000-0000-000000000002";
+  equal((await f.send({ ...account, action: "update", uid: "staff", officeId: newOffice, password: null })).status, 200);
+  const update = (f.writes[0] as { body: { app_metadata: { petty_cash_office_id: string } } }).body;
+  equal(update.app_metadata.petty_cash_office_id, newOffice);
+  equal(f.rpcCalls.length, 0);
+});
+
+Deno.test("Admin cannot move an Office Boy from another office into their own", async () => {
+  const otherOffice = "00000000-0000-0000-0000-000000000002";
+  const f = fixture("admin", null, null, "office_boy", null, null, true, true, otherOffice);
+  equal((await f.send({ ...account, action: "update", uid: "staff", officeId: "00000000-0000-0000-0000-000000000001", password: null })).status, 403);
+  equal(f.writes.length, 0);
 });
 
 Deno.test("A failed Auth deletion leaves a disabled account that can be retried", async () => {

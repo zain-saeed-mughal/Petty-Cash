@@ -146,6 +146,12 @@ export const createHandler =
         : body.isActive;
       const assignedOfficeId = officeId ??
         (action === "create" ? String(actor.office_id) : String(target?.office_id));
+      if (
+        action === "update" && assignedOfficeId !== target?.office_id &&
+        actor.role !== "super_admin"
+      ) {
+        return reply({ error: "Only a super-admin can change an account's office" }, 403);
+      }
       if (actor.role === "admin" && assignedOfficeId !== actor.office_id) {
         return reply({ error: "Admins can only manage accounts in their office" }, 403);
       }
