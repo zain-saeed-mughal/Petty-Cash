@@ -61,3 +61,6 @@ app.*.map.json
 /android/.kotlin/
 /deployment/**/*.apk
 /deployment/**/*.zip
+SERVER_CREDENTIALS_AND_HANDOVER_GUIDE.md
+*credentials*
+*CREDENTIALS*

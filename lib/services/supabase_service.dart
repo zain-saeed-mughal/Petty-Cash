@@ -14,11 +14,11 @@ class SupabaseService {
   // The publishable key is public; a deployment may override these values.
   static const String _supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: 'https://ysrwvlminsuvwswgpuhh.supabase.co',
+    defaultValue: 'http://203.215.164.70:8000',
   );
   static const String _supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_PUBLISHABLE_KEY',
-    defaultValue: 'sb_publishable_6puU1eZ4bgDCZjSQWeDdMg_xs27lGMz',
+    defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzI5MDAwMDAwLCJleHAiOjIzNjAwMDAwMDB9.g3LJYmuIXr9DJJAN7bJto9ichdHDk3kEf5BCZ12xL7o',
   );
 
   Future<void> initialize() async {
